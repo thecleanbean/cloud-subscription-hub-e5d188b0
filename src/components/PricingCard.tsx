@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
+import { Check, ShoppingBag } from "lucide-react";
 
 interface PricingFeature {
   name: string;
@@ -12,6 +12,7 @@ interface PricingCardProps {
   description: string;
   features: PricingFeature[];
   isPopular?: boolean;
+  icon: string;
   onSelect: () => void;
 }
 
@@ -21,6 +22,7 @@ export const PricingCard = ({
   description,
   features,
   isPopular,
+  icon,
   onSelect,
 }: PricingCardProps) => {
   return (
@@ -40,6 +42,14 @@ export const PricingCard = ({
         </div>
       )}
       <div className="text-center mb-6">
+        <div className="flex justify-center mb-4">
+          <div className="relative w-16 h-16">
+            <ShoppingBag className="w-full h-full text-primary" />
+            <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg font-bold text-primary">
+              {icon}
+            </span>
+          </div>
+        </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">{name}</h3>
         <div className="text-3xl font-bold text-gray-900 mb-2">{price}</div>
         <p className="text-gray-600 text-sm">{description}</p>
