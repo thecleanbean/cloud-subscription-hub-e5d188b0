@@ -9,6 +9,7 @@ interface PricingFeature {
 interface PricingCardProps {
   name: string;
   price: string;
+  annualPrice: string;
   description: string;
   features: PricingFeature[];
   isPopular?: boolean;
@@ -19,6 +20,7 @@ interface PricingCardProps {
 export const PricingCard = ({
   name,
   price,
+  annualPrice,
   description,
   features,
   isPopular,
@@ -52,6 +54,7 @@ export const PricingCard = ({
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">{name}</h3>
         <div className="text-3xl font-bold text-gray-900 mb-2">{price}</div>
+        <div className="text-sm text-gray-600 mb-2">or {annualPrice}</div>
         <p className="text-gray-600 text-sm">{description}</p>
       </div>
       <ul className="space-y-3 mb-6">
