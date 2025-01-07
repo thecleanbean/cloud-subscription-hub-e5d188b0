@@ -15,8 +15,8 @@ const plans = [
       { name: "Smart locker access", included: true },
       { name: "2-day turnaround", included: true },
       { name: "In-store pickup available", included: true },
-      { name: "Home delivery (£4.50/month or £48.60/year)", included: true },
-      { name: "Colour sorting service (£3.00/month or £32.40/year)", included: true },
+      { name: "Home delivery (£8.35/month or £100.20/year)", included: true },
+      { name: "Colour sorting service (£8.35/month or £100.20/year)", included: true },
     ],
     icon: "1",
   },
@@ -30,8 +30,8 @@ const plans = [
       { name: "Smart locker access", included: true },
       { name: "2-day turnaround", included: true },
       { name: "In-store pickup available", included: true },
-      { name: "Home delivery (£4.50/month or £48.60/year)", included: true },
-      { name: "Colour sorting service (£3.00/month or £32.40/year)", included: true },
+      { name: "Home delivery (£8.35/month or £100.20/year)", included: true },
+      { name: "Colour sorting service (£8.35/month or £100.20/year)", included: true },
     ],
     isPopular: true,
     icon: "2",
@@ -46,8 +46,8 @@ const plans = [
       { name: "Smart locker access", included: true },
       { name: "2-day turnaround", included: true },
       { name: "Priority processing", included: true },
-      { name: "Home delivery (£4.50/month or £48.60/year)", included: true },
-      { name: "Colour sorting service (£3.00/month or £32.40/year)", included: true },
+      { name: "Home delivery (£8.35/month or £100.20/year)", included: true },
+      { name: "Colour sorting service (£8.35/month or £100.20/year)", included: true },
     ],
     icon: "3",
   },
@@ -61,8 +61,8 @@ const plans = [
       { name: "Smart locker access", included: true },
       { name: "2-day turnaround", included: true },
       { name: "Priority processing", included: true },
-      { name: "Home delivery (£4.50/month or £48.60/year)", included: true },
-      { name: "Colour sorting service (£3.00/month or £32.40/year)", included: true },
+      { name: "Home delivery (£8.35/month or £100.20/year)", included: true },
+      { name: "Colour sorting service (£8.35/month or £100.20/year)", included: true },
     ],
     icon: "4",
   },
@@ -79,7 +79,7 @@ const deliveryOptions = [
     icon: <Home className="w-12 h-12 text-primary" />,
     title: "Home Delivery",
     description: "Monday to Friday, 7am-5PM",
-    price: "£4.50/month or £48.60/year",
+    price: "£8.35/month or £100.20/year",
   },
 ];
 
@@ -186,4 +186,3 @@ const Index = () => {
 };
 
 export default Index;
-
