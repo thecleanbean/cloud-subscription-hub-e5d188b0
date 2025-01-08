@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { PricingCard } from "@/components/PricingCard";
-import { RegistrationForm } from "@/components/RegistrationForm";
-import { Store, Home, RotateCw, Clock } from "lucide-react";
+import { Store, Home, Clock } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const plans = [
   {
     name: "1 Bag Plan",
-    price: "£29.99/month",
+    monthlyPrice: "£29.99",
+    yearlyPrice: "£26.99",
     annualPrice: "£323.89/year",
     description: "Perfect for individuals with minimal laundry needs",
     features: [
@@ -22,7 +23,8 @@ const plans = [
   },
   {
     name: "2 Bags Plan",
-    price: "£54.00/month",
+    monthlyPrice: "£54.00",
+    yearlyPrice: "£48.60",
     annualPrice: "£583.20/year",
     description: "Ideal for couples or small households",
     features: [
@@ -38,8 +40,9 @@ const plans = [
   },
   {
     name: "3 Bags Plan",
-    price: "£78.00/month",
-    annualPrice: "£842.40/year",
+    monthlyPrice: "£78.00",
+    yearlyPrice: "£70.20",
+    annualPrice: "842.40/year",
     description: "Perfect for families",
     features: [
       { name: "3 Bags per month", included: true },
@@ -53,7 +56,8 @@ const plans = [
   },
   {
     name: "4 Bags Plan",
-    price: "£102.00/month",
+    monthlyPrice: "£102.00",
+    yearlyPrice: "£91.80",
     annualPrice: "£1,101.60/year",
     description: "Best value for large families",
     features: [
@@ -86,6 +90,7 @@ const deliveryOptions = [
 const Index = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [showRegistration, setShowRegistration] = useState(false);
+  const [billingPeriod, setBillingPeriod] = useState("yearly"); // Default to yearly
 
   const handlePlanSelect = (planName: string) => {
     setSelectedPlan(planName);
@@ -108,10 +113,32 @@ const Index = () => {
           <h1 className="text-5xl font-black text-primary mb-4">
             MORE TIME, LESS LAUNDRY
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
             Choose your perfect plan and let us handle your laundry. All plans include our
             core features with flexible delivery options.
           </p>
+          
+          <div className="flex justify-center mb-8">
+            <ToggleGroup
+              type="single"
+              value={billingPeriod}
+              onValueChange={(value) => value && setBillingPeriod(value)}
+              className="border border-accent rounded-lg p-1 bg-white shadow-sm"
+            >
+              <ToggleGroupItem
+                value="monthly"
+                className="px-6 py-2 rounded data-[state=on]:bg-accent data-[state=on]:text-white"
+              >
+                Monthly
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="yearly"
+                className="px-6 py-2 rounded data-[state=on]:bg-accent data-[state=on]:text-white"
+              >
+                Yearly
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
         </motion.div>
 
         {!showRegistration ? (
@@ -121,6 +148,8 @@ const Index = () => {
                 <PricingCard
                   key={plan.name}
                   {...plan}
+                  price={billingPeriod === "yearly" ? plan.yearlyPrice : plan.monthlyPrice}
+                  annualPrice={billingPeriod === "yearly" ? `or ${plan.monthlyPrice}/month` : `or ${plan.annualPrice}`}
                   onSelect={() => handlePlanSelect(plan.name)}
                 />
               ))}
