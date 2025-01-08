@@ -94,11 +94,10 @@ const Index = () => {
 
   const handleRegistrationSubmit = (data: any) => {
     console.log("Registration data:", data);
-    // Handle registration through CleanCloud API
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 font-sans">
       <div className="container mx-auto px-4 py-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -106,8 +105,8 @@ const Index = () => {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Laundry Subscription Plans
+          <h1 className="text-5xl font-black text-primary mb-4">
+            MORE TIME, LESS LAUNDRY
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Choose your perfect plan and let us handle your laundry. All plans include our
@@ -128,7 +127,7 @@ const Index = () => {
             </div>
 
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-2xl font-semibold text-center mb-8">
+              <h2 className="text-3xl font-bold text-primary text-center mb-8">
                 Delivery Options
               </h2>
               <div className="grid md:grid-cols-2 gap-8">
@@ -138,25 +137,25 @@ const Index = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="p-6 bg-white rounded-xl shadow-lg border border-gray-200"
+                    className="p-6 bg-white rounded-xl shadow-lg border border-gray-200 hover:border-secondary transition-colors duration-300"
                   >
                     <div className="flex items-center gap-4 mb-4">
                       {option.icon}
                       <div>
-                        <h3 className="text-lg font-semibold">{option.title}</h3>
+                        <h3 className="text-lg font-bold text-primary">{option.title}</h3>
                         <p className="text-gray-600">{option.description}</p>
                       </div>
                     </div>
-                    <p className="text-primary font-semibold">{option.price}</p>
+                    <p className="text-secondary-dark font-semibold">{option.price}</p>
                   </motion.div>
                 ))}
               </div>
 
-              <div className="mt-12 p-6 bg-white rounded-xl shadow-lg border border-gray-200">
+              <div className="mt-12 p-6 bg-white rounded-xl shadow-lg border border-gray-200 hover:border-secondary transition-colors duration-300">
                 <div className="flex items-center gap-4 mb-4">
                   <Clock className="w-12 h-12 text-primary" />
                   <div>
-                    <h3 className="text-lg font-semibold">Turnaround Time</h3>
+                    <h3 className="text-lg font-bold text-primary">Turnaround Time</h3>
                     <p className="text-gray-600">
                       Standard 2-day turnaround for all orders
                     </p>

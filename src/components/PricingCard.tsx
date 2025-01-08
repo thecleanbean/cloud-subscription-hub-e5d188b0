@@ -33,12 +33,12 @@ export const PricingCard = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className={`relative p-6 bg-white rounded-xl shadow-lg border ${
-        isPopular ? "border-primary" : "border-gray-200"
-      } transition-all duration-300 hover:shadow-xl`}
+        isPopular ? "border-secondary" : "border-gray-200"
+      } transition-all duration-300 hover:shadow-xl hover:border-secondary-light`}
     >
       {isPopular && (
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-          <span className="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
+          <span className="bg-secondary text-primary px-3 py-1 rounded-full text-sm font-medium">
             Most Popular
           </span>
         </div>
@@ -52,8 +52,8 @@ export const PricingCard = ({
             </span>
           </div>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{name}</h3>
-        <div className="text-3xl font-bold text-gray-900 mb-2">{price}</div>
+        <h3 className="text-lg font-bold text-primary mb-2">{name}</h3>
+        <div className="text-3xl font-black text-primary mb-2">{price}</div>
         <div className="text-sm text-gray-600 mb-2">or {annualPrice}</div>
         <p className="text-gray-600 text-sm">{description}</p>
       </div>
@@ -78,8 +78,8 @@ export const PricingCard = ({
         onClick={onSelect}
         className={`w-full py-2 px-4 rounded-lg transition-all duration-300 ${
           isPopular
-            ? "bg-primary text-white hover:bg-primary-dark"
-            : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+            ? "bg-secondary text-primary hover:bg-secondary-dark font-bold"
+            : "bg-primary text-white hover:bg-primary-light"
         }`}
       >
         Select Plan

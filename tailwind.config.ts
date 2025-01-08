@@ -25,20 +25,23 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#9b87f5",
-          light: "#E5DEFF",
-          dark: "#7E69AB",
+          DEFAULT: "#1B4332", // Dark green for primary actions
+          light: "#2D6A4F",
+          dark: "#081C15",
         },
         secondary: {
-          DEFAULT: "#8E9196",
-          light: "#F3F3F3",
-          dark: "#1A1F2C",
+          DEFAULT: "#FFD700", // Gold yellow for accents
+          light: "#FFE55C",
+          dark: "#B7950B",
         },
         accent: {
-          DEFAULT: "#D6BCFA",
-          light: "#E5DEFF",
-          dark: "#8B5CF6",
+          DEFAULT: "#FF69B4", // Pink for special highlights
+          light: "#FFB6C1",
+          dark: "#C71585",
         },
+      },
+      fontFamily: {
+        sans: ['Roboto', 'sans-serif'],
       },
       borderRadius: {
         lg: "var(--radius)",
