@@ -2,7 +2,9 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { PricingCard } from "@/components/PricingCard";
 import { Store, Home, Clock } from "lucide-react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import RegistrationForm from "@/components/RegistrationForm";
 
 const plans = [
   {
@@ -90,7 +92,7 @@ const deliveryOptions = [
 const Index = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [showRegistration, setShowRegistration] = useState(false);
-  const [billingPeriod, setBillingPeriod] = useState("yearly"); // Default to yearly
+  const [isYearly, setIsYearly] = useState(true);
 
   const handlePlanSelect = (planName: string) => {
     setSelectedPlan(planName);
@@ -118,26 +120,20 @@ const Index = () => {
             core features with flexible delivery options.
           </p>
           
-          <div className="flex justify-center mb-8">
-            <ToggleGroup
-              type="single"
-              value={billingPeriod}
-              onValueChange={(value) => value && setBillingPeriod(value)}
-              className="border border-accent rounded-lg p-1 bg-white shadow-sm"
-            >
-              <ToggleGroupItem
-                value="monthly"
-                className="px-6 py-2 rounded data-[state=on]:bg-accent data-[state=on]:text-white"
-              >
-                Monthly
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                value="yearly"
-                className="px-6 py-2 rounded data-[state=on]:bg-accent data-[state=on]:text-white"
-              >
-                Yearly
-              </ToggleGroupItem>
-            </ToggleGroup>
+          <div className="flex items-center justify-center gap-4 mb-8">
+            <Label htmlFor="billing-toggle" className={`text-lg ${!isYearly ? 'text-primary font-bold' : 'text-gray-500'}`}>
+              Monthly
+            </Label>
+            <Switch
+              id="billing-toggle"
+              checked={isYearly}
+              onCheckedChange={setIsYearly}
+              className="data-[state=checked]:bg-secondary"
+            />
+            <Label htmlFor="billing-toggle" className={`text-lg ${isYearly ? 'text-primary font-bold' : 'text-gray-500'}`}>
+              Yearly
+              <span className="ml-2 text-sm text-accent">Save up to 10%</span>
+            </Label>
           </div>
         </motion.div>
 
@@ -148,8 +144,8 @@ const Index = () => {
                 <PricingCard
                   key={plan.name}
                   {...plan}
-                  price={billingPeriod === "yearly" ? plan.yearlyPrice : plan.monthlyPrice}
-                  annualPrice={billingPeriod === "yearly" ? `or ${plan.monthlyPrice}/month` : `or ${plan.annualPrice}`}
+                  price={isYearly ? plan.yearlyPrice : plan.monthlyPrice}
+                  annualPrice={isYearly ? `or ${plan.monthlyPrice}/month` : `or ${plan.annualPrice}`}
                   onSelect={() => handlePlanSelect(plan.name)}
                 />
               ))}

@@ -33,12 +33,12 @@ export const PricingCard = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className={`relative p-6 bg-white rounded-xl shadow-lg border ${
-        isPopular ? "border-accent" : "border-gray-200"
+        isPopular ? "border-secondary" : "border-gray-200"
       } transition-all duration-300 hover:shadow-xl hover:border-accent-light`}
     >
       {isPopular && (
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-          <span className="bg-accent text-white px-3 py-1 rounded-full text-sm font-medium">
+          <span className="bg-secondary text-primary px-3 py-1 rounded-full text-sm font-medium">
             Most Popular
           </span>
         </div>
@@ -67,7 +67,7 @@ export const PricingCard = ({
           >
             <Check
               className={`w-5 h-5 mr-2 ${
-                feature.included ? "text-accent" : "text-gray-300"
+                feature.included ? "text-secondary" : "text-gray-300"
               }`}
             />
             <span className="text-sm">{feature.name}</span>
@@ -78,7 +78,7 @@ export const PricingCard = ({
         onClick={onSelect}
         className={`w-full py-2 px-4 rounded-lg transition-all duration-300 ${
           isPopular
-            ? "bg-accent text-white hover:bg-accent-dark"
+            ? "bg-secondary text-primary hover:bg-secondary-dark"
             : "bg-primary text-white hover:bg-primary-light"
         }`}
       >
