@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { mockAPI } from "@/services/mockCleanCloudAPI";
+import { useToast } from "./ui/use-toast";
+import OrderConfirmation from "./OrderConfirmation";
 
 interface RegistrationFormProps {
   selectedPlan: string;
@@ -12,12 +15,54 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
     name: "",
     email: "",
     phone: "",
+    deliveryOption: "pickup",
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [orderComplete, setOrderComplete] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    setIsLoading(true);
+
+    try {
+      // Create customer
+      const customer = await mockAPI.createCustomer({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+      });
+
+      // Create order
+      await mockAPI.createOrder({
+        customerId: customer.id,
+        plan: selectedPlan,
+        deliveryOption: formData.deliveryOption as 'pickup' | 'delivery',
+      });
+
+      setOrderComplete(true);
+      onSubmit(formData);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "There was an error processing your registration. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  if (orderComplete) {
+    return (
+      <OrderConfirmation
+        customerName={formData.name}
+        planName={selectedPlan}
+        deliveryOption={formData.deliveryOption}
+        onClose={() => window.location.reload()}
+      />
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto">
@@ -52,8 +97,26 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
             required
           />
         </div>
-        <Button type="submit" className="w-full">
-          Complete Registration
+        <div className="flex gap-4">
+          <Button
+            type="button"
+            variant={formData.deliveryOption === "pickup" ? "default" : "outline"}
+            className="flex-1"
+            onClick={() => setFormData({ ...formData, deliveryOption: "pickup" })}
+          >
+            Store Pickup
+          </Button>
+          <Button
+            type="button"
+            variant={formData.deliveryOption === "delivery" ? "default" : "outline"}
+            className="flex-1"
+            onClick={() => setFormData({ ...formData, deliveryOption: "delivery" })}
+          >
+            Home Delivery
+          </Button>
+        </div>
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Processing..." : "Complete Registration"}
         </Button>
       </form>
     </div>
