@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { mockAPI } from "@/services/mockCleanCloudAPI";
 import { motion } from "framer-motion";
 import { Calendar } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 const CollectionBooking = () => {
   const [step, setStep] = useState(1);
@@ -176,8 +177,7 @@ const CollectionBooking = () => {
                   <h3 className="text-lg font-semibold text-primary mb-4">
                     Additional Notes
                   </h3>
-                  <Input
-                    as="textarea"
+                  <Textarea
                     placeholder="Any special instructions?"
                     value={bookingData.notes}
                     onChange={(e) =>
