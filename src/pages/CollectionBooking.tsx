@@ -6,6 +6,7 @@ import { mockAPI } from "@/services/mockCleanCloudAPI";
 import { motion } from "framer-motion";
 import { Calendar } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
 
 const CollectionBooking = () => {
   const [step, setStep] = useState(1);
@@ -23,7 +24,6 @@ const CollectionBooking = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call to create collection booking
       await mockAPI.createOrder({
         customerId: "demo-customer",
         plan: "one-time",
@@ -35,7 +35,6 @@ const CollectionBooking = () => {
         description: `Your collection is scheduled for ${bookingData.date} at ${bookingData.time}`,
       });
 
-      // Reset form
       setBookingData({
         date: "",
         time: "",
@@ -66,24 +65,29 @@ const CollectionBooking = () => {
             Book a Collection
           </h1>
 
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-            <div className="flex items-center mb-8">
-              {[1, 2, 3].map((stepNumber) => (
-                <div key={stepNumber} className="flex-1">
-                  <div
-                    className={`h-2 rounded-full ${
-                      step >= stepNumber ? "bg-secondary" : "bg-gray-200"
-                    }`}
-                  />
-                  <p
-                    className={`text-sm mt-2 ${
-                      step >= stepNumber ? "text-secondary" : "text-gray-400"
+          <Card className="p-6 shadow-lg">
+            {/* Progress Bar */}
+            <div className="mb-8">
+              <div className="flex justify-between mb-2">
+                {[1, 2, 3].map((stepNumber) => (
+                  <span
+                    key={stepNumber}
+                    className={`text-sm ${
+                      step >= stepNumber
+                        ? "text-primary font-medium"
+                        : "text-gray-400"
                     }`}
                   >
                     Step {stepNumber}
-                  </p>
-                </div>
-              ))}
+                  </span>
+                ))}
+              </div>
+              <div className="h-2 bg-gray-200 rounded-full">
+                <div
+                  className="h-full bg-secondary rounded-full transition-all duration-300"
+                  style={{ width: `${((step - 1) / 2) * 100}%` }}
+                />
+              </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -96,15 +100,17 @@ const CollectionBooking = () => {
                   <h3 className="text-lg font-semibold text-primary mb-4">
                     Select Collection Date & Time
                   </h3>
-                  <div>
+                  <div className="relative">
                     <Input
                       type="date"
                       value={bookingData.date}
                       onChange={(e) =>
                         setBookingData({ ...bookingData, date: e.target.value })
                       }
+                      className="w-full pl-10"
                       required
                     />
+                    <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                   </div>
                   <div>
                     <Input
@@ -113,13 +119,14 @@ const CollectionBooking = () => {
                       onChange={(e) =>
                         setBookingData({ ...bookingData, time: e.target.value })
                       }
+                      className="w-full"
                       required
                     />
                   </div>
                   <Button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="w-full"
+                    className="w-full bg-primary text-white hover:bg-primary-light"
                   >
                     Next
                   </Button>
@@ -153,6 +160,11 @@ const CollectionBooking = () => {
                               : [...bookingData.items, item],
                           })
                         }
+                        className={
+                          bookingData.items.includes(item)
+                            ? "bg-secondary text-primary hover:bg-secondary-light"
+                            : "hover:bg-gray-50"
+                        }
                       >
                         {item}
                       </Button>
@@ -161,7 +173,7 @@ const CollectionBooking = () => {
                   <Button
                     type="button"
                     onClick={() => setStep(3)}
-                    className="w-full"
+                    className="w-full bg-primary text-white hover:bg-primary-light"
                   >
                     Next
                   </Button>
@@ -183,14 +195,19 @@ const CollectionBooking = () => {
                     onChange={(e) =>
                       setBookingData({ ...bookingData, notes: e.target.value })
                     }
+                    className="min-h-[100px]"
                   />
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button
+                    type="submit"
+                    className="w-full bg-primary text-white hover:bg-primary-light"
+                    disabled={isLoading}
+                  >
                     {isLoading ? "Confirming..." : "Confirm Booking"}
                   </Button>
                 </motion.div>
               )}
             </form>
-          </div>
+          </Card>
         </motion.div>
       </div>
     </div>
