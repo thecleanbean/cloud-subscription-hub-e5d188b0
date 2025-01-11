@@ -9,85 +9,101 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
 
   const plans = [
     {
-      name: "Bag Swap",
-      monthlyPrice: "£19.99",
-      yearlyPrice: "£17.99",
-      annualPrice: "£215.88/year",
-      description: "Perfect for occasional laundry needs",
-      features: [
-        { name: "Pay per bag", included: true },
-        { name: "Smart locker access", included: true },
-        { name: "3-day turnaround", included: true },
-        { name: "In-store pickup available", included: true },
-        { name: "Home delivery (£8.35/month or £100.20/year)", included: true },
-        { name: "Colour sorting service (£8.35/month or £100.20/year)", included: true },
-      ],
-      icon: "↻",
-    },
-    {
       name: "1 Bag Plan",
-      monthlyPrice: "£29.99",
-      yearlyPrice: "£26.99",
-      annualPrice: "£323.89/year",
+      monthlyPrice: "£26.00",
+      yearlyPrice: "£311.90",
+      annualPrice: "Save 10% annually",
       description: "Perfect for individuals with minimal laundry needs",
       features: [
         { name: "1 Bag per month", included: true },
         { name: "Smart locker access", included: true },
         { name: "2-day turnaround", included: true },
-        { name: "In-store pickup available", included: true },
-        { name: "Home delivery (£8.35/month or £100.20/year)", included: true },
-        { name: "Colour sorting service (£8.35/month or £100.20/year)", included: true },
+        { name: "In-store pickup included", included: true },
+        { name: "Optional home delivery (£6.95/month)", included: true },
+        { name: "Optional sorting service (£4.95/month)", included: true },
       ],
       icon: "1",
     },
     {
       name: "2 Bags Plan",
-      monthlyPrice: "£54.00",
-      yearlyPrice: "£48.60",
-      annualPrice: "£583.20/year",
+      monthlyPrice: "£48.00",
+      yearlyPrice: "£575.90",
+      annualPrice: "Save 10% annually",
       description: "Ideal for couples or small households",
       features: [
         { name: "2 Bags per month", included: true },
         { name: "Smart locker access", included: true },
         { name: "2-day turnaround", included: true },
-        { name: "In-store pickup available", included: true },
-        { name: "Home delivery (£8.35/month or £100.20/year)", included: true },
-        { name: "Colour sorting service (£8.35/month or £100.20/year)", included: true },
+        { name: "In-store pickup included", included: true },
+        { name: "Optional home delivery (£6.95/month)", included: true },
+        { name: "Optional sorting service (£4.95/month)", included: true },
       ],
-      isPopular: true,
       icon: "2",
     },
     {
       name: "3 Bags Plan",
-      monthlyPrice: "£78.00",
-      yearlyPrice: "£70.20",
-      annualPrice: "842.40/year",
+      monthlyPrice: "£66.00",
+      yearlyPrice: "£791.90",
+      annualPrice: "Save 10% annually",
       description: "Perfect for families",
       features: [
         { name: "3 Bags per month", included: true },
         { name: "Smart locker access", included: true },
         { name: "2-day turnaround", included: true },
-        { name: "Priority processing", included: true },
-        { name: "Home delivery (£8.35/month or £100.20/year)", included: true },
-        { name: "Colour sorting service (£8.35/month or £100.20/year)", included: true },
+        { name: "In-store pickup included", included: true },
+        { name: "Optional home delivery (£6.95/month)", included: true },
+        { name: "Optional sorting service (£4.95/month)", included: true },
       ],
       icon: "3",
     },
     {
       name: "4 Bags Plan",
-      monthlyPrice: "£102.00",
-      yearlyPrice: "£91.80",
-      annualPrice: "£1,101.60/year",
+      monthlyPrice: "£84.00",
+      yearlyPrice: "£1,007.90",
+      annualPrice: "Save 10% annually",
       description: "Best value for large families",
       features: [
         { name: "4 Bags per month", included: true },
         { name: "Smart locker access", included: true },
         { name: "2-day turnaround", included: true },
-        { name: "Priority processing", included: true },
-        { name: "Home delivery (£8.35/month or £100.20/year)", included: true },
-        { name: "Colour sorting service (£8.35/month or £100.20/year)", included: true },
+        { name: "In-store pickup included", included: true },
+        { name: "Optional home delivery (£6.95/month)", included: true },
+        { name: "Optional sorting service (£4.95/month)", included: true },
       ],
       icon: "4",
+    },
+    {
+      name: "Weekly Plan",
+      monthlyPrice: "£92.00",
+      yearlyPrice: "£1,103.90",
+      annualPrice: "Save 10% annually",
+      description: "1 Bag collected, cleaned and returned weekly",
+      features: [
+        { name: "1 Bag per week", included: true },
+        { name: "Smart locker access", included: true },
+        { name: "2-day turnaround", included: true },
+        { name: "In-store pickup included", included: true },
+        { name: "Optional home delivery (£6.95/month)", included: true },
+        { name: "Optional sorting service (£4.95/month)", included: true },
+      ],
+      icon: "W",
+    },
+    {
+      name: "Bag Swap",
+      monthlyPrice: "£149.95",
+      yearlyPrice: "£1,799.30",
+      annualPrice: "Save 10% annually",
+      description: "Drop Clean, Take Dirty - twice a week",
+      features: [
+        { name: "Unlimited bag swaps (twice weekly)", included: true },
+        { name: "Smart locker access", included: true },
+        { name: "2-day turnaround", included: true },
+        { name: "In-store pickup included", included: true },
+        { name: "Optional home delivery (£6.95/month)", included: true },
+        { name: "Optional sorting service (£4.95/month)", included: true },
+      ],
+      isPopular: true,
+      icon: "↻",
     },
   ];
 
@@ -119,18 +135,18 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
           />
           <Label htmlFor="billing-toggle" className={`text-lg ${isYearly ? 'text-primary font-bold' : 'text-gray-500'}`}>
             Yearly
-            <span className="ml-2 text-sm text-accent">Save up to 10%</span>
+            <span className="ml-2 text-sm text-accent">Save 10%</span>
           </Label>
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-8 max-w-[1920px] mx-auto">
         {plans.map((plan) => (
           <PricingCard
             key={plan.name}
             {...plan}
             price={isYearly ? plan.yearlyPrice : plan.monthlyPrice}
-            annualPrice={isYearly ? `or ${plan.monthlyPrice}/month` : `or ${plan.annualPrice}`}
+            annualPrice={isYearly ? `or ${plan.monthlyPrice}/month` : plan.annualPrice}
             onSelect={() => onPlanSelect(plan.name)}
           />
         ))}
