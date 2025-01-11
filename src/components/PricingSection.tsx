@@ -9,6 +9,22 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
 
   const plans = [
     {
+      name: "Bag Swap",
+      monthlyPrice: "£19.99",
+      yearlyPrice: "£17.99",
+      annualPrice: "£215.88/year",
+      description: "Perfect for occasional laundry needs",
+      features: [
+        { name: "Pay per bag", included: true },
+        { name: "Smart locker access", included: true },
+        { name: "3-day turnaround", included: true },
+        { name: "In-store pickup available", included: true },
+        { name: "Home delivery (£8.35/month or £100.20/year)", included: true },
+        { name: "Colour sorting service (£8.35/month or £100.20/year)", included: true },
+      ],
+      icon: "↻",
+    },
+    {
       name: "1 Bag Plan",
       monthlyPrice: "£29.99",
       yearlyPrice: "£26.99",
@@ -108,7 +124,7 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
         </div>
       </motion.div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 max-w-7xl mx-auto">
         {plans.map((plan) => (
           <PricingCard
             key={plan.name}
