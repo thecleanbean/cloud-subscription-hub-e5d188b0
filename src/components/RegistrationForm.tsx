@@ -9,6 +9,7 @@ import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { motion } from "framer-motion";
 import { Card } from "./ui/card";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 
 interface RegistrationFormProps {
   selectedPlan: string;
@@ -20,12 +21,15 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
     name: "",
     email: "",
     phone: "",
+    postcode: "",
     deliveryOption: "pickup",
     homeDelivery: false,
     sortingService: false,
+    billingPeriod: "monthly"
   });
   const [isLoading, setIsLoading] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
+  const [isValidPostcode, setIsValidPostcode] = useState(true);
   const { toast } = useToast();
 
   const getPlanDetails = () => {
@@ -41,14 +45,34 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
   };
 
   const calculateTotalPrice = () => {
-    const basePrice = parseFloat(getPlanDetails()?.monthly.replace('£', '')) || 0;
+    const planPrices = getPlanDetails();
+    if (!planPrices) return "0.00";
+    
+    const basePrice = parseFloat(planPrices[formData.billingPeriod as 'monthly' | 'yearly'].replace('£', '').replace(',', '')) || 0;
     const deliveryPrice = formData.homeDelivery ? 7.95 : 0;
     const sortingPrice = formData.sortingService ? 5.95 : 0;
     return (basePrice + deliveryPrice + sortingPrice).toFixed(2);
   };
 
+  const validatePostcode = async (postcode: string) => {
+    // This would normally call a real postcode validation API
+    const isValid = /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(postcode);
+    setIsValidPostcode(isValid);
+    return isValid;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!await validatePostcode(formData.postcode)) {
+      toast({
+        title: "Invalid Postcode",
+        description: "Please enter a valid UK postcode",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -116,9 +140,22 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
             You selected the {selectedPlan}
           </p>
           <div className="mt-4 p-4 bg-secondary/10 rounded-lg">
-            <h3 className="font-semibold mb-2">Plan Pricing</h3>
-            <p>Monthly: {getPlanDetails()?.monthly}</p>
-            <p>Yearly: {getPlanDetails()?.yearly} (Save 10%)</p>
+            <h3 className="font-semibold mb-4">Billing Period</h3>
+            <RadioGroup
+              defaultValue={formData.billingPeriod}
+              onValueChange={(value) => setFormData({ ...formData, billingPeriod: value })}
+              className="flex gap-4 mb-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="monthly" id="monthly" />
+                <Label htmlFor="monthly">Monthly</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="yearly" id="yearly" />
+                <Label htmlFor="yearly">Yearly (Save 10%)</Label>
+              </div>
+            </RadioGroup>
+            <p className="font-semibold">Selected Plan Price: {getPlanDetails()?.[formData.billingPeriod]}</p>
           </div>
         </div>
 
@@ -157,6 +194,24 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
                 required
               />
             </div>
+            <div>
+              <Label htmlFor="postcode">Postcode</Label>
+              <Input
+                id="postcode"
+                type="text"
+                placeholder="Enter your postcode"
+                value={formData.postcode}
+                onChange={(e) => {
+                  setFormData({ ...formData, postcode: e.target.value });
+                  validatePostcode(e.target.value);
+                }}
+                className={!isValidPostcode ? "border-red-500" : ""}
+                required
+              />
+              {!isValidPostcode && (
+                <p className="text-red-500 text-sm mt-1">Please enter a valid UK postcode</p>
+              )}
+            </div>
           </div>
 
           <div className="space-y-4 pt-4 border-t">
@@ -166,6 +221,7 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
               <div className="space-y-0.5">
                 <Label htmlFor="delivery">Home Delivery</Label>
                 <p className="text-sm text-gray-500">£7.95/month</p>
+                <p className="text-sm text-gray-600">Get your clean laundry delivered right to your doorstep, saving you time and effort.</p>
               </div>
               <Switch
                 id="delivery"
@@ -178,6 +234,7 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
               <div className="space-y-0.5">
                 <Label htmlFor="sorting">Sorting Service</Label>
                 <p className="text-sm text-gray-500">£5.95/month</p>
+                <p className="text-sm text-gray-600">Let us sort your laundry by color and fabric type, ensuring optimal cleaning results.</p>
               </div>
               <Switch
                 id="sorting"
@@ -189,10 +246,14 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
 
           <div className="pt-4 border-t">
             <div className="flex justify-between items-center mb-4">
-              <span className="font-semibold">Total Monthly Price:</span>
+              <span className="font-semibold">Total {formData.billingPeriod === 'monthly' ? 'Monthly' : 'Yearly'} Price:</span>
               <span className="text-xl font-bold text-primary">£{calculateTotalPrice()}</span>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              className="w-full bg-primary hover:bg-primary-dark text-white" 
+              disabled={isLoading}
+            >
               {isLoading ? "Processing..." : "Complete Registration"}
             </Button>
           </div>
