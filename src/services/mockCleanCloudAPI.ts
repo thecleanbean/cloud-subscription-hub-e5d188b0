@@ -12,6 +12,10 @@ export interface Order {
   plan: string;
   status: 'pending' | 'confirmed' | 'processing' | 'completed';
   deliveryOption: 'pickup' | 'delivery';
+  addons: {
+    homeDelivery: boolean;
+    sortingService: boolean;
+  };
   createdAt: string;
 }
 
@@ -27,7 +31,15 @@ export const mockAPI = {
     };
   },
 
-  createOrder: async (orderData: { customerId: string; plan: string; deliveryOption: 'pickup' | 'delivery' }): Promise<Order> => {
+  createOrder: async (orderData: {
+    customerId: string;
+    plan: string;
+    deliveryOption: 'pickup' | 'delivery';
+    addons: {
+      homeDelivery: boolean;
+      sortingService: boolean;
+    };
+  }): Promise<Order> => {
     await delay(1000);
     return {
       id: Math.random().toString(36).substr(2, 9),
