@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Check, ShoppingBag } from "lucide-react";
+import { Card } from "./ui/card";
 
 interface PricingFeature {
   name: string;
@@ -28,36 +29,33 @@ export const PricingCard = ({
   onSelect,
 }: PricingCardProps) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className={`relative p-6 bg-white rounded-xl shadow-lg border ${
-        isPopular ? "border-secondary" : "border-gray-200"
-      } transition-all duration-300 hover:shadow-xl hover:border-accent-light`}
-    >
+    <Card className={`relative h-full p-4 md:p-6 bg-white rounded-xl shadow-lg border ${
+      isPopular ? "border-secondary" : "border-gray-200"
+    } transition-all duration-300 hover:shadow-xl hover:border-accent-light`}>
       {isPopular && (
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-          <span className="bg-secondary text-primary px-3 py-1 rounded-full text-sm font-medium">
+          <span className="bg-secondary text-primary px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
             Most Popular
           </span>
         </div>
       )}
-      <div className="text-center mb-6">
-        <div className="flex justify-center mb-4">
-          <div className="relative w-16 h-16">
+      
+      <div className="text-center mb-4 md:mb-6">
+        <div className="flex justify-center mb-3 md:mb-4">
+          <div className="relative w-12 h-12 md:w-16 md:h-16">
             <ShoppingBag className="w-full h-full text-primary" />
-            <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg font-bold text-primary">
+            <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-base md:text-lg font-bold text-primary">
               {icon}
             </span>
           </div>
         </div>
-        <h3 className="text-lg font-bold text-primary mb-2">{name}</h3>
-        <div className="text-3xl font-black text-primary mb-2">{price}</div>
-        <div className="text-sm text-accent mb-2">{annualPrice}</div>
-        <p className="text-gray-600 text-sm">{description}</p>
+        <h3 className="text-base md:text-lg font-bold text-primary mb-2">{name}</h3>
+        <div className="text-2xl md:text-3xl font-black text-primary mb-1 md:mb-2">{price}</div>
+        <div className="text-xs md:text-sm text-accent mb-2">{annualPrice}</div>
+        <p className="text-xs md:text-sm text-gray-600">{description}</p>
       </div>
-      <ul className="space-y-3 mb-6">
+      
+      <ul className="space-y-2 md:space-y-3 mb-4 md:mb-6">
         {features.map((feature, index) => (
           <li
             key={index}
@@ -66,17 +64,18 @@ export const PricingCard = ({
             }`}
           >
             <Check
-              className={`w-5 h-5 mr-2 ${
+              className={`w-4 h-4 md:w-5 md:h-5 mr-2 flex-shrink-0 ${
                 feature.included ? "text-secondary" : "text-gray-300"
               }`}
             />
-            <span className="text-sm">{feature.name}</span>
+            <span className="text-xs md:text-sm">{feature.name}</span>
           </li>
         ))}
       </ul>
+      
       <button
         onClick={onSelect}
-        className={`w-full py-2 px-4 rounded-lg transition-all duration-300 ${
+        className={`w-full py-2 px-4 rounded-lg transition-all duration-300 text-sm md:text-base ${
           isPopular
             ? "bg-secondary text-primary hover:bg-secondary-dark"
             : "bg-primary text-white hover:bg-primary-light"
@@ -84,6 +83,6 @@ export const PricingCard = ({
       >
         Select Plan
       </button>
-    </motion.div>
+    </Card>
   );
 };

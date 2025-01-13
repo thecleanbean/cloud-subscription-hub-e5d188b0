@@ -3,9 +3,12 @@ import { PricingCard } from "./PricingCard";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { motion } from "framer-motion";
+import { ScrollArea, ScrollBar } from "./ui/scroll-area";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void }) => {
   const [isYearly, setIsYearly] = useState(true);
+  const isMobile = useIsMobile();
 
   const plans = [
     {
@@ -113,18 +116,21 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="text-center mb-16"
+        className="text-center mb-8 md:mb-16"
       >
-        <h1 className="text-5xl font-black text-primary mb-4">
+        <h1 className="text-4xl md:text-5xl font-black text-primary mb-4">
           MORE TIME, LESS LAUNDRY
         </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
+        <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto mb-8">
           Choose your perfect plan and let us handle your laundry. All plans include our
           core features with flexible delivery options.
         </p>
         
         <div className="flex items-center justify-center gap-4 mb-8">
-          <Label htmlFor="billing-toggle" className={`text-lg ${!isYearly ? 'text-primary font-bold' : 'text-gray-500'}`}>
+          <Label 
+            htmlFor="billing-toggle" 
+            className={`text-base md:text-lg ${!isYearly ? 'text-primary font-bold' : 'text-gray-500'}`}
+          >
             Monthly
           </Label>
           <Switch
@@ -133,24 +139,36 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
             onCheckedChange={setIsYearly}
             className="data-[state=checked]:bg-secondary"
           />
-          <Label htmlFor="billing-toggle" className={`text-lg ${isYearly ? 'text-primary font-bold' : 'text-gray-500'}`}>
+          <Label 
+            htmlFor="billing-toggle" 
+            className={`text-base md:text-lg ${isYearly ? 'text-primary font-bold' : 'text-gray-500'}`}
+          >
             Yearly
             <span className="ml-2 text-sm text-accent">Save 10%</span>
           </Label>
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-8 max-w-[1920px] mx-auto">
-        {plans.map((plan) => (
-          <PricingCard
-            key={plan.name}
-            {...plan}
-            price={isYearly ? plan.yearlyPrice : plan.monthlyPrice}
-            annualPrice={isYearly ? `or ${plan.monthlyPrice}/month` : plan.annualPrice}
-            onSelect={() => onPlanSelect(plan.name)}
-          />
-        ))}
-      </div>
+      <ScrollArea className="w-full rounded-lg">
+        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-4 md:gap-6 pb-4 ${isMobile ? 'min-w-[calc(100vw-2rem)]' : 'max-w-[1920px]'} mx-auto`}>
+          {plans.map((plan, index) => (
+            <motion.div
+              key={plan.name}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <PricingCard
+                {...plan}
+                price={isYearly ? plan.yearlyPrice : plan.monthlyPrice}
+                annualPrice={isYearly ? `or ${plan.monthlyPrice}/month` : plan.annualPrice}
+                onSelect={() => onPlanSelect(plan.name)}
+              />
+            </motion.div>
+          ))}
+        </div>
+        <ScrollBar orientation="horizontal" className="md:hidden" />
+      </ScrollArea>
     </div>
   );
 };
