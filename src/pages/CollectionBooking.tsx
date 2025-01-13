@@ -28,6 +28,10 @@ const CollectionBooking = () => {
         customerId: "demo-customer",
         plan: "one-time",
         deliveryOption: "pickup",
+        addons: {
+          homeDelivery: false,
+          sortingService: false
+        }
       });
 
       toast({
