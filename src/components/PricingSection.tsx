@@ -10,11 +10,17 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
   const [isYearly, setIsYearly] = useState(false);
   const isMobile = useIsMobile();
 
+  const calculateYearlyPrice = (monthlyPrice: string) => {
+    const price = parseFloat(monthlyPrice.replace('£', ''));
+    const yearlyPrice = (price * 12 * 0.9).toFixed(2); // 10% discount
+    return `£${yearlyPrice}`;
+  };
+
   const plans = [
     {
       name: "1 Bag Plan",
       monthlyPrice: "£31.95",
-      yearlyPrice: "£374.95",
+      yearlyPrice: calculateYearlyPrice("£31.95"),
       annualPrice: "Save 10% annually",
       description: "Perfect for individuals with minimal laundry needs",
       features: [
@@ -46,7 +52,7 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
     {
       name: "3 Bags Plan",
       monthlyPrice: "£78.95",
-      yearlyPrice: "£949.95",
+      yearlyPrice: calculateYearlyPrice("£78.95"),
       annualPrice: "Save 10% annually",
       description: "Perfect for families",
       features: [
@@ -95,7 +101,7 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
     {
       name: "Bag Swap",
       monthlyPrice: "£179.95",
-      yearlyPrice: "£2,158.95",
+      yearlyPrice: calculateYearlyPrice("£179.95"),
       annualPrice: "Save 10% annually",
       description: "Drop Clean, Take Dirty - twice a week",
       features: [
@@ -106,7 +112,6 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
         { name: "Optional home delivery (£7.95/month)", included: true },
         { name: "Optional sorting service (£5.95/month)", included: true },
       ],
-      isPopular: true,
       icon: "↻",
     },
   ];

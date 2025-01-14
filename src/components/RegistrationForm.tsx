@@ -49,8 +49,10 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
     if (!planPrices) return "0.00";
     
     const basePrice = parseFloat(planPrices[formData.billingPeriod as 'monthly' | 'yearly'].replace('£', '').replace(',', '')) || 0;
-    const deliveryPrice = formData.homeDelivery ? 7.95 : 0;
-    const sortingPrice = formData.sortingService ? 5.95 : 0;
+    const deliveryPrice = formData.homeDelivery ? 
+      (formData.billingPeriod === 'yearly' ? 7.95 * 12 * 0.9 : 7.95) : 0;
+    const sortingPrice = formData.sortingService ? 
+      (formData.billingPeriod === 'yearly' ? 5.95 * 12 * 0.9 : 5.95) : 0;
     return (basePrice + deliveryPrice + sortingPrice).toFixed(2);
   };
 
@@ -219,7 +221,11 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label htmlFor="delivery">Home Delivery</Label>
-                <p className="text-sm text-gray-500">£7.95/month</p>
+                <p className="text-sm text-gray-500">
+                  {formData.billingPeriod === 'yearly' 
+                    ? `£${(7.95 * 12 * 0.9).toFixed(2)}/year`
+                    : '£7.95/month'}
+                </p>
                 <p className="text-sm text-gray-600">Get your clean laundry delivered right to your doorstep, saving you time and effort.</p>
               </div>
               <Switch
@@ -232,7 +238,11 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label htmlFor="sorting">Sorting Service</Label>
-                <p className="text-sm text-gray-500">£5.95/month</p>
+                <p className="text-sm text-gray-500">
+                  {formData.billingPeriod === 'yearly' 
+                    ? `£${(5.95 * 12 * 0.9).toFixed(2)}/year`
+                    : '£5.95/month'}
+                </p>
                 <p className="text-sm text-gray-600">Let us sort your laundry by color and fabric type, ensuring optimal cleaning results.</p>
               </div>
               <Switch
