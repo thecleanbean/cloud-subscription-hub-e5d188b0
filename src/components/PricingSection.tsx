@@ -7,7 +7,7 @@ import { ScrollArea, ScrollBar } from "./ui/scroll-area";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void }) => {
-  const [isYearly, setIsYearly] = useState(true);
+  const [isYearly, setIsYearly] = useState(false);
   const isMobile = useIsMobile();
 
   const plans = [
@@ -57,6 +57,7 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
         { name: "Optional home delivery (£7.95/month)", included: true },
         { name: "Optional sorting service (£5.95/month)", included: true },
       ],
+      isPopular: true,
       icon: "3",
     },
     {

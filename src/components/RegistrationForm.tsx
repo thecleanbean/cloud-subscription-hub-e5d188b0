@@ -55,7 +55,6 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
   };
 
   const validatePostcode = async (postcode: string) => {
-    // This would normally call a real postcode validation API
     const isValid = /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(postcode);
     setIsValidPostcode(isValid);
     return isValid;
@@ -251,7 +250,7 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
             </div>
             <Button 
               type="submit" 
-              className="w-full bg-primary hover:bg-primary-dark text-white" 
+              className="w-full bg-secondary hover:bg-secondary-dark text-primary font-bold text-lg py-4 shadow-lg hover:shadow-xl transition-all duration-300" 
               disabled={isLoading}
             >
               {isLoading ? "Processing..." : "Complete Registration"}
