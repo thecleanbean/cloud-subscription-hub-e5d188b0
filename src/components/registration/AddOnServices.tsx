@@ -10,7 +10,7 @@ interface AddOnServicesProps {
 }
 
 const calculateYearlyPrice = (monthlyPrice: number) => {
-  return (monthlyPrice * 12 * 0.9).toFixed(2);
+  return (monthlyPrice * 12 * 0.9).toFixed(2); // Apply 10% discount for annual
 };
 
 const AddOnServices = ({
