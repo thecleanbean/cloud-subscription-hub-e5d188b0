@@ -5,15 +5,33 @@ import { Label } from "./ui/label";
 import { motion } from "framer-motion";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "./ui/button";
+import { ChevronRight } from "lucide-react";
 
 const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void }) => {
   const [isYearly, setIsYearly] = useState(false);
+  const [step, setStep] = useState(1);
   const isMobile = useIsMobile();
 
   const calculateYearlyPrice = (monthlyPrice: string) => {
     const price = parseFloat(monthlyPrice.replace('£', ''));
     const yearlyPrice = (price * 12 * 0.9).toFixed(2); // 10% discount
     return `£${yearlyPrice}`;
+  };
+
+  const calculateYearlyAddonPrice = (monthlyPrice: number) => {
+    return (monthlyPrice * 12 * 0.9).toFixed(2); // 10% discount on annual addons
+  };
+
+  const getFilteredPlans = () => {
+    switch(step) {
+      case 1:
+        return plans.filter(plan => !plan.name.includes("Swap"));
+      case 2:
+        return plans.filter(plan => plan.name.includes("Swap"));
+      default:
+        return plans;
+    }
   };
 
   const plans = [
@@ -28,8 +46,8 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
         { name: "Smart locker access", included: true },
         { name: "2-day turnaround", included: true },
         { name: "In-store pickup included", included: true },
-        { name: "Optional home delivery (£7.95/month)", included: true },
-        { name: "Optional sorting service (£5.95/month)", included: true },
+        { name: `Optional home delivery (${isYearly ? '£' + calculateYearlyAddonPrice(7.95) : '£7.95'})/${isYearly ? 'year' : 'month'}`, included: true },
+        { name: `Optional sorting service (${isYearly ? '£' + calculateYearlyAddonPrice(5.95) : '£5.95'})/${isYearly ? 'year' : 'month'}`, included: true },
       ],
       icon: "1",
     },
@@ -132,32 +150,53 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
           core features with flexible delivery options.
         </p>
         
-        <div className="flex items-center justify-center gap-4 mb-8">
-          <Label 
-            htmlFor="billing-toggle" 
-            className={`text-base md:text-lg ${!isYearly ? 'text-primary font-bold' : 'text-gray-500'}`}
-          >
-            Monthly
-          </Label>
-          <Switch
-            id="billing-toggle"
-            checked={isYearly}
-            onCheckedChange={setIsYearly}
-            className="data-[state=checked]:bg-secondary"
-          />
-          <Label 
-            htmlFor="billing-toggle" 
-            className={`text-base md:text-lg ${isYearly ? 'text-primary font-bold' : 'text-gray-500'}`}
-          >
-            Yearly
-            <span className="ml-2 text-sm text-accent">Save 10%</span>
-          </Label>
+        <div className="flex flex-col items-center gap-6 mb-8">
+          <div className="flex items-center justify-center gap-4">
+            <Label 
+              htmlFor="billing-toggle" 
+              className={`text-base md:text-lg ${!isYearly ? 'text-primary font-bold' : 'text-gray-500'}`}
+            >
+              Monthly
+            </Label>
+            <Switch
+              id="billing-toggle"
+              checked={isYearly}
+              onCheckedChange={setIsYearly}
+              className="data-[state=checked]:bg-secondary"
+            />
+            <Label 
+              htmlFor="billing-toggle" 
+              className={`text-base md:text-lg ${isYearly ? 'text-primary font-bold' : 'text-gray-500'}`}
+            >
+              Yearly
+              <span className="ml-2 text-sm text-accent">Save 10%</span>
+            </Label>
+          </div>
+
+          <div className="flex gap-4">
+            <Button
+              variant={step === 1 ? "default" : "outline"}
+              onClick={() => setStep(1)}
+              className="gap-2"
+            >
+              Regular Plans
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={step === 2 ? "default" : "outline"}
+              onClick={() => setStep(2)}
+              className="gap-2"
+            >
+              Swap Plans
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </motion.div>
 
       <ScrollArea className="w-full rounded-lg">
         <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-4 md:gap-6 pb-4 ${isMobile ? 'min-w-[calc(100vw-2rem)]' : 'max-w-[1920px]'} mx-auto`}>
-          {plans.map((plan, index) => (
+          {getFilteredPlans().map((plan, index) => (
             <motion.div
               key={plan.name}
               initial={{ opacity: 0, y: 20 }}
