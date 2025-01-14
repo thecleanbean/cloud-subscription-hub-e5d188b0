@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import { mockAPI } from "@/services/mockCleanCloudAPI";
 import { useToast } from "./ui/use-toast";
 import OrderConfirmation from "./OrderConfirmation";
 import { ArrowLeft } from "lucide-react";
-import { Switch } from "./ui/switch";
-import { Label } from "./ui/label";
 import { motion } from "framer-motion";
 import { Card } from "./ui/card";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import BillingPeriodSelector from "./registration/BillingPeriodSelector";
+import CustomerDetailsForm from "./registration/CustomerDetailsForm";
+import AddOnServices from "./registration/AddOnServices";
 
 interface RegistrationFormProps {
   selectedPlan: string;
@@ -33,26 +32,34 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
   const { toast } = useToast();
 
   const getPlanDetails = () => {
-    const plans = {
-      "1 Bag Plan": { monthly: "£31.95", yearly: "£374.95" },
-      "2 Bags Plan": { monthly: "£57.95", yearly: "£690.95" },
-      "3 Bags Plan": { monthly: "£78.95", yearly: "£949.95" },
-      "4 Bags Plan": { monthly: "£100.95", yearly: "£1,208.95" },
-      "Weekly Plan": { monthly: "£109.95", yearly: "£1,324.95" },
-      "Bag Swap": { monthly: "£179.95", yearly: "£2,158.95" },
+    const monthlyPrices = {
+      "1 Bag Plan": "31.95",
+      "2 Bags Plan": "57.95",
+      "3 Bags Plan": "78.95",
+      "4 Bags Plan": "100.95",
+      "Weekly Plan": "109.95",
+      "Bag Swap": "179.95",
     };
-    return plans[selectedPlan as keyof typeof plans];
+
+    const monthlyPrice = monthlyPrices[selectedPlan as keyof typeof monthlyPrices];
+    const yearlyPrice = (parseFloat(monthlyPrice) * 12 * 0.9).toFixed(2);
+
+    return {
+      monthly: `£${monthlyPrice}`,
+      yearly: `£${yearlyPrice}`,
+    };
   };
 
   const calculateTotalPrice = () => {
     const planPrices = getPlanDetails();
     if (!planPrices) return "0.00";
     
-    const basePrice = parseFloat(planPrices[formData.billingPeriod as 'monthly' | 'yearly'].replace('£', '').replace(',', '')) || 0;
+    const basePrice = parseFloat(planPrices[formData.billingPeriod as 'monthly' | 'yearly'].replace('£', ''));
     const deliveryPrice = formData.homeDelivery ? 
       (formData.billingPeriod === 'yearly' ? 7.95 * 12 * 0.9 : 7.95) : 0;
     const sortingPrice = formData.sortingService ? 
       (formData.billingPeriod === 'yearly' ? 5.95 * 12 * 0.9 : 5.95) : 0;
+    
     return (basePrice + deliveryPrice + sortingPrice).toFixed(2);
   };
 
@@ -140,118 +147,29 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
           <p className="text-gray-600">
             You selected the {selectedPlan}
           </p>
-          <div className="mt-4 p-4 bg-secondary/10 rounded-lg">
-            <h3 className="font-semibold mb-4">Billing Period</h3>
-            <RadioGroup
-              defaultValue={formData.billingPeriod}
-              onValueChange={(value) => setFormData({ ...formData, billingPeriod: value })}
-              className="flex gap-4 mb-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="monthly" id="monthly" />
-                <Label htmlFor="monthly">Monthly</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yearly" id="yearly" />
-                <Label htmlFor="yearly">Yearly (Save 10%)</Label>
-              </div>
-            </RadioGroup>
-            <p className="font-semibold">Selected Plan Price: {getPlanDetails()?.[formData.billingPeriod]}</p>
-          </div>
+          
+          <BillingPeriodSelector
+            billingPeriod={formData.billingPeriod}
+            onChange={(value) => setFormData({ ...formData, billingPeriod: value })}
+            planDetails={getPlanDetails()}
+          />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="Full Name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="Phone Number"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="postcode">Postcode</Label>
-              <Input
-                id="postcode"
-                type="text"
-                placeholder="Enter your postcode"
-                value={formData.postcode}
-                onChange={(e) => {
-                  setFormData({ ...formData, postcode: e.target.value });
-                  validatePostcode(e.target.value);
-                }}
-                className={!isValidPostcode ? "border-red-500" : ""}
-                required
-              />
-              {!isValidPostcode && (
-                <p className="text-red-500 text-sm mt-1">Please enter a valid UK postcode</p>
-              )}
-            </div>
-          </div>
+          <CustomerDetailsForm
+            formData={formData}
+            onChange={(field, value) => setFormData({ ...formData, [field]: value })}
+            isValidPostcode={isValidPostcode}
+            onPostcodeValidate={validatePostcode}
+          />
 
-          <div className="space-y-4 pt-4 border-t">
-            <h3 className="font-semibold">Add-on Services</h3>
-            
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="delivery">Home Delivery</Label>
-                <p className="text-sm text-gray-500">
-                  {formData.billingPeriod === 'yearly' 
-                    ? `£${(7.95 * 12 * 0.9).toFixed(2)}/year`
-                    : '£7.95/month'}
-                </p>
-                <p className="text-sm text-gray-600">Get your clean laundry delivered right to your doorstep, saving you time and effort.</p>
-              </div>
-              <Switch
-                id="delivery"
-                checked={formData.homeDelivery}
-                onCheckedChange={(checked) => setFormData({ ...formData, homeDelivery: checked })}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="sorting">Sorting Service</Label>
-                <p className="text-sm text-gray-500">
-                  {formData.billingPeriod === 'yearly' 
-                    ? `£${(5.95 * 12 * 0.9).toFixed(2)}/year`
-                    : '£5.95/month'}
-                </p>
-                <p className="text-sm text-gray-600">Let us sort your laundry by color and fabric type, ensuring optimal cleaning results.</p>
-              </div>
-              <Switch
-                id="sorting"
-                checked={formData.sortingService}
-                onCheckedChange={(checked) => setFormData({ ...formData, sortingService: checked })}
-              />
-            </div>
-          </div>
+          <AddOnServices
+            billingPeriod={formData.billingPeriod}
+            homeDelivery={formData.homeDelivery}
+            sortingService={formData.sortingService}
+            onToggleDelivery={(checked) => setFormData({ ...formData, homeDelivery: checked })}
+            onToggleSorting={(checked) => setFormData({ ...formData, sortingService: checked })}
+          />
 
           <div className="pt-4 border-t">
             <div className="flex justify-between items-center mb-4">
@@ -260,7 +178,7 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
             </div>
             <Button 
               type="submit" 
-              className="w-full bg-secondary hover:bg-secondary-dark text-primary font-bold text-lg py-4 shadow-lg hover:shadow-xl transition-all duration-300" 
+              className="w-full bg-secondary hover:bg-secondary/90 text-primary font-bold text-lg py-6 shadow-lg hover:shadow-xl transition-all duration-300" 
               disabled={isLoading}
             >
               {isLoading ? "Processing..." : "Complete Registration"}
