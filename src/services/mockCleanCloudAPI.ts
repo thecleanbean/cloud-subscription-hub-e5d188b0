@@ -15,6 +15,8 @@ interface CleanCloudOrder {
     homeDelivery: boolean;
     sortingService: boolean;
   };
+  total: number;
+  billingPeriod: 'monthly' | 'yearly';
 }
 
 // Mock API implementation
@@ -24,10 +26,8 @@ export const mockAPI = {
     email: string;
     phone: string;
   }): Promise<CleanCloudCustomer> => {
-    // Simulate API call to CleanCloud
     console.log('Creating customer in CleanCloud:', customerData);
     
-    // In real implementation, this would make an API call to CleanCloud
     return {
       id: `cust_${Math.random().toString(36).substr(2, 9)}`,
       ...customerData,
@@ -42,28 +42,26 @@ export const mockAPI = {
       homeDelivery: boolean;
       sortingService: boolean;
     };
+    total: number;
+    billingPeriod: 'monthly' | 'yearly';
   }): Promise<CleanCloudOrder> => {
-    // Simulate API call to CleanCloud
     console.log('Creating order in CleanCloud:', orderData);
     
-    // In real implementation, this would:
-    // 1. Create a subscription in CleanCloud
-    // 2. Set up recurring billing through CleanCloud's payment system
-    // 3. Handle addon services configuration
     return {
       id: `ord_${Math.random().toString(36).substr(2, 9)}`,
       ...orderData,
     };
   },
 
-  // Add method to redirect to CleanCloud's payment page
-  initiatePayment: async (orderId: string): Promise<string> => {
-    // In real implementation, this would:
-    // 1. Create a payment session in CleanCloud
-    // 2. Return the URL to CleanCloud's hosted payment page
-    console.log('Initiating payment for order:', orderId);
+  processPayment: async (orderId: string, paymentDetails: any): Promise<{ success: boolean; message: string }> => {
+    console.log('Processing payment for order:', orderId);
     
-    // Simulate payment URL from CleanCloud
-    return `https://cleancloud.payment.com/session/${orderId}`;
-  }
+    // Simulate payment processing
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    return {
+      success: true,
+      message: 'Payment processed successfully',
+    };
+  },
 };

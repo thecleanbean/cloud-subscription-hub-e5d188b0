@@ -9,6 +9,7 @@ import { Card } from "./ui/card";
 import BillingPeriodSelector from "./registration/BillingPeriodSelector";
 import CustomerDetailsForm from "./registration/CustomerDetailsForm";
 import AddOnServices from "./registration/AddOnServices";
+import { useNavigate } from "react-router-dom";
 
 interface RegistrationFormProps {
   selectedPlan: string;
@@ -30,6 +31,7 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
   const [orderComplete, setOrderComplete] = useState(false);
   const [isValidPostcode, setIsValidPostcode] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const getPlanDetails = () => {
     const monthlyPrices = {
@@ -94,7 +96,9 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
         phone: formData.phone,
       });
 
-      // Create order/subscription in CleanCloud
+      const total = parseFloat(calculateTotalPrice());
+
+      // Create order in CleanCloud
       const order = await mockAPI.createOrder({
         customerId: customer.id,
         plan: selectedPlan,
@@ -103,15 +107,26 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
           homeDelivery: formData.homeDelivery,
           sortingService: formData.sortingService,
         },
+        total,
+        billingPeriod: formData.billingPeriod as 'monthly' | 'yearly',
       });
 
-      // Get payment URL from CleanCloud
-      const paymentUrl = await mockAPI.initiatePayment(order.id);
+      // Navigate to payment page with order details
+      navigate('/payment', {
+        state: {
+          orderDetails: {
+            orderId: order.id,
+            plan: selectedPlan,
+            billingPeriod: formData.billingPeriod,
+            addons: {
+              homeDelivery: formData.homeDelivery,
+              sortingService: formData.sortingService,
+            },
+            total,
+          },
+        },
+      });
 
-      // Redirect to CleanCloud's payment page
-      window.location.href = paymentUrl;
-
-      setOrderComplete(true);
       onSubmit(formData);
     } catch (error) {
       toast({
