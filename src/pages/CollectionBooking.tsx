@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { mockAPI } from "@/services/mockCleanCloudAPI";
 import { motion } from "framer-motion";
-import { ArrowLeft, Star, Rocket, Gift } from "lucide-react";
+import { ArrowLeft, Star, Rocket, Gift, Calendar } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
