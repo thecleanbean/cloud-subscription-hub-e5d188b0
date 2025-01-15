@@ -31,7 +31,9 @@ const CollectionBooking = () => {
         addons: {
           homeDelivery: false,
           sortingService: false
-        }
+        },
+        total: 29.99, // Added default one-time collection price
+        billingPeriod: "monthly" // Added default billing period
       });
 
       toast({
@@ -216,6 +218,7 @@ const CollectionBooking = () => {
       </div>
     </div>
   );
+
 };
 
 export default CollectionBooking;
