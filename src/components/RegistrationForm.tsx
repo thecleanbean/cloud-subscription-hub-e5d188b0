@@ -55,10 +55,13 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
     if (!planPrices) return "0.00";
     
     const basePrice = parseFloat(planPrices[formData.billingPeriod as 'monthly' | 'yearly'].replace('£', ''));
+    const monthlyDeliveryPrice = 7.95;
+    const monthlySortingPrice = 5.95;
+    
     const deliveryPrice = formData.homeDelivery ? 
-      (formData.billingPeriod === 'yearly' ? 7.95 * 12 * 0.9 : 7.95) : 0;
+      (formData.billingPeriod === 'yearly' ? monthlyDeliveryPrice * 12 * 0.9 : monthlyDeliveryPrice) : 0;
     const sortingPrice = formData.sortingService ? 
-      (formData.billingPeriod === 'yearly' ? 5.95 * 12 * 0.9 : 5.95) : 0;
+      (formData.billingPeriod === 'yearly' ? monthlySortingPrice * 12 * 0.9 : monthlySortingPrice) : 0;
     
     return (basePrice + deliveryPrice + sortingPrice).toFixed(2);
   };
@@ -84,13 +87,15 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
     setIsLoading(true);
 
     try {
+      // Create customer in CleanCloud
       const customer = await mockAPI.createCustomer({
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
       });
 
-      await mockAPI.createOrder({
+      // Create order/subscription in CleanCloud
+      const order = await mockAPI.createOrder({
         customerId: customer.id,
         plan: selectedPlan,
         deliveryOption: formData.deliveryOption as 'pickup' | 'delivery',
@@ -99,6 +104,12 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
           sortingService: formData.sortingService,
         },
       });
+
+      // Get payment URL from CleanCloud
+      const paymentUrl = await mockAPI.initiatePayment(order.id);
+
+      // Redirect to CleanCloud's payment page
+      window.location.href = paymentUrl;
 
       setOrderComplete(true);
       onSubmit(formData);
@@ -178,10 +189,10 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
             </div>
             <Button 
               type="submit" 
-              className="w-full bg-secondary hover:bg-secondary/90 text-primary font-bold text-lg py-6 shadow-lg hover:shadow-xl transition-all duration-300" 
+              className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold text-lg py-6 shadow-lg hover:shadow-xl transition-all duration-300" 
               disabled={isLoading}
             >
-              {isLoading ? "Processing..." : "Complete Registration"}
+              {isLoading ? "Processing..." : "Proceed to Payment"}
             </Button>
           </div>
         </form>

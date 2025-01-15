@@ -1,33 +1,36 @@
-// Simulating CleanCloud API responses
-export interface Customer {
+// Types for CleanCloud API
+interface CleanCloudCustomer {
   id: string;
   name: string;
   email: string;
   phone: string;
 }
 
-export interface Order {
+interface CleanCloudOrder {
   id: string;
   customerId: string;
   plan: string;
-  status: 'pending' | 'confirmed' | 'processing' | 'completed';
   deliveryOption: 'pickup' | 'delivery';
   addons: {
     homeDelivery: boolean;
     sortingService: boolean;
   };
-  createdAt: string;
 }
 
-// Simulate API calls with Promise delays
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
+// Mock API implementation
 export const mockAPI = {
-  createCustomer: async (customerData: Omit<Customer, 'id'>): Promise<Customer> => {
-    await delay(1000);
+  createCustomer: async (customerData: {
+    name: string;
+    email: string;
+    phone: string;
+  }): Promise<CleanCloudCustomer> => {
+    // Simulate API call to CleanCloud
+    console.log('Creating customer in CleanCloud:', customerData);
+    
+    // In real implementation, this would make an API call to CleanCloud
     return {
-      id: Math.random().toString(36).substr(2, 9),
-      ...customerData
+      id: `cust_${Math.random().toString(36).substr(2, 9)}`,
+      ...customerData,
     };
   },
 
@@ -39,13 +42,28 @@ export const mockAPI = {
       homeDelivery: boolean;
       sortingService: boolean;
     };
-  }): Promise<Order> => {
-    await delay(1000);
+  }): Promise<CleanCloudOrder> => {
+    // Simulate API call to CleanCloud
+    console.log('Creating order in CleanCloud:', orderData);
+    
+    // In real implementation, this would:
+    // 1. Create a subscription in CleanCloud
+    // 2. Set up recurring billing through CleanCloud's payment system
+    // 3. Handle addon services configuration
     return {
-      id: Math.random().toString(36).substr(2, 9),
+      id: `ord_${Math.random().toString(36).substr(2, 9)}`,
       ...orderData,
-      status: 'pending',
-      createdAt: new Date().toISOString()
     };
+  },
+
+  // Add method to redirect to CleanCloud's payment page
+  initiatePayment: async (orderId: string): Promise<string> => {
+    // In real implementation, this would:
+    // 1. Create a payment session in CleanCloud
+    // 2. Return the URL to CleanCloud's hosted payment page
+    console.log('Initiating payment for order:', orderId);
+    
+    // Simulate payment URL from CleanCloud
+    return `https://cleancloud.payment.com/session/${orderId}`;
   }
 };
