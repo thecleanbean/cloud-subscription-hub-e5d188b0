@@ -77,7 +77,7 @@ export const PricingCard = ({
         onClick={onSelect}
         className={`w-full py-2 px-4 rounded-lg transition-all duration-300 text-sm md:text-base ${
           isPopular
-            ? "bg-secondary text-primary hover:bg-secondary-dark"
+            ? "bg-secondary text-primary-dark hover:bg-secondary-dark"
             : "bg-primary text-white hover:bg-primary-light"
         }`}
       >
