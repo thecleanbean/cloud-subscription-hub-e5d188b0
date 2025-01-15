@@ -4,9 +4,10 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { mockAPI } from "@/services/mockCleanCloudAPI";
 import { motion } from "framer-motion";
-import { Calendar } from "lucide-react";
+import { ArrowLeft, Star, Rocket, Gift } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 
 const CollectionBooking = () => {
   const [step, setStep] = useState(1);
@@ -18,6 +19,7 @@ const CollectionBooking = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,6 +64,16 @@ const CollectionBooking = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 py-16">
       <div className="container mx-auto px-4">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/")}
+          className="mb-6 text-primary hover:text-primary-dark"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Home
+        </Button>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -70,6 +82,25 @@ const CollectionBooking = () => {
           <h1 className="text-3xl font-bold text-primary mb-8 text-center">
             Book a Collection
           </h1>
+
+          {/* Promotional Content */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <Card className="p-4 text-center bg-white shadow-md">
+              <Star className="mx-auto mb-2 text-secondary w-8 h-8" />
+              <h3 className="font-semibold mb-1">Premium Quality</h3>
+              <p className="text-sm text-gray-600">Expert care for your garments</p>
+            </Card>
+            <Card className="p-4 text-center bg-white shadow-md">
+              <Rocket className="mx-auto mb-2 text-secondary w-8 h-8" />
+              <h3 className="font-semibold mb-1">Quick Service</h3>
+              <p className="text-sm text-gray-600">24-hour turnaround available</p>
+            </Card>
+            <Card className="p-4 text-center bg-white shadow-md">
+              <Gift className="mx-auto mb-2 text-secondary w-8 h-8" />
+              <h3 className="font-semibold mb-1">First Time Offer</h3>
+              <p className="text-sm text-gray-600">20% off your first booking</p>
+            </Card>
+          </div>
 
           <Card className="p-6 shadow-lg">
             {/* Progress Bar */}
@@ -218,7 +249,6 @@ const CollectionBooking = () => {
       </div>
     </div>
   );
-
 };
 
 export default CollectionBooking;
