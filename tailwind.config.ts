@@ -43,6 +43,9 @@ export default {
       fontFamily: {
         sans: ['Roboto', 'sans-serif'],
       },
+      backgroundImage: {
+        'hero-pattern': "linear-gradient(rgba(27, 67, 50, 0.8), rgba(27, 67, 50, 0.8)), url('/lovable-uploads/bc797a12-8ef9-4004-9d8f-ae61d2ab8cbb.png')",
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
