@@ -1,55 +1,57 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { mockAPI } from "@/services/mockCleanCloudAPI";
 import { motion } from "framer-motion";
-import { ArrowLeft, Star, Rocket, Gift, Calendar } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import PromotionalCards from "@/components/collection/PromotionalCards";
+import BookingForm from "@/components/collection/BookingForm";
 
 const CollectionBooking = () => {
-  const [step, setStep] = useState(1);
-  const [bookingData, setBookingData] = useState({
-    date: "",
-    time: "",
-    items: [] as string[],
-    notes: "",
-  });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (bookingData: {
+    date: string;
+    time: string;
+    items: string[];
+    notes: string;
+  }) => {
     setIsLoading(true);
 
     try {
-      await mockAPI.createOrder({
+      const order = await mockAPI.createOrder({
         customerId: "demo-customer",
         plan: "one-time",
         deliveryOption: "pickup",
         addons: {
           homeDelivery: false,
-          sortingService: false
+          sortingService: false,
         },
-        total: 29.99, // Added default one-time collection price
-        billingPeriod: "monthly" // Added default billing period
+        total: 29.99,
+        billingPeriod: "monthly",
+      });
+
+      // After order creation, redirect to payment
+      navigate("/payment", {
+        state: {
+          orderDetails: {
+            orderId: order.id,
+            total: 29.99,
+            items: bookingData.items,
+            date: bookingData.date,
+            time: bookingData.time,
+          },
+        },
       });
 
       toast({
-        title: "Booking Confirmed!",
+        title: "Booking Created!",
         description: `Your collection is scheduled for ${bookingData.date} at ${bookingData.time}`,
       });
-
-      setBookingData({
-        date: "",
-        time: "",
-        items: [],
-        notes: "",
-      });
-      setStep(1);
     } catch (error) {
       toast({
         title: "Error",
@@ -64,7 +66,6 @@ const CollectionBooking = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 py-16">
       <div className="container mx-auto px-4">
-        {/* Back Button */}
         <Button
           variant="ghost"
           onClick={() => navigate("/")}
@@ -83,167 +84,10 @@ const CollectionBooking = () => {
             Book a Collection
           </h1>
 
-          {/* Promotional Content */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <Card className="p-4 text-center bg-white shadow-md">
-              <Star className="mx-auto mb-2 text-secondary w-8 h-8" />
-              <h3 className="font-semibold mb-1">Premium Quality</h3>
-              <p className="text-sm text-gray-600">Expert care for your garments</p>
-            </Card>
-            <Card className="p-4 text-center bg-white shadow-md">
-              <Rocket className="mx-auto mb-2 text-secondary w-8 h-8" />
-              <h3 className="font-semibold mb-1">Quick Service</h3>
-              <p className="text-sm text-gray-600">24-hour turnaround available</p>
-            </Card>
-            <Card className="p-4 text-center bg-white shadow-md">
-              <Gift className="mx-auto mb-2 text-secondary w-8 h-8" />
-              <h3 className="font-semibold mb-1">First Time Offer</h3>
-              <p className="text-sm text-gray-600">20% off your first booking</p>
-            </Card>
-          </div>
+          <PromotionalCards />
 
           <Card className="p-6 shadow-lg">
-            {/* Progress Bar */}
-            <div className="mb-8">
-              <div className="flex justify-between mb-2">
-                {[1, 2, 3].map((stepNumber) => (
-                  <span
-                    key={stepNumber}
-                    className={`text-sm ${
-                      step >= stepNumber
-                        ? "text-primary font-medium"
-                        : "text-gray-400"
-                    }`}
-                  >
-                    Step {stepNumber}
-                  </span>
-                ))}
-              </div>
-              <div className="h-2 bg-gray-200 rounded-full">
-                <div
-                  className="h-full bg-secondary rounded-full transition-all duration-300"
-                  style={{ width: `${((step - 1) / 2) * 100}%` }}
-                />
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {step === 1 && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="space-y-4"
-                >
-                  <h3 className="text-lg font-semibold text-primary mb-4">
-                    Select Collection Date & Time
-                  </h3>
-                  <div className="relative">
-                    <Input
-                      type="date"
-                      value={bookingData.date}
-                      onChange={(e) =>
-                        setBookingData({ ...bookingData, date: e.target.value })
-                      }
-                      className="w-full pl-10"
-                      required
-                    />
-                    <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                  </div>
-                  <div>
-                    <Input
-                      type="time"
-                      value={bookingData.time}
-                      onChange={(e) =>
-                        setBookingData({ ...bookingData, time: e.target.value })
-                      }
-                      className="w-full"
-                      required
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    onClick={() => setStep(2)}
-                    className="w-full bg-primary text-white hover:bg-primary-light"
-                  >
-                    Next
-                  </Button>
-                </motion.div>
-              )}
-
-              {step === 2 && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="space-y-4"
-                >
-                  <h3 className="text-lg font-semibold text-primary mb-4">
-                    Add Items
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    {["Shirts", "Pants", "Dresses", "Suits"].map((item) => (
-                      <Button
-                        key={item}
-                        type="button"
-                        variant={
-                          bookingData.items.includes(item)
-                            ? "default"
-                            : "outline"
-                        }
-                        onClick={() =>
-                          setBookingData({
-                            ...bookingData,
-                            items: bookingData.items.includes(item)
-                              ? bookingData.items.filter((i) => i !== item)
-                              : [...bookingData.items, item],
-                          })
-                        }
-                        className={
-                          bookingData.items.includes(item)
-                            ? "bg-secondary text-primary hover:bg-secondary-light"
-                            : "hover:bg-gray-50"
-                        }
-                      >
-                        {item}
-                      </Button>
-                    ))}
-                  </div>
-                  <Button
-                    type="button"
-                    onClick={() => setStep(3)}
-                    className="w-full bg-primary text-white hover:bg-primary-light"
-                  >
-                    Next
-                  </Button>
-                </motion.div>
-              )}
-
-              {step === 3 && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="space-y-4"
-                >
-                  <h3 className="text-lg font-semibold text-primary mb-4">
-                    Additional Notes
-                  </h3>
-                  <Textarea
-                    placeholder="Any special instructions?"
-                    value={bookingData.notes}
-                    onChange={(e) =>
-                      setBookingData({ ...bookingData, notes: e.target.value })
-                    }
-                    className="min-h-[100px]"
-                  />
-                  <Button
-                    type="submit"
-                    className="w-full bg-primary text-white hover:bg-primary-light"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Confirming..." : "Confirm Booking"}
-                  </Button>
-                </motion.div>
-              )}
-            </form>
+            <BookingForm onSubmit={handleSubmit} isLoading={isLoading} />
           </Card>
         </motion.div>
       </div>
