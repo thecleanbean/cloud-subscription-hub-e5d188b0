@@ -18,29 +18,29 @@ const Index = () => {
     setShowRegistration(true);
   };
 
-  const handleRegistrationSubmit = (data: any) => {
-    console.log("Registration data:", data);
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+    <div className="min-h-screen">
       <Navbar />
       
       {!showRegistration ? (
         <>
           <HeroSection />
-          <CustomerJourney />
-          <PricingSection onPlanSelect={handlePlanSelect} />
-          <DeliverySection />
-          <TestimonialsSection />
-          <FAQSection />
-          <ContactSection />
+          <div className="bg-white">
+            <CustomerJourney />
+            <PricingSection onPlanSelect={handlePlanSelect} />
+            <DeliverySection />
+            <TestimonialsSection />
+            <FAQSection />
+            <ContactSection />
+          </div>
         </>
       ) : (
         <div className="container mx-auto px-4 py-32">
           <RegistrationForm
             selectedPlan={selectedPlan!}
-            onSubmit={handleRegistrationSubmit}
+            onSubmit={(data) => {
+              console.log("Registration data:", data);
+            }}
           />
         </div>
       )}
