@@ -1,12 +1,8 @@
 import { motion } from "framer-motion";
-import { Check, ShoppingBag } from "lucide-react";
 import { Card } from "./ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
+import { TooltipProvider } from "./ui/tooltip";
+import { PricingFeatureItem } from "./pricing/PricingFeatureItem";
+import { PricingCardHeader } from "./pricing/PricingCardHeader";
 
 interface PricingFeature {
   name: string;
@@ -50,57 +46,18 @@ export const PricingCard = ({
           </div>
         )}
         
-        <div className="text-center mb-4 md:mb-6">
-          <div className="flex justify-center mb-3 md:mb-4">
-            <div className="relative w-12 h-12 md:w-16 md:h-16">
-              <ShoppingBag className="w-full h-full text-primary" />
-              <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-base md:text-lg font-bold text-primary">
-                {icon}
-              </span>
-            </div>
-          </div>
-          <h3 className="text-base md:text-lg font-bold text-primary mb-2">{name}</h3>
-          <div className="text-2xl md:text-3xl font-black text-primary mb-1 md:mb-2">{price}</div>
-          <div className="text-xs md:text-sm text-accent mb-2">{annualPrice}</div>
-          <p className="text-xs md:text-sm text-gray-600">{description}</p>
-        </div>
+        <PricingCardHeader
+          name={name}
+          price={price}
+          annualPrice={annualPrice}
+          description={description}
+          icon={icon}
+        />
         
         <ul className="space-y-2 md:space-y-3 mb-4 md:mb-6">
           {features.map((feature, index) => (
             <li key={index}>
-              {feature.description ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div 
-                      className={`flex items-center p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors
-                        ${feature.included ? "text-gray-900" : "text-gray-400"}`}
-                    >
-                      <Check
-                        className={`w-4 h-4 md:w-5 md:h-5 mr-2 flex-shrink-0 
-                          ${feature.included ? "text-secondary" : "text-gray-300"}`}
-                      />
-                      <span className="text-xs md:text-sm flex-grow">{feature.name}</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent 
-                    side="right"
-                    className="max-w-xs bg-white p-3 rounded-lg shadow-lg border border-gray-200"
-                  >
-                    <p className="text-sm text-gray-700">{feature.description}</p>
-                  </TooltipContent>
-                </Tooltip>
-              ) : (
-                <div 
-                  className={`flex items-center p-2 rounded-lg
-                    ${feature.included ? "text-gray-900" : "text-gray-400"}`}
-                >
-                  <Check
-                    className={`w-4 h-4 md:w-5 md:h-5 mr-2 flex-shrink-0 
-                      ${feature.included ? "text-secondary" : "text-gray-300"}`}
-                  />
-                  <span className="text-xs md:text-sm flex-grow">{feature.name}</span>
-                </div>
-              )}
+              <PricingFeatureItem {...feature} />
             </li>
           ))}
         </ul>
