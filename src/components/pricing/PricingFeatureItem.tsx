@@ -4,6 +4,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { motion } from "framer-motion";
 
 interface PricingFeatureItemProps {
   name: string;
@@ -13,16 +14,18 @@ interface PricingFeatureItemProps {
 
 export const PricingFeatureItem = ({ name, included, description }: PricingFeatureItemProps) => {
   const FeatureContent = () => (
-    <div 
-      className={`flex items-center p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors
-        ${included ? "text-gray-900" : "text-gray-400"}`}
+    <motion.div 
+      whileHover={{ x: 5 }}
+      className={`flex items-center p-2.5 rounded-lg cursor-pointer transition-all duration-200
+        ${included ? "text-gray-900 hover:bg-gray-50" : "text-gray-400"}
+        group relative`}
     >
       <Check
-        className={`w-4 h-4 md:w-5 md:h-5 mr-2 flex-shrink-0 
+        className={`w-5 h-5 mr-3 flex-shrink-0 transition-transform duration-200 group-hover:scale-110
           ${included ? "text-secondary" : "text-gray-300"}`}
       />
-      <span className="text-xs md:text-sm flex-grow">{name}</span>
-    </div>
+      <span className="text-sm flex-grow font-medium">{name}</span>
+    </motion.div>
   );
 
   if (description) {
@@ -33,9 +36,9 @@ export const PricingFeatureItem = ({ name, included, description }: PricingFeatu
         </TooltipTrigger>
         <TooltipContent 
           side="right"
-          className="max-w-xs bg-white p-3 rounded-lg shadow-lg border border-gray-200"
+          className="max-w-xs bg-white p-4 rounded-lg shadow-xl border border-gray-100 animate-fade-in"
         >
-          <p className="text-sm text-gray-700">{description}</p>
+          <p className="text-sm text-gray-700 leading-relaxed">{description}</p>
         </TooltipContent>
       </Tooltip>
     );
