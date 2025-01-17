@@ -28,12 +28,36 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
       annualPrice: "Save 10% annually",
       description: "Perfect for individuals with minimal laundry needs",
       features: [
-        { name: "1 Bag per month", included: true },
-        { name: "Smart locker access", included: true },
-        { name: "2-day turnaround", included: true },
-        { name: "In-store pickup included", included: true },
-        { name: `Optional home delivery (${isYearly ? '£' + calculateYearlyAddonPrice(7.95) : '£7.95'})/${isYearly ? 'year' : 'month'}`, included: true },
-        { name: `Optional sorting service (${isYearly ? '£' + calculateYearlyAddonPrice(5.95) : '£5.95'})/${isYearly ? 'year' : 'month'}`, included: true },
+        { 
+          name: "1 Bag per month", 
+          included: true,
+          description: "One standard-sized laundry bag that can hold up to 8kg of clothes"
+        },
+        { 
+          name: "Smart locker access", 
+          included: true,
+          description: "24/7 access to our secure smart lockers. Drop off and pick up your laundry at your convenience"
+        },
+        { 
+          name: "2-day turnaround", 
+          included: true,
+          description: "Get your clean clothes back within 48 hours of drop-off"
+        },
+        { 
+          name: "In-store pickup included", 
+          included: true,
+          description: "Free pickup from any of our store locations"
+        },
+        { 
+          name: `Optional home delivery (${isYearly ? '£' + calculateYearlyAddonPrice(7.95) : '£7.95'})/${isYearly ? 'year' : 'month'}`, 
+          included: true,
+          description: "Have your clean clothes delivered right to your doorstep"
+        },
+        { 
+          name: `Optional sorting service (${isYearly ? '£' + calculateYearlyAddonPrice(5.95) : '£5.95'})/${isYearly ? 'year' : 'month'}`, 
+          included: true,
+          description: "We'll sort your clothes by color, fabric type, and care instructions"
+        },
       ],
       icon: "1",
     },
