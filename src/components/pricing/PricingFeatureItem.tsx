@@ -29,7 +29,7 @@ export const PricingFeatureItem = ({ name, included, description }: PricingFeatu
   );
 
   return description ? (
-    <Tooltip delayDuration={0}>
+    <Tooltip>
       <TooltipTrigger asChild>
         <button className="w-full text-left cursor-help">
           <FeatureContent />
@@ -38,10 +38,11 @@ export const PricingFeatureItem = ({ name, included, description }: PricingFeatu
       <TooltipContent 
         side="right" 
         align="start"
-        className="max-w-[300px] bg-white text-primary p-3 rounded-lg shadow-lg border border-gray-200 z-[9999]"
-        sideOffset={10}
+        className="bg-white text-primary p-4 rounded-lg shadow-xl border border-gray-200 max-w-[300px] z-[9999]"
+        sideOffset={20}
+        avoidCollisions={true}
       >
-        <p className="text-sm leading-relaxed">{description}</p>
+        <p className="text-sm leading-relaxed whitespace-normal">{description}</p>
       </TooltipContent>
     </Tooltip>
   ) : (
