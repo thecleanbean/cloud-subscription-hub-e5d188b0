@@ -64,16 +64,40 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
     {
       name: "2 Bags Plan",
       monthlyPrice: "£57.95",
-      yearlyPrice: "£690.95",
+      yearlyPrice: calculateYearlyPrice("£57.95"),
       annualPrice: "Save 10% annually",
       description: "Ideal for couples or small households",
       features: [
-        { name: "2 Bags per month", included: true },
-        { name: "Smart locker access", included: true },
-        { name: "2-day turnaround", included: true },
-        { name: "In-store pickup included", included: true },
-        { name: "Optional home delivery (£7.95/month)", included: true },
-        { name: "Optional sorting service (£5.95/month)", included: true },
+        { 
+          name: "2 Bags per month", 
+          included: true,
+          description: "Two standard-sized laundry bags that can hold up to 16kg of clothes total"
+        },
+        { 
+          name: "Smart locker access", 
+          included: true,
+          description: "24/7 access to our secure smart lockers. Drop off and pick up your laundry at your convenience"
+        },
+        { 
+          name: "2-day turnaround", 
+          included: true,
+          description: "Get your clean clothes back within 48 hours of drop-off"
+        },
+        { 
+          name: "In-store pickup included", 
+          included: true,
+          description: "Free pickup from any of our store locations"
+        },
+        { 
+          name: `Optional home delivery (${isYearly ? '£' + calculateYearlyAddonPrice(7.95) : '£7.95'})/${isYearly ? 'year' : 'month'}`, 
+          included: true,
+          description: "Have your clean clothes delivered right to your doorstep"
+        },
+        { 
+          name: `Optional sorting service (${isYearly ? '£' + calculateYearlyAddonPrice(5.95) : '£5.95'})/${isYearly ? 'year' : 'month'}`, 
+          included: true,
+          description: "We'll sort your clothes by color, fabric type, and care instructions"
+        },
       ],
       icon: "2",
     },

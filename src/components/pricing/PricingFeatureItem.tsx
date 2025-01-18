@@ -28,24 +28,22 @@ export const PricingFeatureItem = ({ name, included, description }: PricingFeatu
     </motion.div>
   );
 
-  if (description) {
-    return (
-      <Tooltip delayDuration={100}>
-        <TooltipTrigger asChild className="w-full text-left cursor-help">
-          <div>
-            <FeatureContent />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent 
-          side="right" 
-          align="start"
-          className="max-w-xs bg-white p-4 rounded-lg shadow-xl border border-gray-100 animate-fade-in"
-        >
-          <p className="text-sm text-gray-700 leading-relaxed">{description}</p>
-        </TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  return <FeatureContent />;
+  return description ? (
+    <Tooltip>
+      <TooltipTrigger asChild className="w-full text-left">
+        <div className="cursor-help">
+          <FeatureContent />
+        </div>
+      </TooltipTrigger>
+      <TooltipContent 
+        side="right" 
+        align="start"
+        className="z-50 bg-white p-4 rounded-lg shadow-xl border border-gray-100 max-w-[300px]"
+      >
+        <p className="text-sm text-gray-700 leading-relaxed">{description}</p>
+      </TooltipContent>
+    </Tooltip>
+  ) : (
+    <FeatureContent />
+  );
 };
