@@ -20,6 +20,39 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
     return (monthlyPrice * 12 * 0.9).toFixed(2); // 10% discount on annual addons
   };
 
+  const getCommonFeatures = (bagCount: string) => [
+    { 
+      name: `${bagCount} per month`, 
+      included: true,
+      description: `${bagCount === '1 Bag' ? 'One' : bagCount} standard-sized laundry bag${bagCount !== '1 Bag' ? 's' : ''} that can hold up to ${parseInt(bagCount) * 8}kg of clothes total`
+    },
+    { 
+      name: "Smart locker access", 
+      included: true,
+      description: "24/7 access to our secure smart lockers. Drop off and pick up your laundry at your convenience"
+    },
+    { 
+      name: "2-day turnaround", 
+      included: true,
+      description: "Get your clean clothes back within 48 hours of drop-off"
+    },
+    { 
+      name: "In-store pickup included", 
+      included: true,
+      description: "Free pickup from any of our store locations"
+    },
+    { 
+      name: `Optional home delivery (${isYearly ? '£' + calculateYearlyAddonPrice(7.95) : '£7.95'})/${isYearly ? 'year' : 'month'}`, 
+      included: true,
+      description: "Have your clean clothes delivered right to your doorstep"
+    },
+    { 
+      name: `Optional sorting service (${isYearly ? '£' + calculateYearlyAddonPrice(5.95) : '£5.95'})/${isYearly ? 'year' : 'month'}`, 
+      included: true,
+      description: "We'll sort your clothes by color, fabric type, and care instructions"
+    },
+  ];
+
   const plans = [
     {
       name: "1 Bag Plan",
@@ -27,38 +60,7 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
       yearlyPrice: calculateYearlyPrice("£31.95"),
       annualPrice: "Save 10% annually",
       description: "Perfect for individuals with minimal laundry needs",
-      features: [
-        { 
-          name: "1 Bag per month", 
-          included: true,
-          description: "One standard-sized laundry bag that can hold up to 8kg of clothes"
-        },
-        { 
-          name: "Smart locker access", 
-          included: true,
-          description: "24/7 access to our secure smart lockers. Drop off and pick up your laundry at your convenience"
-        },
-        { 
-          name: "2-day turnaround", 
-          included: true,
-          description: "Get your clean clothes back within 48 hours of drop-off"
-        },
-        { 
-          name: "In-store pickup included", 
-          included: true,
-          description: "Free pickup from any of our store locations"
-        },
-        { 
-          name: `Optional home delivery (${isYearly ? '£' + calculateYearlyAddonPrice(7.95) : '£7.95'})/${isYearly ? 'year' : 'month'}`, 
-          included: true,
-          description: "Have your clean clothes delivered right to your doorstep"
-        },
-        { 
-          name: `Optional sorting service (${isYearly ? '£' + calculateYearlyAddonPrice(5.95) : '£5.95'})/${isYearly ? 'year' : 'month'}`, 
-          included: true,
-          description: "We'll sort your clothes by color, fabric type, and care instructions"
-        },
-      ],
+      features: getCommonFeatures("1 Bag"),
       icon: "1",
     },
     {
@@ -67,38 +69,7 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
       yearlyPrice: calculateYearlyPrice("£57.95"),
       annualPrice: "Save 10% annually",
       description: "Ideal for couples or small households",
-      features: [
-        { 
-          name: "2 Bags per month", 
-          included: true,
-          description: "Two standard-sized laundry bags that can hold up to 16kg of clothes total"
-        },
-        { 
-          name: "Smart locker access", 
-          included: true,
-          description: "24/7 access to our secure smart lockers. Drop off and pick up your laundry at your convenience"
-        },
-        { 
-          name: "2-day turnaround", 
-          included: true,
-          description: "Get your clean clothes back within 48 hours of drop-off"
-        },
-        { 
-          name: "In-store pickup included", 
-          included: true,
-          description: "Free pickup from any of our store locations"
-        },
-        { 
-          name: `Optional home delivery (${isYearly ? '£' + calculateYearlyAddonPrice(7.95) : '£7.95'})/${isYearly ? 'year' : 'month'}`, 
-          included: true,
-          description: "Have your clean clothes delivered right to your doorstep"
-        },
-        { 
-          name: `Optional sorting service (${isYearly ? '£' + calculateYearlyAddonPrice(5.95) : '£5.95'})/${isYearly ? 'year' : 'month'}`, 
-          included: true,
-          description: "We'll sort your clothes by color, fabric type, and care instructions"
-        },
-      ],
+      features: getCommonFeatures("2 Bags"),
       icon: "2",
     },
     {
@@ -107,46 +78,32 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
       yearlyPrice: calculateYearlyPrice("£78.95"),
       annualPrice: "Save 10% annually",
       description: "Perfect for families",
-      features: [
-        { name: "3 Bags per month", included: true },
-        { name: "Smart locker access", included: true },
-        { name: "2-day turnaround", included: true },
-        { name: "In-store pickup included", included: true },
-        { name: "Optional home delivery (£7.95/month)", included: true },
-        { name: "Optional sorting service (£5.95/month)", included: true },
-      ],
+      features: getCommonFeatures("3 Bags"),
       isPopular: true,
       icon: "3",
     },
     {
       name: "4 Bags Plan",
       monthlyPrice: "£100.95",
-      yearlyPrice: "£1,208.95",
+      yearlyPrice: calculateYearlyPrice("£100.95"),
       annualPrice: "Save 10% annually",
       description: "Best value for large families",
-      features: [
-        { name: "4 Bags per month", included: true },
-        { name: "Smart locker access", included: true },
-        { name: "2-day turnaround", included: true },
-        { name: "In-store pickup included", included: true },
-        { name: "Optional home delivery (£7.95/month)", included: true },
-        { name: "Optional sorting service (£5.95/month)", included: true },
-      ],
+      features: getCommonFeatures("4 Bags"),
       icon: "4",
     },
     {
       name: "Weekly Plan",
       monthlyPrice: "£109.95",
-      yearlyPrice: "£1,324.95",
+      yearlyPrice: calculateYearlyPrice("£109.95"),
       annualPrice: "Save 10% annually",
       description: "1 Bag collected, cleaned and returned weekly",
       features: [
-        { name: "1 Bag per week", included: true },
-        { name: "Smart locker access", included: true },
-        { name: "2-day turnaround", included: true },
-        { name: "In-store pickup included", included: true },
-        { name: "Optional home delivery (£7.95/month)", included: true },
-        { name: "Optional sorting service (£5.95/month)", included: true },
+        { 
+          name: "1 Bag per week", 
+          included: true,
+          description: "One standard-sized laundry bag collected and returned weekly, perfect for regular laundry needs"
+        },
+        ...getCommonFeatures("1 Bag").slice(1)
       ],
       icon: "W",
     },
@@ -157,12 +114,12 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
       annualPrice: "Save 10% annually",
       description: "Drop Clean, Take Dirty - twice a week",
       features: [
-        { name: "Unlimited bag swaps (twice weekly)", included: true },
-        { name: "Smart locker access", included: true },
-        { name: "2-day turnaround", included: true },
-        { name: "In-store pickup included", included: true },
-        { name: "Optional home delivery (£7.95/month)", included: true },
-        { name: "Optional sorting service (£5.95/month)", included: true },
+        { 
+          name: "Unlimited bag swaps (twice weekly)", 
+          included: true,
+          description: "Exchange your dirty laundry bag for a clean one twice a week, perfect for high-volume needs"
+        },
+        ...getCommonFeatures("1 Bag").slice(1)
       ],
       icon: "↻",
     },
