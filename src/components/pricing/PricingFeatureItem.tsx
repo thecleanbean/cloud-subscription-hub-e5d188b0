@@ -5,6 +5,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { motion } from "framer-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PricingFeatureItemProps {
   name: string;
@@ -13,6 +14,8 @@ interface PricingFeatureItemProps {
 }
 
 export const PricingFeatureItem = ({ name, included, description }: PricingFeatureItemProps) => {
+  const isMobile = useIsMobile();
+  
   const FeatureContent = () => (
     <motion.div 
       whileHover={{ x: 5 }}
@@ -36,10 +39,10 @@ export const PricingFeatureItem = ({ name, included, description }: PricingFeatu
         </button>
       </PopoverTrigger>
       <PopoverContent 
-        side="right" 
-        align="start"
-        className="bg-white text-primary p-4 rounded-lg shadow-xl border border-gray-200 max-w-[300px]"
-        sideOffset={5}
+        side={isMobile ? "bottom" : "right"}
+        align={isMobile ? "center" : "start"}
+        className="bg-white text-primary p-4 rounded-lg shadow-xl border border-gray-200 max-w-[300px] z-50"
+        sideOffset={isMobile ? 5 : 10}
       >
         <div className="space-y-2">
           <p className="text-sm leading-relaxed break-words">{description}</p>
