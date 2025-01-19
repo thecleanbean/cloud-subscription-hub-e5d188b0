@@ -1,9 +1,9 @@
 import { Check } from "lucide-react";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { motion } from "framer-motion";
 
 interface PricingFeatureItemProps {
@@ -29,22 +29,23 @@ export const PricingFeatureItem = ({ name, included, description }: PricingFeatu
   );
 
   return description ? (
-    <Tooltip>
-      <TooltipTrigger asChild>
+    <Popover>
+      <PopoverTrigger asChild>
         <button className="w-full text-left cursor-help">
           <FeatureContent />
         </button>
-      </TooltipTrigger>
-      <TooltipContent 
+      </PopoverTrigger>
+      <PopoverContent 
         side="right" 
         align="start"
-        className="bg-white text-primary p-4 rounded-lg shadow-xl border border-gray-200 max-w-[300px] z-[9999]"
-        sideOffset={20}
-        avoidCollisions={true}
+        className="bg-white text-primary p-4 rounded-lg shadow-xl border border-gray-200 max-w-[300px]"
+        sideOffset={5}
       >
-        <p className="text-sm leading-relaxed whitespace-normal">{description}</p>
-      </TooltipContent>
-    </Tooltip>
+        <div className="space-y-2">
+          <p className="text-sm leading-relaxed break-words">{description}</p>
+        </div>
+      </PopoverContent>
+    </Popover>
   ) : (
     <FeatureContent />
   );
