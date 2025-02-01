@@ -8,8 +8,10 @@ import { useNavigate } from "react-router-dom";
 const LockerDropoff = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (data: any) => {
+    setIsSubmitting(true);
     try {
       // Create customer if not signed in
       const customer = await mockAPI.createCustomer({
@@ -22,7 +24,6 @@ const LockerDropoff = () => {
       await mockAPI.createOrder({
         customerId: customer.id,
         lockerNumber: data.lockerNumber,
-        pin: data.pin,
         instructions: data.instructions,
         serviceTypes: data.serviceTypes,
         collectionDate: data.collectionDate,
@@ -30,24 +31,27 @@ const LockerDropoff = () => {
       });
 
       toast({
-        title: "Drop-off Registered",
-        description: "We'll process your items according to your instructions.",
+        title: "Success!",
+        description: "Your locker drop-off has been registered. We'll take care of your items!",
       });
 
-      navigate("/");
+      // Navigate to payment page instead of home
+      navigate("/payment");
     } catch (error) {
       toast({
         title: "Error",
         description: "There was an error processing your request. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-12">
         <LockerDropoffForm onSubmit={handleSubmit} />
       </div>
     </div>
