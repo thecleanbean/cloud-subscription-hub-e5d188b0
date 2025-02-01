@@ -45,8 +45,7 @@ const PaymentPage = () => {
       <Button
         variant="ghost"
         onClick={() => navigate(-1)}
-        className="mb-6"
-        disabled={isProcessing || isComplete}
+        className="mb-6 text-primary hover:text-primary-dark"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back
@@ -56,12 +55,12 @@ const PaymentPage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <Card className="p-6">
+        <Card className="p-6 bg-white shadow-lg">
           {!isComplete ? (
             <>
               <h2 className="text-2xl font-bold text-primary mb-4">Complete Payment</h2>
               <div className="space-y-4 mb-6">
-                <div className="p-4 bg-secondary/10 rounded-lg">
+                <div className="p-4 bg-gray-50 rounded-lg">
                   <h3 className="font-semibold mb-2">Order Summary</h3>
                   <p className="text-sm text-gray-600">Plan: {orderDetails.plan}</p>
                   <p className="text-sm text-gray-600">
@@ -73,7 +72,7 @@ const PaymentPage = () => {
                   {orderDetails.addons?.sortingService && (
                     <p className="text-sm text-gray-600">✓ Sorting Service</p>
                   )}
-                  <p className="font-bold mt-2">
+                  <p className="font-bold mt-2 text-primary">
                     Total: £{orderDetails.total}
                     {orderDetails.billingPeriod === 'yearly' ? '/year' : '/month'}
                   </p>
@@ -111,15 +110,15 @@ const PaymentPage = () => {
 
               <Button
                 onClick={handlePayment}
-                className="w-full bg-secondary hover:bg-secondary/90 text-white"
+                className="w-full bg-primary hover:bg-primary-light text-white font-semibold"
                 disabled={isProcessing}
               >
-                {isProcessing ? "Processing..." : "Pay Now"}
+                {isProcessing ? "Processing..." : "Complete Payment"}
               </Button>
             </>
           ) : (
             <div className="text-center py-8">
-              <CheckCircle className="w-16 h-16 text-secondary mx-auto mb-4" />
+              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-primary mb-2">Payment Successful!</h2>
               <p className="text-gray-600">
                 Thank you for your subscription. You will be redirected shortly.
