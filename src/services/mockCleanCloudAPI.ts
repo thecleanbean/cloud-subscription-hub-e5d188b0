@@ -9,14 +9,23 @@ interface CleanCloudCustomer {
 interface CleanCloudOrder {
   id: string;
   customerId: string;
-  plan: string;
-  deliveryOption: 'pickup' | 'delivery';
-  addons: {
+  plan?: string;
+  deliveryOption?: 'pickup' | 'delivery';
+  addons?: {
     homeDelivery: boolean;
     sortingService: boolean;
   };
+  lockerNumber?: string;
+  pin?: string;
+  instructions?: string;
+  serviceTypes?: {
+    laundry: boolean;
+    duvets: boolean;
+    dryCleaning: boolean;
+  };
+  collectionDate?: Date;
   total: number;
-  billingPeriod: 'monthly' | 'yearly';
+  billingPeriod?: 'monthly' | 'yearly';
 }
 
 // Mock API implementation
@@ -36,14 +45,23 @@ export const mockAPI = {
 
   createOrder: async (orderData: {
     customerId: string;
-    plan: string;
-    deliveryOption: 'pickup' | 'delivery';
-    addons: {
+    plan?: string;
+    deliveryOption?: 'pickup' | 'delivery';
+    addons?: {
       homeDelivery: boolean;
       sortingService: boolean;
     };
+    lockerNumber?: string;
+    pin?: string;
+    instructions?: string;
+    serviceTypes?: {
+      laundry: boolean;
+      duvets: boolean;
+      dryCleaning: boolean;
+    };
+    collectionDate?: Date;
     total: number;
-    billingPeriod: 'monthly' | 'yearly';
+    billingPeriod?: 'monthly' | 'yearly';
   }): Promise<CleanCloudOrder> => {
     console.log('Creating order in CleanCloud:', orderData);
     

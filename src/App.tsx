@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import CollectionBooking from "./pages/CollectionBooking";
 import PaymentPage from "./pages/PaymentPage";
+import LockerDropoff from "./pages/LockerDropoff";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/book-collection" element={<CollectionBooking />} />
           <Route path="/payment" element={<PaymentPage />} />
+          <Route path="/locker-dropoff" element={<LockerDropoff />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
