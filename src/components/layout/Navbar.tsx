@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,10 +17,12 @@ export const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const isHomePage = location.pathname === "/";
+
   return (
     <nav
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled ? "bg-white shadow-md" : "bg-transparent"
+        isScrolled || !isHomePage ? "bg-white shadow-md" : "bg-transparent"
       }`}
       role="navigation"
       aria-label="Main navigation"
@@ -27,7 +30,7 @@ export const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center space-x-2">
-            <span className={`text-2xl font-bold ${isScrolled ? 'text-primary' : 'text-white'}`}>
+            <span className={`text-2xl font-bold ${isScrolled || !isHomePage ? 'text-primary' : 'text-white'}`}>
               The Clean Bean
             </span>
           </Link>
@@ -35,37 +38,39 @@ export const Navbar = () => {
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
             <Link 
-              to="#pricing" 
-              className={`hover:text-secondary transition-colors ${isScrolled ? 'text-primary' : 'text-white'}`}
+              to="/about" 
+              className={`hover:text-secondary transition-colors ${isScrolled || !isHomePage ? 'text-primary' : 'text-white'}`}
             >
-              Pricing
+              About Us
             </Link>
+            {isHomePage && (
+              <a 
+                href="#pricing" 
+                className={`hover:text-secondary transition-colors ${isScrolled ? 'text-primary' : 'text-white'}`}
+              >
+                Pricing
+              </a>
+            )}
             <Link 
-              to="#how-it-works" 
-              className={`hover:text-secondary transition-colors ${isScrolled ? 'text-primary' : 'text-white'}`}
-            >
-              How It Works
-            </Link>
-            <Link 
-              to="#contact" 
-              className={`hover:text-secondary transition-colors ${isScrolled ? 'text-primary' : 'text-white'}`}
+              to="/contact" 
+              className={`hover:text-secondary transition-colors ${isScrolled || !isHomePage ? 'text-primary' : 'text-white'}`}
             >
               Contact
             </Link>
             <Link 
               to="/locker-dropoff" 
-              className={`hover:text-secondary transition-colors ${isScrolled ? 'text-primary' : 'text-white'}`}
+              className={`hover:text-secondary transition-colors ${isScrolled || !isHomePage ? 'text-primary' : 'text-white'}`}
             >
               Locker Dropoff
             </Link>
-            <Button asChild variant={isScrolled ? "default" : "secondary"}>
+            <Button asChild variant={isScrolled || !isHomePage ? "default" : "secondary"} className="text-white">
               <Link to="/book-collection">Book Now</Link>
             </Button>
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className={`md:hidden p-2 ${isScrolled ? 'text-primary' : 'text-white'}`}
+            className={`md:hidden p-2 ${isScrolled || !isHomePage ? 'text-primary' : 'text-white'}`}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-expanded={isMobileMenuOpen}
             aria-label="Toggle menu"
@@ -86,21 +91,23 @@ export const Navbar = () => {
           >
             <div className="container mx-auto px-4 py-4 space-y-4">
               <Link
-                to="#pricing"
+                to="/about"
                 className="block text-primary hover:text-secondary transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Pricing
+                About Us
               </Link>
+              {isHomePage && (
+                <a
+                  href="#pricing"
+                  className="block text-primary hover:text-secondary transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Pricing
+                </a>
+              )}
               <Link
-                to="#how-it-works"
-                className="block text-primary hover:text-secondary transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                How It Works
-              </Link>
-              <Link
-                to="#contact"
+                to="/contact"
                 className="block text-primary hover:text-secondary transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -113,7 +120,7 @@ export const Navbar = () => {
               >
                 Locker Dropoff
               </Link>
-              <Button asChild className="w-full">
+              <Button asChild className="w-full text-white">
                 <Link to="/book-collection">Book Now</Link>
               </Button>
             </div>

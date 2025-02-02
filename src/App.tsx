@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import CollectionBooking from "./pages/CollectionBooking";
 import PaymentPage from "./pages/PaymentPage";
 import LockerDropoff from "./pages/LockerDropoff";
+import AboutUs from "./pages/AboutUs";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +23,8 @@ const App = () => (
           <Route path="/book-collection" element={<CollectionBooking />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/locker-dropoff" element={<LockerDropoff />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/contact" element={<Contact />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
