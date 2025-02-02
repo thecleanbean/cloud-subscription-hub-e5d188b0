@@ -306,6 +306,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
               type="button"
               variant="outline"
               onClick={() => setStep((prev) => prev - 1)}
+              className="text-primary hover:text-primary-foreground"
             >
               Previous
             </Button>
@@ -314,12 +315,15 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
             <Button
               type="button"
               onClick={() => setStep((prev) => prev + 1)}
-              className={cn("ml-auto", step === 1 && "w-full")}
+              className={cn(
+                "ml-auto text-white",
+                step === 1 && "w-full"
+              )}
             >
               Next Step
             </Button>
           ) : (
-            <Button type="submit" className="ml-auto">
+            <Button type="submit" className="ml-auto text-white">
               Complete Drop-off
             </Button>
           )}
