@@ -21,8 +21,8 @@ export const HeroSection = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="bg-secondary hover:bg-secondary-dark text-primary">
-              <Link to="/home" className="flex items-center gap-2">
-                Visit Homepage <ArrowRight className="w-4 h-4" />
+              <Link to="/book-collection" className="flex items-center gap-2">
+                Book Now <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white">

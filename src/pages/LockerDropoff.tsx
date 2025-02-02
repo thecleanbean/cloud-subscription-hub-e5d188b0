@@ -1,46 +1,32 @@
-import { useState } from "react";
+import { BackToHome } from "@/components/ui/back-to-home";
 import { Navbar } from "@/components/layout/Navbar";
-import LockerDropoffForm from "@/components/locker/LockerDropoffForm";
-import { useToast } from "@/components/ui/use-toast";
-import { mockAPI } from "@/services/mockCleanCloudAPI";
-import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { toast } from "@/components/ui/use-toast";
 
 const LockerDropoff = () => {
-  const { toast } = useToast();
-  const navigate = useNavigate();
+  const [lockerCode, setLockerCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsSubmitting(true);
+
     try {
-      // Create customer if not signed in
-      const customer = await mockAPI.createCustomer({
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-      });
-
-      // Create order in CleanCloud
-      await mockAPI.createOrder({
-        customerId: customer.id,
-        lockerNumber: data.lockerNumber,
-        instructions: data.instructions,
-        serviceTypes: data.serviceTypes,
-        collectionDate: data.collectionDate,
-        total: 0, // To be calculated based on items
-      });
-
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       toast({
         title: "Success!",
-        description: "Your locker drop-off has been registered. We'll take care of your items!",
+        description: "Your locker code has been verified.",
       });
-
-      // Navigate to payment page instead of home
-      navigate("/payment");
+      
+      setLockerCode("");
     } catch (error) {
       toast({
         title: "Error",
-        description: "There was an error processing your request. Please try again.",
+        description: "Failed to verify locker code. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -49,11 +35,44 @@ const LockerDropoff = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-12">
-        <LockerDropoffForm onSubmit={handleSubmit} />
+      <div className="container mx-auto px-4 py-32">
+        <div className="max-w-md mx-auto">
+          <h1 className="text-3xl font-bold mb-6">Locker Dropoff</h1>
+          <p className="text-gray-600 mb-8">
+            Enter your locker code to access your designated dropoff point.
+          </p>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              type="text"
+              placeholder="Enter your locker code"
+              value={lockerCode}
+              onChange={(e) => setLockerCode(e.target.value)}
+              required
+            />
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Verifying..." : "Verify Code"}
+            </Button>
+          </form>
+          
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Instructions:</h2>
+            <ol className="list-decimal list-inside space-y-2 text-gray-600">
+              <li>Enter the locker code you received via email</li>
+              <li>Wait for verification</li>
+              <li>Once verified, your locker will automatically unlock</li>
+              <li>Place your laundry inside and close the door securely</li>
+            </ol>
+          </div>
+        </div>
       </div>
+      <BackToHome />
     </div>
   );
 };
