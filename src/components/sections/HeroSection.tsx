@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
-export const HeroSection = () => {
+const HeroSection = () => {
   return (
     <div className="relative min-h-screen">
       <img 
@@ -43,3 +43,5 @@ export const HeroSection = () => {
     </div>
   );
 };
+
+export default HeroSection;
