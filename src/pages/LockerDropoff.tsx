@@ -1,6 +1,6 @@
 import { BackToHome } from "@/components/ui/back-to-home";
 import { Navbar } from "@/components/layout/Navbar";
-import { LockerDropoffForm } from "@/components/locker/LockerDropoffForm";
+import LockerDropoffForm from "@/components/locker/LockerDropoffForm";
 
 const LockerDropoff = () => {
   return (
@@ -13,7 +13,7 @@ const LockerDropoff = () => {
             Please complete your details below to begin the dropoff process.
           </p>
           
-          <LockerDropoffForm />
+          <LockerDropoffForm onSubmit={() => {}} />
         </div>
       </div>
       <BackToHome />
