@@ -35,6 +35,14 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
   });
   const { toast } = useToast();
 
+  const calculateTotal = () => {
+    let total = 0;
+    if (formData.serviceTypes.laundry) total += 25.00;
+    if (formData.serviceTypes.duvets) total += 35.00;
+    if (formData.serviceTypes.dryCleaning) total += 45.00;
+    return total;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -46,6 +54,9 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
         phone: formData.phone,
       });
 
+      // Calculate total based on selected services
+      const total = calculateTotal();
+
       // Create order in CleanCloud
       const order = await mockAPI.createOrder({
         customerId: customer.id,
@@ -53,6 +64,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
         instructions: formData.instructions,
         serviceTypes: formData.serviceTypes,
         collectionDate: formData.collectionDate,
+        total, // Add the total here
       });
 
       toast({
