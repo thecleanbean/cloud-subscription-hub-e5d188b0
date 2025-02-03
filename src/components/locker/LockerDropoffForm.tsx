@@ -11,6 +11,8 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { mockAPI } from "@/services/mockCleanCloudAPI";
+import { useToast } from "@/components/ui/use-toast";
 
 interface LockerDropoffFormProps {
   onSubmit: (data: any) => void;
@@ -31,10 +33,41 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
     },
     collectionDate: new Date(),
   });
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    try {
+      // Create customer in CleanCloud
+      const customer = await mockAPI.createCustomer({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+      });
+
+      // Create order in CleanCloud
+      const order = await mockAPI.createOrder({
+        customerId: customer.id,
+        lockerNumber: formData.lockerNumber,
+        instructions: formData.instructions,
+        serviceTypes: formData.serviceTypes,
+        collectionDate: formData.collectionDate,
+      });
+
+      toast({
+        title: "Success!",
+        description: "Your locker dropoff has been registered successfully.",
+      });
+
+      onSubmit({ ...formData, orderId: order.id });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "There was a problem processing your request. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const updateFormData = (field: string, value: any) => {
@@ -101,41 +134,9 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
             className="space-y-6"
           >
             <div className="text-center mb-8">
-              <h3 className="text-2xl font-semibold text-primary mb-2">Locker Details</h3>
+              <h3 className="text-2xl font-semibold text-primary mb-2">Service Details</h3>
               <p className="text-muted-foreground">
-                Tell us which locker you've used for your items
-              </p>
-            </div>
-            <div>
-              <Label htmlFor="lockerNumber">Locker Number (1-17)</Label>
-              <Input
-                id="lockerNumber"
-                type="number"
-                min="1"
-                max="17"
-                value={formData.lockerNumber}
-                onChange={(e) => updateFormData("lockerNumber", e.target.value)}
-                required
-                className="mt-1"
-              />
-              <p className="text-sm text-muted-foreground mt-2">
-                You can find the locker number clearly displayed on the front of each locker
-              </p>
-            </div>
-          </motion.div>
-        );
-
-      case 3:
-        return (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
-          >
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-semibold text-primary mb-2">Service Types</h3>
-              <p className="text-muted-foreground">
-                Select all the services you need for your items
+                Tell us what services you need
               </p>
             </div>
             <div className="space-y-4">
@@ -153,7 +154,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
                   />
                   <div>
                     <Label htmlFor="laundry" className="font-medium">Regular Laundry</Label>
-                    <p className="text-sm text-muted-foreground">Wash, dry, and fold service for your everyday items</p>
+                    <p className="text-sm text-muted-foreground">Wash, dry, and fold service</p>
                   </div>
                 </div>
               </Card>
@@ -170,8 +171,8 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
                     }
                   />
                   <div>
-                    <Label htmlFor="duvets" className="font-medium">Duvets</Label>
-                    <p className="text-sm text-muted-foreground">Professional cleaning for duvets and blankets</p>
+                    <Label htmlFor="duvets" className="font-medium">Duvets & Bedding</Label>
+                    <p className="text-sm text-muted-foreground">Professional cleaning for duvets</p>
                   </div>
                 </div>
               </Card>
@@ -189,7 +190,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
                   />
                   <div>
                     <Label htmlFor="dryCleaning" className="font-medium">Dry Cleaning</Label>
-                    <p className="text-sm text-muted-foreground">Specialist care for delicate items</p>
+                    <p className="text-sm text-muted-foreground">For delicate items</p>
                   </div>
                 </div>
               </Card>
@@ -197,7 +198,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
           </motion.div>
         );
 
-      case 4:
+      case 3:
         return (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -205,20 +206,33 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
             className="space-y-6"
           >
             <div className="text-center mb-8">
-              <h3 className="text-2xl font-semibold text-primary mb-2">Collection Details</h3>
+              <h3 className="text-2xl font-semibold text-primary mb-2">Locker & Collection Details</h3>
               <p className="text-muted-foreground">
-                Choose when you'd like us to collect your items
+                Final details for your dropoff
               </p>
             </div>
             <div className="space-y-4">
-              <div className="grid gap-2">
-                <Label>Preferred Collection Date</Label>
+              <div>
+                <Label htmlFor="lockerNumber">Locker Number (1-17)</Label>
+                <Input
+                  id="lockerNumber"
+                  type="number"
+                  min="1"
+                  max="17"
+                  value={formData.lockerNumber}
+                  onChange={(e) => updateFormData("lockerNumber", e.target.value)}
+                  required
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>Collection Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full justify-start text-left font-normal",
+                        "w-full justify-start text-left font-normal mt-1",
                         !formData.collectionDate && "text-muted-foreground"
                       )}
                     >
@@ -234,7 +248,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
                     <Calendar
                       mode="single"
                       selected={formData.collectionDate}
-                      onSelect={(date) => updateFormData("collectionDate", date)}
+                      onSelect={(date) => date && updateFormData("collectionDate", date)}
                       disabled={(date) =>
                         date < new Date() || date < new Date("1900-01-01")
                       }
@@ -249,8 +263,8 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
                   id="instructions"
                   value={formData.instructions}
                   onChange={(e) => updateFormData("instructions", e.target.value)}
-                  placeholder="Any special care instructions or notes..."
-                  className="h-32 mt-1"
+                  placeholder="Any special care instructions..."
+                  className="mt-1"
                 />
               </div>
             </div>
@@ -267,13 +281,13 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
       <div className="mb-8 text-center">
         <h2 className="text-3xl font-bold text-primary mb-4">Locker Drop-off</h2>
         <p className="text-muted-foreground max-w-md mx-auto">
-          We'll take great care of your items. Just fill in the details below and we'll handle the rest!
+          Complete your locker dropoff in just a few steps
         </p>
       </div>
 
       <div className="mb-8">
         <div className="flex justify-between mb-2">
-          {[1, 2, 3, 4].map((stepNumber) => (
+          {[1, 2, 3].map((stepNumber) => (
             <div key={stepNumber} className="text-center">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center mb-1
@@ -292,7 +306,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
         <div className="h-2 bg-gray-100 rounded-full mt-2">
           <div
             className="h-full bg-primary rounded-full transition-all duration-300"
-            style={{ width: `${((step - 1) / 3) * 100}%` }}
+            style={{ width: `${((step - 1) / 2) * 100}%` }}
           />
         </div>
       </div>
@@ -306,24 +320,23 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
               type="button"
               variant="outline"
               onClick={() => setStep((prev) => prev - 1)}
-              className="text-primary hover:text-primary-foreground"
             >
               Previous
             </Button>
           )}
-          {step < 4 ? (
+          {step < 3 ? (
             <Button
               type="button"
               onClick={() => setStep((prev) => prev + 1)}
               className={cn(
-                "ml-auto text-white",
+                "ml-auto",
                 step === 1 && "w-full"
               )}
             >
               Next Step
             </Button>
           ) : (
-            <Button type="submit" className="ml-auto text-white">
+            <Button type="submit" className="ml-auto">
               Complete Drop-off
             </Button>
           )}
