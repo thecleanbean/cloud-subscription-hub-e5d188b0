@@ -1,25 +1,25 @@
 export const themeConfig = {
   colors: {
     primary: {
-      DEFAULT: "#1B4332", // Dark green for primary actions
-      light: "#2D6A4F",
-      dark: "#081C15",
+      DEFAULT: "#8B5CF6", // Vivid purple for primary actions
+      light: "#A78BFA",
+      dark: "#7C3AED",
     },
     secondary: {
-      DEFAULT: "#FFD700", // Gold yellow for accents
-      light: "#FFE55C", 
-      dark: "#B7950B",
+      DEFAULT: "#F97316", // Bright orange for accents
+      light: "#FB923C", 
+      dark: "#EA580C",
     },
     accent: {
-      DEFAULT: "#FF69B4", // Pink for special highlights
-      light: "#FFB6C1",
-      dark: "#C71585",
+      DEFAULT: "#D946EF", // Magenta pink for special highlights
+      light: "#E879F9",
+      dark: "#C026D3",
     },
   },
   fonts: {
     sans: ['Roboto', 'sans-serif'],
   },
   backgrounds: {
-    hero: "linear-gradient(rgba(27, 67, 50, 0.8), rgba(27, 67, 50, 0.8)), url('/lovable-uploads/bc797a12-8ef9-4004-9d8f-ae61d2ab8cbb.png')",
+    hero: "linear-gradient(180deg, rgb(254,100,121) 0%, rgb(251,221,186) 100%)",
   },
 };
