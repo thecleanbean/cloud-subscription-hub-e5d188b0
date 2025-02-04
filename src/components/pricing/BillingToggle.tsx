@@ -11,13 +11,14 @@ const BillingToggle = ({ isYearly, onToggle }: BillingToggleProps) => (
   <motion.div 
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="flex flex-col items-center gap-4 bg-secondary/20 p-6 rounded-xl shadow-sm"
+    className="flex flex-col items-center gap-4 bg-gradient-to-r from-primary/5 to-secondary/5 p-8 rounded-2xl shadow-sm border border-gray-100"
   >
-    <h3 className="text-lg font-semibold text-primary">Billing Period</h3>
-    <div className="flex items-center justify-center gap-4">
+    <h3 className="text-xl font-bold text-primary">Choose Your Billing Period</h3>
+    <div className="flex items-center justify-center gap-6 bg-white px-6 py-3 rounded-full shadow-sm">
       <Label 
         htmlFor="billing-toggle" 
-        className={`text-base md:text-lg transition-colors ${!isYearly ? 'text-primary font-bold' : 'text-gray-500'}`}
+        className={`text-base transition-colors cursor-pointer
+          ${!isYearly ? 'text-primary font-bold' : 'text-gray-500 hover:text-gray-700'}`}
       >
         Monthly
       </Label>
@@ -29,10 +30,11 @@ const BillingToggle = ({ isYearly, onToggle }: BillingToggleProps) => (
       />
       <Label 
         htmlFor="billing-toggle" 
-        className={`text-base md:text-lg transition-colors ${isYearly ? 'text-primary font-bold' : 'text-gray-500'}`}
+        className={`text-base transition-colors cursor-pointer flex items-center gap-2
+          ${isYearly ? 'text-primary font-bold' : 'text-gray-500 hover:text-gray-700'}`}
       >
         Yearly
-        <span className="ml-2 text-sm text-accent font-semibold px-2 py-1 bg-accent/10 rounded-full">
+        <span className="inline-flex items-center text-sm font-semibold px-3 py-1 bg-accent/10 text-accent rounded-full">
           Save 10%
         </span>
       </Label>
