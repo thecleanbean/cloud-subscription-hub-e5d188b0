@@ -3,6 +3,7 @@ import { Card } from "./ui/card";
 import { TooltipProvider } from "./ui/tooltip";
 import { PricingFeatureItem } from "./pricing/PricingFeatureItem";
 import { PricingCardHeader } from "./pricing/PricingCardHeader";
+import { ShoppingBag } from "lucide-react";
 
 interface PricingFeature {
   name: string;
@@ -36,13 +37,12 @@ export const PricingCard = ({
       <motion.div
         whileHover={{ y: -5 }}
         transition={{ duration: 0.2 }}
+        className="h-full"
       >
         <Card 
           className={`relative h-full p-6 bg-white rounded-xl shadow-lg border 
             ${isPopular ? "border-secondary border-2" : "border-gray-200"} 
-            transition-all duration-300 hover:shadow-xl
-            before:absolute before:inset-0 before:z-0 before:bg-gradient-to-b before:from-white before:to-gray-50 before:opacity-50 before:rounded-xl
-            ${isPopular ? "bg-gradient-to-b from-secondary/5 to-secondary/10" : ""}`}
+            transition-all duration-300 hover:shadow-xl`}
         >
           {isPopular && (
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
@@ -61,14 +61,24 @@ export const PricingCard = ({
             </div>
           )}
           
-          <PricingCardHeader
-            name={name}
-            price={price}
-            annualPrice={annualPrice}
-            description={description}
-            icon={icon}
-            isPopular={isPopular}
-          />
+          <div className="text-center mb-8 relative z-10">
+            <motion.div 
+              className="flex justify-center mb-4"
+              whileHover={{ rotate: 5 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className={`relative w-16 h-16 rounded-full ${isPopular ? 'bg-secondary/10' : 'bg-primary/10'} p-3`}>
+                <ShoppingBag className={`w-full h-full ${isPopular ? 'text-secondary' : 'text-primary'}`} />
+                <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg font-bold text-primary">
+                  {icon}
+                </span>
+              </div>
+            </motion.div>
+            <h3 className="text-lg font-bold text-primary mb-2">{name}</h3>
+            <div className="text-3xl font-black text-primary mb-2 tracking-tight">{price}</div>
+            <div className="text-sm text-accent mb-3 font-medium">{annualPrice}</div>
+            <p className="text-sm text-gray-600 leading-relaxed max-w-[250px] mx-auto">{description}</p>
+          </div>
           
           <ul className="space-y-3 mb-6 relative z-10">
             {features.map((feature, index) => (
@@ -89,8 +99,8 @@ export const PricingCard = ({
             onClick={onSelect}
             className={`w-full py-3 px-4 rounded-lg transition-all duration-300 text-base font-semibold relative z-10
               ${isPopular
-                ? "bg-secondary text-primary shadow-lg hover:bg-secondary-dark hover:shadow-xl"
-                : "bg-primary text-white hover:bg-primary-light"}`}
+                ? "bg-secondary text-primary shadow-lg hover:bg-secondary/90 hover:shadow-xl"
+                : "bg-primary text-white hover:bg-primary/90"}`}
           >
             Select Plan
           </motion.button>

@@ -129,18 +129,19 @@ const PricingSection = ({ onPlanSelect }: { onPlanSelect: (plan: string) => void
     <div className="container mx-auto px-4 py-16">
       <PricingHeader />
       
-      <div className="flex flex-col items-center gap-6 mb-8">
+      <div className="flex flex-col items-center gap-8 mb-12">
         <BillingToggle isYearly={isYearly} onToggle={setIsYearly} />
       </div>
 
       <ScrollArea className="w-full rounded-lg">
-        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-4 md:gap-6 pb-4 ${isMobile ? 'min-w-[calc(100vw-2rem)]' : 'max-w-[1920px]'} mx-auto`}>
+        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-6 md:gap-8 pb-4 ${isMobile ? 'min-w-[calc(100vw-2rem)]' : 'max-w-[1920px]'} mx-auto`}>
           {plans.map((plan, index) => (
             <motion.div
               key={plan.name}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="h-full"
             >
               <PricingCard
                 {...plan}
