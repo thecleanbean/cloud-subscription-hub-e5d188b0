@@ -11,10 +11,10 @@ const BillingToggle = ({ isYearly, onToggle }: BillingToggleProps) => (
   <motion.div 
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="flex flex-col items-center gap-4 bg-gradient-to-r from-primary/5 to-secondary/5 p-8 rounded-2xl shadow-sm border border-gray-100"
+    className="flex flex-col items-center gap-4 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 p-8 rounded-2xl shadow-sm border border-gray-100"
   >
     <h3 className="text-xl font-bold text-primary">Choose Your Billing Period</h3>
-    <div className="flex items-center justify-center gap-6 bg-white px-6 py-3 rounded-full shadow-sm">
+    <div className="flex items-center justify-center gap-6 bg-white px-8 py-4 rounded-full shadow-md">
       <Label 
         htmlFor="billing-toggle" 
         className={`text-base transition-colors cursor-pointer
