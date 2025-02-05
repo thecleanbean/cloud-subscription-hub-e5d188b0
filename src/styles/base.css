@@ -1,9 +1,10 @@
+
 @layer base {
   * {
-    @apply border-[#e5e7eb];
+    @apply border-[#E6DCC8];
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[#E6DCC8] text-[#10240B];
   }
 }
