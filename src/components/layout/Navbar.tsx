@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -17,20 +18,16 @@ export const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const isHomePage = location.pathname === "/";
-
   return (
     <nav
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled || !isHomePage ? "bg-white shadow-md" : "bg-transparent"
-      }`}
+      className="fixed top-0 w-full z-50 bg-white shadow-md"
       role="navigation"
       aria-label="Main navigation"
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center space-x-2">
-            <span className={`text-2xl font-bold ${isScrolled || !isHomePage ? 'text-primary' : 'text-white'}`}>
+          <Link to="/subscriptions" className="flex items-center space-x-2">
+            <span className="text-2xl font-bold text-primary">
               The Clean Bean
             </span>
           </Link>
@@ -38,39 +35,22 @@ export const Navbar = () => {
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
             <Link 
-              to="/about" 
-              className={`hover:text-secondary transition-colors ${isScrolled || !isHomePage ? 'text-primary' : 'text-white'}`}
+              to="/subscriptions" 
+              className="text-primary hover:text-secondary transition-colors"
             >
-              About Us
-            </Link>
-            {isHomePage && (
-              <a 
-                href="#pricing" 
-                className={`hover:text-secondary transition-colors ${isScrolled ? 'text-primary' : 'text-white'}`}
-              >
-                Pricing
-              </a>
-            )}
-            <Link 
-              to="/contact" 
-              className={`hover:text-secondary transition-colors ${isScrolled || !isHomePage ? 'text-primary' : 'text-white'}`}
-            >
-              Contact
+              Subscriptions
             </Link>
             <Link 
               to="/locker-dropoff" 
-              className={`hover:text-secondary transition-colors ${isScrolled || !isHomePage ? 'text-primary' : 'text-white'}`}
+              className="text-primary hover:text-secondary transition-colors"
             >
               Locker Dropoff
             </Link>
-            <Button asChild variant={isScrolled || !isHomePage ? "default" : "secondary"} className="text-white">
-              <Link to="/book-collection">Book Now</Link>
-            </Button>
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className={`md:hidden p-2 ${isScrolled || !isHomePage ? 'text-primary' : 'text-white'}`}
+            className="md:hidden p-2 text-primary"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-expanded={isMobileMenuOpen}
             aria-label="Toggle menu"
@@ -91,27 +71,11 @@ export const Navbar = () => {
           >
             <div className="container mx-auto px-4 py-4 space-y-4">
               <Link
-                to="/about"
+                to="/subscriptions"
                 className="block text-primary hover:text-secondary transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                About Us
-              </Link>
-              {isHomePage && (
-                <a
-                  href="#pricing"
-                  className="block text-primary hover:text-secondary transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Pricing
-                </a>
-              )}
-              <Link
-                to="/contact"
-                className="block text-primary hover:text-secondary transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Contact
+                Subscriptions
               </Link>
               <Link
                 to="/locker-dropoff"
@@ -120,9 +84,6 @@ export const Navbar = () => {
               >
                 Locker Dropoff
               </Link>
-              <Button asChild className="w-full text-white">
-                <Link to="/book-collection">Book Now</Link>
-              </Button>
             </div>
           </motion.div>
         )}
