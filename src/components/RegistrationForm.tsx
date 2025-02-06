@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { mockAPI } from "@/services/mockCleanCloudAPI";
@@ -10,6 +11,7 @@ import BillingPeriodSelector from "./registration/BillingPeriodSelector";
 import CustomerDetailsForm from "./registration/CustomerDetailsForm";
 import AddOnServices from "./registration/AddOnServices";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface RegistrationFormProps {
   selectedPlan: string;
@@ -20,6 +22,7 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    password: "",
     phone: "",
     postcode: "",
     deliveryOption: "pickup",
@@ -32,6 +35,7 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
   const [isValidPostcode, setIsValidPostcode] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signUp } = useAuth();
 
   const getPlanDetails = () => {
     const monthlyPrices = {
@@ -89,18 +93,15 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
     setIsLoading(true);
 
     try {
-      // Create customer in CleanCloud
-      const customer = await mockAPI.createCustomer({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-      });
+      // First, create the user account
+      await signUp(formData.email, formData.password);
 
+      // CleanCloud customer creation is now handled by the database trigger
       const total = parseFloat(calculateTotalPrice());
 
       // Create order in CleanCloud
       const order = await mockAPI.createOrder({
-        customerId: customer.id,
+        customerId: formData.email, // We'll update this with the actual CleanCloud ID once available
         plan: selectedPlan,
         deliveryOption: formData.deliveryOption as 'pickup' | 'delivery',
         addons: {
@@ -129,6 +130,7 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
 
       onSubmit(formData);
     } catch (error) {
+      console.error('Registration error:', error);
       toast({
         title: "Error",
         description: "There was an error processing your registration. Please try again.",
@@ -207,7 +209,7 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
               className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold text-lg py-6 shadow-lg hover:shadow-xl transition-all duration-300" 
               disabled={isLoading}
             >
-              {isLoading ? "Processing..." : "Proceed to Payment"}
+              {isLoading ? "Processing..." : "Create Account & Proceed to Payment"}
             </Button>
           </div>
         </form>
