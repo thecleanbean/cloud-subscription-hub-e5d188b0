@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -12,10 +13,37 @@ interface PricingGridProps {
 export const PricingGrid = ({ isYearly, onPlanSelect }: PricingGridProps) => {
   const isMobile = useIsMobile();
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100
+      }
+    }
+  };
+
   return (
     <ScrollArea className="w-full rounded-lg">
-      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-8 pb-4 
-        ${isMobile ? 'min-w-[calc(100vw-2rem)]' : 'max-w-[1920px] mx-auto'}`}>
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-8 pb-4 
+          ${isMobile ? 'min-w-[calc(100vw-2rem)]' : 'max-w-[1920px] mx-auto'}`}
+      >
         {pricingPlans.map((plan, index) => {
           const features = plan.customFeatures 
             ? [
@@ -33,10 +61,10 @@ export const PricingGrid = ({ isYearly, onPlanSelect }: PricingGridProps) => {
           return (
             <motion.div
               key={plan.name}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              variants={itemVariants}
               className="h-full"
+              whileHover={{ y: -5 }}
+              transition={{ duration: 0.2 }}
             >
               <PricingCard
                 {...plan}
@@ -48,7 +76,7 @@ export const PricingGrid = ({ isYearly, onPlanSelect }: PricingGridProps) => {
             </motion.div>
           );
         })}
-      </div>
+      </motion.div>
       <ScrollBar orientation="horizontal" className="md:hidden" />
     </ScrollArea>
   );
