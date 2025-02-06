@@ -6,7 +6,6 @@ interface CustomerDetailsFormProps {
   formData: {
     name: string;
     email: string;
-    password?: string;
     phone: string;
     postcode: string;
   };
@@ -42,18 +41,6 @@ const CustomerDetailsForm = ({
         value={formData.email}
         onChange={(e) => onChange("email", e.target.value)}
         required
-      />
-    </div>
-    <div>
-      <Label htmlFor="password">Password</Label>
-      <Input
-        id="password"
-        type="password"
-        placeholder="Password"
-        value={formData.password}
-        onChange={(e) => onChange("password", e.target.value)}
-        required
-        minLength={6}
       />
     </div>
     <div>

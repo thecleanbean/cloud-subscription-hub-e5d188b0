@@ -11,7 +11,6 @@ import BillingPeriodSelector from "./registration/BillingPeriodSelector";
 import CustomerDetailsForm from "./registration/CustomerDetailsForm";
 import AddOnServices from "./registration/AddOnServices";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface RegistrationFormProps {
   selectedPlan: string;
@@ -22,7 +21,6 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    password: "",
     phone: "",
     postcode: "",
     deliveryOption: "pickup",
@@ -35,7 +33,6 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
   const [isValidPostcode, setIsValidPostcode] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signUp } = useAuth();
 
   const getPlanDetails = () => {
     const monthlyPrices = {
@@ -93,15 +90,18 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
     setIsLoading(true);
 
     try {
-      // First, create the user account
-      await signUp(formData.email, formData.password);
+      // Create customer in CleanCloud
+      const customer = await mockAPI.createCustomer({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+      });
 
-      // CleanCloud customer creation is now handled by the database trigger
       const total = parseFloat(calculateTotalPrice());
 
       // Create order in CleanCloud
       const order = await mockAPI.createOrder({
-        customerId: formData.email, // We'll update this with the actual CleanCloud ID once available
+        customerId: customer.id,
         plan: selectedPlan,
         deliveryOption: formData.deliveryOption as 'pickup' | 'delivery',
         addons: {
