@@ -9,6 +9,7 @@ import PaymentPage from "./pages/PaymentPage";
 import LockerDropoff from "./pages/LockerDropoff";
 import { useState } from "react";
 import RegistrationForm from "./components/RegistrationForm";
+import { AuthProvider } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
@@ -17,30 +18,32 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Navigate to="/subscriptions" replace />} />
-            <Route 
-              path="/subscriptions" 
-              element={
-                selectedPlan ? (
-                  <RegistrationForm 
-                    selectedPlan={selectedPlan} 
-                    onSubmit={() => {}} 
-                  />
-                ) : (
-                  <PricingSection onPlanSelect={setSelectedPlan} />
-                )
-              } 
-            />
-            <Route path="/payment" element={<PaymentPage />} />
-            <Route path="/locker-dropoff" element={<LockerDropoff />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Navigate to="/subscriptions" replace />} />
+              <Route 
+                path="/subscriptions" 
+                element={
+                  selectedPlan ? (
+                    <RegistrationForm 
+                      selectedPlan={selectedPlan} 
+                      onSubmit={() => {}} 
+                    />
+                  ) : (
+                    <PricingSection onPlanSelect={setSelectedPlan} />
+                  )
+                } 
+              />
+              <Route path="/payment" element={<PaymentPage />} />
+              <Route path="/locker-dropoff" element={<LockerDropoff />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };
