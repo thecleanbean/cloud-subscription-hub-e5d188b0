@@ -36,6 +36,56 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          cleancloud_order_id: string | null
+          collection_date: string | null
+          created_at: string
+          customer_id: string
+          id: string
+          instructions: string | null
+          locker_number: string | null
+          service_types: Json
+          status: string
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          cleancloud_order_id?: string | null
+          collection_date?: string | null
+          created_at?: string
+          customer_id: string
+          id?: string
+          instructions?: string | null
+          locker_number?: string | null
+          service_types?: Json
+          status?: string
+          total: number
+          updated_at?: string
+        }
+        Update: {
+          cleancloud_order_id?: string | null
+          collection_date?: string | null
+          created_at?: string
+          customer_id?: string
+          id?: string
+          instructions?: string | null
+          locker_number?: string | null
+          service_types?: Json
+          status?: string
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "cleancloud_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

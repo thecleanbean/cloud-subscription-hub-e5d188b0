@@ -58,7 +58,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
       // Calculate total based on selected services
       const total = calculateTotal();
 
-      // Create order in CleanCloud
+      // Create order in CleanCloud and our database
       const order = await cleanCloudAPI.createOrder({
         customerId: customer.id,
         lockerNumber: formData.lockerNumber,
@@ -70,14 +70,15 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
 
       toast({
         title: "Success!",
-        description: "Your locker dropoff has been registered successfully.",
+        description: "Your order has been registered with both our system and CleanCloud.",
       });
 
       onSubmit({ ...formData, orderId: order.id });
     } catch (error) {
+      console.error('Error processing order:', error);
       toast({
         title: "Error",
-        description: "There was a problem processing your request. Please try again.",
+        description: error instanceof Error ? error.message : "There was a problem processing your request. Please try again.",
         variant: "destructive",
       });
     }

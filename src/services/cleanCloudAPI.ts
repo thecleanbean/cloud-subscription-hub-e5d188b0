@@ -1,6 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
-// Types from the mock API that we'll keep using
 interface CleanCloudCustomer {
   id: string;
   name: string;
@@ -11,14 +11,7 @@ interface CleanCloudCustomer {
 interface CleanCloudOrder {
   id: string;
   customerId: string;
-  plan?: string;
-  deliveryOption?: 'pickup' | 'delivery';
-  addons?: {
-    homeDelivery: boolean;
-    sortingService: boolean;
-  };
   lockerNumber?: string;
-  pin?: string;
   instructions?: string;
   serviceTypes?: {
     laundry: boolean;
@@ -27,12 +20,11 @@ interface CleanCloudOrder {
   };
   collectionDate?: Date;
   total: number;
-  billingPeriod?: 'monthly' | 'yearly';
 }
 
 class CleanCloudAPI {
   private apiKey: string | null = null;
-  private baseUrl = 'https://api.cleancloud.com/v1'; // Update this if your API base URL is different
+  private baseUrl = 'https://cleancloudapp.com';
 
   private async getApiKey(): Promise<string> {
     if (this.apiKey) return this.apiKey;
@@ -44,43 +36,37 @@ class CleanCloudAPI {
     return this.apiKey;
   }
 
-  private async request(endpoint: string, options: RequestInit = {}): Promise<any> {
-    const apiKey = await this.getApiKey();
-    
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      ...options,
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.message || 'Failed to make CleanCloud API request');
-    }
-
-    return response.json();
-  }
-
   async createCustomer(customerData: {
     name: string;
     email: string;
     phone: string;
   }): Promise<CleanCloudCustomer> {
-    const customer = await this.request('/customers', {
+    const apiKey = await this.getApiKey();
+    
+    const response = await fetch(`${this.baseUrl}/api/addCustomer`, {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(customerData),
     });
 
-    // Store the mapping in our database
-    const { error } = await supabase
+    if (!response.ok) {
+      throw new Error('Failed to create customer in CleanCloud');
+    }
+
+    const customer = await response.json();
+
+    // Store the customer mapping in our database
+    const { data: cleancloudCustomer, error } = await supabase
       .from('cleancloud_customers')
       .insert({
         email: customerData.email,
         cleancloud_customer_id: customer.id,
-      });
+      })
+      .select()
+      .single();
 
     if (error) {
       console.error('Failed to store CleanCloud customer mapping:', error);
@@ -92,14 +78,7 @@ class CleanCloudAPI {
 
   async createOrder(orderData: {
     customerId: string;
-    plan?: string;
-    deliveryOption?: 'pickup' | 'delivery';
-    addons?: {
-      homeDelivery: boolean;
-      sortingService: boolean;
-    };
     lockerNumber?: string;
-    pin?: string;
     instructions?: string;
     serviceTypes?: {
       laundry: boolean;
@@ -108,19 +87,56 @@ class CleanCloudAPI {
     };
     collectionDate?: Date;
     total: number;
-    billingPeriod?: 'monthly' | 'yearly';
   }): Promise<CleanCloudOrder> {
-    return this.request('/orders', {
+    const apiKey = await this.getApiKey();
+    
+    // Create order in CleanCloud
+    const response = await fetch(`${this.baseUrl}/store`, {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(orderData),
     });
-  }
 
-  async processPayment(orderId: string, paymentDetails: any): Promise<{ success: boolean; message: string }> {
-    return this.request(`/orders/${orderId}/payment`, {
-      method: 'POST',
-      body: JSON.stringify(paymentDetails),
-    });
+    if (!response.ok) {
+      throw new Error('Failed to create order in CleanCloud');
+    }
+
+    const order = await response.json();
+
+    // Get the customer from our database
+    const { data: customer, error: customerError } = await supabase
+      .from('cleancloud_customers')
+      .select('id')
+      .eq('cleancloud_customer_id', orderData.customerId)
+      .single();
+
+    if (customerError) {
+      console.error('Failed to find customer:', customerError);
+      throw new Error('Failed to find customer');
+    }
+
+    // Store the order in our database
+    const { error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        customer_id: customer.id,
+        locker_number: orderData.lockerNumber,
+        instructions: orderData.instructions,
+        collection_date: orderData.collectionDate,
+        service_types: orderData.serviceTypes,
+        total: orderData.total,
+        cleancloud_order_id: order.id,
+      });
+
+    if (orderError) {
+      console.error('Failed to store order:', orderError);
+      throw new Error('Failed to store order');
+    }
+
+    return order;
   }
 }
 
