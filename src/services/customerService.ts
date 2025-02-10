@@ -36,39 +36,64 @@ export const findCustomerByEmail = async (email: string) => {
   console.log('Searching for customer:', { email: '***' });
   
   try {
-    // Search in CleanCloud with proper error handling
-    const response = await cleanCloudAPI.customers.searchCustomers(email);
-    console.log('CleanCloud API Response:', response);
-
-    // Basic validation of response
-    if (!response || typeof response !== 'object') {
-      console.error('Invalid API response:', response);
-      throw new Error('Invalid response from CleanCloud API');
-    }
-
-    // Handle potential string response (error message)
-    if (typeof response === 'string') {
-      console.error('API returned string instead of object:', response);
-      throw new Error('Invalid response format from CleanCloud API');
-    }
-
-    // Ensure response is array-like
-    const customers = Array.isArray(response) ? response : [response];
+    // First check if customer exists in Supabase
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    if (customers.length === 0) {
+    if (!user) {
+      // If no authenticated user, sign in
+      const { error: signInError } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          emailRedirectTo: window.location.origin + '/locker-dropoff'
+        }
+      });
+
+      if (signInError) {
+        console.error('Auth error:', signInError);
+        throw new Error('Authentication failed. Please check your email and try again.');
+      }
+
+      // Return null to indicate we need to wait for email verification
       return null;
     }
 
-    // Validate customer object structure
-    const customer = customers[0];
-    if (!customer || !customer.id || !customer.email) {
-      console.error('Invalid customer data:', customer);
-      throw new Error('Invalid customer data format');
+    // If we have an authenticated user, search in CleanCloud
+    const response = await fetch(`/api/cleancloud/customers/search?email=${encodeURIComponent(email)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
     }
 
-    return customer;
+    const responseText = await response.text();
+    if (!responseText) {
+      return null;
+    }
+
+    try {
+      const data = JSON.parse(responseText);
+      if (!data || !Array.isArray(data)) {
+        console.error('Invalid response format:', data);
+        return null;
+      }
+
+      const customer = data[0];
+      if (!customer || !customer.id || !customer.email) {
+        return null;
+      }
+
+      return customer;
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      throw new Error('Invalid response from server');
+    }
+
   } catch (error) {
     console.error('Error searching for customer:', error);
-    throw new Error('Failed to search for customer');
+    throw error;
   }
 };

@@ -5,12 +5,12 @@ import { useNavigate } from "react-router-dom";
 import { FormData, UseLockerDropoffProps, CustomerType } from "@/types/locker";
 import { calculateTotal, createOrderItems, createOrders } from "@/utils/orderUtils";
 import { createNewCustomer, findCustomerByEmail } from "@/services/customerService";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Group all useState hooks together at the top
   const [customerType, setCustomerType] = useState<CustomerType>('new');
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -48,6 +48,36 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
           return;
         }
 
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          // If not authenticated, start auth flow
+          const { error: signInError } = await supabase.auth.signInWithOtp({
+            email: formData.email,
+            options: {
+              emailRedirectTo: window.location.origin + '/locker-dropoff'
+            }
+          });
+
+          if (signInError) {
+            toast({
+              title: "Authentication Error",
+              description: "Failed to send verification email. Please try again.",
+              variant: "destructive",
+            });
+            setIsLoading(false);
+            return;
+          }
+
+          toast({
+            title: "Check Your Email",
+            description: "We've sent you a verification link. Please check your email to continue.",
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        // User is authenticated, proceed with customer lookup
         console.log('Attempting to find customer with email:', formData.email);
         const existingCustomer = await findCustomerByEmail(formData.email);
         
@@ -98,7 +128,6 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
 
       const customer = await createNewCustomer(formData);
       
-      // Create orders for the new customer
       const total = calculateTotal(formData.serviceTypes);
       const items = createOrderItems(formData.serviceTypes);
 
