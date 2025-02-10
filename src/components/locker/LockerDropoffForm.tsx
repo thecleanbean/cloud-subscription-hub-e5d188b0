@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { mockAPI } from "@/services/mockCleanCloudAPI";
+import { cleanCloudAPI } from "@/services/cleanCloudAPI";
 import { useToast } from "@/components/ui/use-toast";
 
 interface LockerDropoffFormProps {
@@ -48,7 +49,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
     
     try {
       // Create customer in CleanCloud
-      const customer = await mockAPI.createCustomer({
+      const customer = await cleanCloudAPI.createCustomer({
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -58,13 +59,13 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
       const total = calculateTotal();
 
       // Create order in CleanCloud
-      const order = await mockAPI.createOrder({
+      const order = await cleanCloudAPI.createOrder({
         customerId: customer.id,
         lockerNumber: formData.lockerNumber,
         instructions: formData.instructions,
         serviceTypes: formData.serviceTypes,
         collectionDate: formData.collectionDate,
-        total, // Add the total here
+        total,
       });
 
       toast({

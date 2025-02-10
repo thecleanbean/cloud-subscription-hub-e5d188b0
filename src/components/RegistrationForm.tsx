@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { mockAPI } from "@/services/mockCleanCloudAPI";
+import { cleanCloudAPI } from "@/services/cleanCloudAPI";
 import { useToast } from "./ui/use-toast";
 import OrderConfirmation from "./OrderConfirmation";
 import { ArrowLeft } from "lucide-react";
@@ -91,7 +91,7 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
 
     try {
       // Create customer in CleanCloud
-      const customer = await mockAPI.createCustomer({
+      const customer = await cleanCloudAPI.createCustomer({
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -100,7 +100,7 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
       const total = parseFloat(calculateTotalPrice());
 
       // Create order in CleanCloud
-      const order = await mockAPI.createOrder({
+      const order = await cleanCloudAPI.createOrder({
         customerId: customer.id,
         plan: selectedPlan,
         deliveryOption: formData.deliveryOption as 'pickup' | 'delivery',
