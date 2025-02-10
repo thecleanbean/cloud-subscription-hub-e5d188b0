@@ -14,7 +14,10 @@ export type Database = {
           cleancloud_customer_id: string
           created_at: string
           email: string
+          first_name: string | null
           id: string
+          last_name: string | null
+          mobile: string | null
           subscription_status: string
           updated_at: string
         }
@@ -22,7 +25,10 @@ export type Database = {
           cleancloud_customer_id: string
           created_at?: string
           email: string
+          first_name?: string | null
           id?: string
+          last_name?: string | null
+          mobile?: string | null
           subscription_status?: string
           updated_at?: string
         }
@@ -30,7 +36,10 @@ export type Database = {
           cleancloud_customer_id?: string
           created_at?: string
           email?: string
+          first_name?: string | null
           id?: string
+          last_name?: string | null
+          mobile?: string | null
           subscription_status?: string
           updated_at?: string
         }
@@ -43,8 +52,8 @@ export type Database = {
           created_at: string
           customer_id: string
           id: string
-          instructions: string | null
           locker_number: string | null
+          notes: string | null
           service_types: Json
           status: string
           total: number
@@ -56,8 +65,8 @@ export type Database = {
           created_at?: string
           customer_id: string
           id?: string
-          instructions?: string | null
           locker_number?: string | null
+          notes?: string | null
           service_types?: Json
           status?: string
           total: number
@@ -69,8 +78,8 @@ export type Database = {
           created_at?: string
           customer_id?: string
           id?: string
-          instructions?: string | null
           locker_number?: string | null
+          notes?: string | null
           service_types?: Json
           status?: string
           total?: number

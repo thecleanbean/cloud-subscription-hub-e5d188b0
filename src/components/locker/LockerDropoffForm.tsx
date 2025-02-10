@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,11 +21,12 @@ interface LockerDropoffFormProps {
 const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
-    phone: "",
+    mobile: "",
     lockerNumber: "",
-    instructions: "",
+    notes: "",
     serviceTypes: {
       laundry: false,
       duvets: false,
@@ -50,9 +50,10 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
     try {
       // Create customer in CleanCloud
       const customer = await cleanCloudAPI.createCustomer({
-        name: formData.name,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
-        phone: formData.phone,
+        mobile: formData.mobile,
       });
 
       // Calculate total based on selected services
@@ -62,7 +63,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
       const order = await cleanCloudAPI.createOrder({
         customerId: customer.id,
         lockerNumber: formData.lockerNumber,
-        instructions: formData.instructions,
+        notes: formData.notes,
         serviceTypes: formData.serviceTypes,
         collectionDate: formData.collectionDate,
         total,
@@ -105,11 +106,21 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
             </div>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="firstName">First Name</Label>
                 <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => updateFormData("name", e.target.value)}
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={(e) => updateFormData("firstName", e.target.value)}
+                  required
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={(e) => updateFormData("lastName", e.target.value)}
                   required
                   className="mt-1"
                 />
@@ -126,12 +137,12 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
                 />
               </div>
               <div>
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="mobile">Mobile</Label>
                 <Input
-                  id="phone"
+                  id="mobile"
                   type="tel"
-                  value={formData.phone}
-                  onChange={(e) => updateFormData("phone", e.target.value)}
+                  value={formData.mobile}
+                  onChange={(e) => updateFormData("mobile", e.target.value)}
                   required
                   className="mt-1"
                 />
@@ -272,11 +283,11 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
                 </Popover>
               </div>
               <div>
-                <Label htmlFor="instructions">Special Instructions</Label>
+                <Label htmlFor="notes">Special Instructions</Label>
                 <Textarea
-                  id="instructions"
-                  value={formData.instructions}
-                  onChange={(e) => updateFormData("instructions", e.target.value)}
+                  id="notes"
+                  value={formData.notes}
+                  onChange={(e) => updateFormData("notes", e.target.value)}
                   placeholder="Any special care instructions..."
                   className="mt-1"
                 />

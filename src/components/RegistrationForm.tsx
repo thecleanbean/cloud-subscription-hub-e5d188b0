@@ -18,9 +18,10 @@ interface RegistrationFormProps {
 
 const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => {
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
-    phone: "",
+    mobile: "",
     postcode: "",
     deliveryOption: "pickup",
     homeDelivery: false,
@@ -91,9 +92,10 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
     try {
       // Create customer in CleanCloud
       const customer = await cleanCloudAPI.createCustomer({
-        name: formData.name,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
-        phone: formData.phone,
+        mobile: formData.mobile,
       });
 
       const total = parseFloat(calculateTotalPrice());
@@ -107,7 +109,7 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
           duvets: false,
           dryCleaning: false,
         },
-        instructions: `Plan: ${selectedPlan}, Billing: ${formData.billingPeriod}, Home Delivery: ${formData.homeDelivery}, Sorting: ${formData.sortingService}`,
+        notes: `Plan: ${selectedPlan}, Billing: ${formData.billingPeriod}, Home Delivery: ${formData.homeDelivery}, Sorting: ${formData.sortingService}`,
       });
 
       // Navigate to payment page with order details
@@ -142,7 +144,7 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
   if (orderComplete) {
     return (
       <OrderConfirmation
-        customerName={formData.name}
+        customerName={formData.firstName}
         planName={selectedPlan}
         deliveryOption={formData.deliveryOption}
         onClose={() => window.location.reload()}
