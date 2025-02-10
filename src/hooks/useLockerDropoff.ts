@@ -34,6 +34,15 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     
     try {
       if (customerType === 'returning') {
+        if (!formData.email) {
+          toast({
+            title: "Email Required",
+            description: "Please enter your email address to continue.",
+            variant: "destructive",
+          });
+          return;
+        }
+
         // Check if customer exists in CleanCloud
         const existingCustomer = await findCustomerByEmail(formData.email);
         
@@ -71,6 +80,15 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
       }
 
       // For new customers
+      if (!formData.firstName || !formData.lastName || !formData.email || !formData.mobile) {
+        toast({
+          title: "Missing Information",
+          description: "Please fill in all required fields.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const customer = await createNewCustomer(formData);
       
       // Create orders for the new customer
@@ -111,4 +129,3 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     handleSubmit,
   };
 };
-
