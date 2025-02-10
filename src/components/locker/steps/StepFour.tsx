@@ -1,10 +1,10 @@
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
@@ -18,6 +18,8 @@ interface StepFourProps {
 }
 
 const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepFourProps) => {
+  const lockerNumbers = Array.from({ length: 17 }, (_, i) => (i + 1).toString());
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -32,17 +34,22 @@ const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepF
       </div>
       <div className="space-y-4">
         <div>
-          <Label htmlFor="lockerNumber">Locker Number (1-17)</Label>
-          <Input
-            id="lockerNumber"
-            type="number"
-            min="1"
-            max="17"
+          <Label htmlFor="lockerNumber">Select Locker</Label>
+          <Select
             value={lockerNumber}
-            onChange={(e) => updateFormData("lockerNumber", e.target.value)}
-            required
-            className="mt-1"
-          />
+            onValueChange={(value) => updateFormData("lockerNumber", value)}
+          >
+            <SelectTrigger className="w-full mt-1">
+              <SelectValue placeholder="Select a locker" />
+            </SelectTrigger>
+            <SelectContent>
+              {lockerNumbers.map((number) => (
+                <SelectItem key={number} value={number}>
+                  Locker {number}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div>
           <Label>Collection Date</Label>
