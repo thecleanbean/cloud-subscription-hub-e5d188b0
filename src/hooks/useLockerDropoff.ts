@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { FormData, UseLockerDropoffProps, CustomerType } from "@/types/locker";
@@ -28,6 +28,32 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     collectionDate: new Date(),
   });
 
+  // Listen for auth state changes
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && customerType === 'returning') {
+        // When a returning customer signs in, try to find their details
+        try {
+          const customer = await findCustomerByEmail(formData.email);
+          if (customer) {
+            setFormData(prev => ({
+              ...prev,
+              firstName: customer.firstName,
+              lastName: customer.lastName,
+              mobile: customer.mobile || '',
+            }));
+          }
+        } catch (error) {
+          console.error('Error fetching customer details:', error);
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [customerType, formData.email]);
+
   const updateFormData = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -44,13 +70,12 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
             description: "Please enter your email address to continue.",
             variant: "destructive",
           });
-          setIsLoading(false);
           return;
         }
 
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (!user) {
+        if (!session) {
           // If not authenticated, start auth flow
           const { error: signInError } = await supabase.auth.signInWithOtp({
             email: formData.email,
@@ -65,7 +90,6 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
               description: "Failed to send verification email. Please try again.",
               variant: "destructive",
             });
-            setIsLoading(false);
             return;
           }
 
@@ -73,12 +97,10 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
             title: "Check Your Email",
             description: "We've sent you a verification link. Please check your email to continue.",
           });
-          setIsLoading(false);
           return;
         }
 
         // User is authenticated, proceed with customer lookup
-        console.log('Attempting to find customer with email:', formData.email);
         const existingCustomer = await findCustomerByEmail(formData.email);
         
         if (!existingCustomer) {
@@ -88,7 +110,6 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
             variant: "destructive",
           });
           setCustomerType('new');
-          setIsLoading(false);
           return;
         }
 
@@ -106,40 +127,32 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
           total
         );
 
-        toast({
-          title: "Success!",
-          description: `Your order${formData.lockerNumber.length > 1 ? 's have' : ' has'} been registered successfully.`,
-        });
+      } else {
+        // For new customers
+        if (!formData.firstName || !formData.lastName || !formData.email || !formData.mobile) {
+          toast({
+            title: "Missing Information",
+            description: "Please fill in all required fields.",
+            variant: "destructive",
+          });
+          return;
+        }
 
-        onSubmit(formData);
-        return;
+        const customer = await createNewCustomer(formData);
+        
+        const total = calculateTotal(formData.serviceTypes);
+        const items = createOrderItems(formData.serviceTypes);
+
+        await createOrders(
+          customer.id,
+          items,
+          formData.lockerNumber,
+          formData.notes,
+          formData.serviceTypes,
+          formData.collectionDate,
+          total
+        );
       }
-
-      // For new customers
-      if (!formData.firstName || !formData.lastName || !formData.email || !formData.mobile) {
-        toast({
-          title: "Missing Information",
-          description: "Please fill in all required fields.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      const customer = await createNewCustomer(formData);
-      
-      const total = calculateTotal(formData.serviceTypes);
-      const items = createOrderItems(formData.serviceTypes);
-
-      await createOrders(
-        customer.id,
-        items,
-        formData.lockerNumber,
-        formData.notes,
-        formData.serviceTypes,
-        formData.collectionDate,
-        total
-      );
 
       toast({
         title: "Success!",

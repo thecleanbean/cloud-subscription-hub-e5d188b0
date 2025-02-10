@@ -9,27 +9,54 @@ export const createNewCustomer = async (formData: FormData) => {
     email: '***' 
   });
   
-  // Create customer in CleanCloud
-  const customer = await cleanCloudAPI.customers.createCustomer({
-    firstName: formData.firstName,
-    lastName: formData.lastName,
-    email: formData.email,
-    mobile: formData.mobile,
-  });
-  
-  // Create Supabase account silently in the background
-  await supabase.auth.signUp({
-    email: formData.email,
-    password: Math.random().toString(36).slice(-8), // Generate a random password
-    options: {
-      data: {
+  try {
+    // First create customer in CleanCloud
+    const customer = await cleanCloudAPI.customers.createCustomer({
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      mobile: formData.mobile,
+    });
+    
+    // Create Supabase account and customer record
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: formData.email,
+      password: Math.random().toString(36).slice(-8), // Generate a random password
+      options: {
+        data: {
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+        }
+      }
+    });
+
+    if (authError) {
+      console.error('Auth error:', authError);
+      throw new Error('Failed to create user account');
+    }
+
+    // Create customer record in our database
+    const { error: dbError } = await supabase
+      .from('cleancloud_customers')
+      .insert({
+        id: authData.user?.id,
+        email: formData.email,
         first_name: formData.firstName,
         last_name: formData.lastName,
-      }
+        mobile: formData.mobile,
+        cleancloud_customer_id: customer.id,
+      });
+
+    if (dbError) {
+      console.error('Database error:', dbError);
+      throw new Error('Failed to create customer record');
     }
-  });
-  
-  return customer;
+
+    return customer;
+  } catch (error) {
+    console.error('Error in createNewCustomer:', error);
+    throw error;
+  }
 };
 
 export const findCustomerByEmail = async (email: string) => {
@@ -37,27 +64,34 @@ export const findCustomerByEmail = async (email: string) => {
   
   try {
     // First check if customer exists in Supabase
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (!user) {
-      // If no authenticated user, sign in
-      const { error: signInError } = await supabase.auth.signInWithOtp({
-        email: email,
-        options: {
-          emailRedirectTo: window.location.origin + '/locker-dropoff'
+    const { data: customerData, error: dbError } = await supabase
+      .from('cleancloud_customers')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (dbError) {
+      if (dbError.code === 'PGRST116') {
+        // No customer found
+        // Send magic link for authentication
+        const { error: signInError } = await supabase.auth.signInWithOtp({
+          email: email,
+          options: {
+            emailRedirectTo: window.location.origin + '/locker-dropoff'
+          }
+        });
+
+        if (signInError) {
+          console.error('Auth error:', signInError);
+          throw new Error('Authentication failed. Please check your email and try again.');
         }
-      });
 
-      if (signInError) {
-        console.error('Auth error:', signInError);
-        throw new Error('Authentication failed. Please check your email and try again.');
+        return null;
       }
-
-      // Return null to indicate we need to wait for email verification
-      return null;
+      throw dbError;
     }
 
-    // If we have an authenticated user, search in CleanCloud
+    // If we found a customer, search in CleanCloud to get latest data
     const response = await fetch(`/api/cleancloud/customers/search?email=${encodeURIComponent(email)}`, {
       method: 'GET',
       headers: {
@@ -69,29 +103,12 @@ export const findCustomerByEmail = async (email: string) => {
       throw new Error(`API error: ${response.status}`);
     }
 
-    const responseText = await response.text();
-    if (!responseText) {
+    const data = await response.json();
+    if (!data || !Array.isArray(data) || data.length === 0) {
       return null;
     }
 
-    try {
-      const data = JSON.parse(responseText);
-      if (!data || !Array.isArray(data)) {
-        console.error('Invalid response format:', data);
-        return null;
-      }
-
-      const customer = data[0];
-      if (!customer || !customer.id || !customer.email) {
-        return null;
-      }
-
-      return customer;
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      throw new Error('Invalid response from server');
-    }
-
+    return data[0];
   } catch (error) {
     console.error('Error searching for customer:', error);
     throw error;

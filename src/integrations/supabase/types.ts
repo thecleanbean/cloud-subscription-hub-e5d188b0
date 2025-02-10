@@ -18,7 +18,7 @@ export type Database = {
           id: string
           last_name: string | null
           mobile: string | null
-          subscription_status: string
+          subscription_status: string | null
           updated_at: string
         }
         Insert: {
@@ -29,7 +29,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           mobile?: string | null
-          subscription_status?: string
+          subscription_status?: string | null
           updated_at?: string
         }
         Update: {
@@ -40,7 +40,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           mobile?: string | null
-          subscription_status?: string
+          subscription_status?: string | null
           updated_at?: string
         }
         Relationships: []
