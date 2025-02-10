@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { cleanCloudAPI } from "@/services/cleanCloud";
 import { useToast } from "@/components/ui/use-toast";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface LockerDropoffFormProps {
   onSubmit: (data: any) => void;
@@ -20,6 +21,7 @@ interface LockerDropoffFormProps {
 
 const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
   const [step, setStep] = useState(1);
+  const [customerType, setCustomerType] = useState<'new' | 'returning'>('new');
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -44,62 +46,113 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
     return total;
   };
 
+  const findCustomerByEmail = async (email: string) => {
+    try {
+      const response = await fetch(`${cleanCloudAPI.baseUrl}/customers?email=${encodeURIComponent(email)}`, {
+        headers: {
+          'Authorization': `Bearer ${await cleanCloudAPI.getApiKey()}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to find customer');
+      }
+
+      const data = await response.json();
+      return data.customers?.[0] || null;
+    } catch (error) {
+      console.error('Error finding customer:', error);
+      return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      // Create customer in CleanCloud
-      const customer = await cleanCloudAPI.customers.createCustomer({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        mobile: formData.mobile,
+      let customerId;
+
+      if (customerType === 'returning') {
+        const existingCustomer = await findCustomerByEmail(formData.email);
+        if (!existingCustomer) {
+          toast({
+            title: "Customer Not Found",
+            description: "We couldn't find your account. Please check your email or sign up as a new customer.",
+            variant: "destructive",
+          });
+          return;
+        }
+        customerId = existingCustomer.id;
+      } else {
+        // Create new customer
+        const response = await fetch(`${cleanCloudAPI.baseUrl}/customers`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${await cleanCloudAPI.getApiKey()}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            email: formData.email,
+            mobile: formData.mobile,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create customer');
+        }
+
+        const newCustomer = await response.json();
+        customerId = newCustomer.id;
+      }
+
+      // Create order
+      const response = await fetch(`${cleanCloudAPI.baseUrl}/orders`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${await cleanCloudAPI.getApiKey()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customer_id: customerId,
+          pickup_time: formData.collectionDate.toISOString(),
+          items: [
+            ...(formData.serviceTypes.laundry ? [{
+              name: "Regular Laundry",
+              quantity: 1,
+              price: 25.00,
+              service_type: "wash_and_fold"
+            }] : []),
+            ...(formData.serviceTypes.duvets ? [{
+              name: "Duvets & Bedding",
+              quantity: 1,
+              price: 35.00,
+              service_type: "bedding"
+            }] : []),
+            ...(formData.serviceTypes.dryCleaning ? [{
+              name: "Dry Cleaning",
+              quantity: 1,
+              price: 45.00,
+              service_type: "dry_clean"
+            }] : []),
+          ],
+          notes: formData.notes,
+          locker_number: formData.lockerNumber,
+          total: calculateTotal(),
+        }),
       });
 
-      // Calculate total based on selected services
-      const total = calculateTotal();
-
-      // Create items array based on selected services
-      const items = [];
-      if (formData.serviceTypes.laundry) {
-        items.push({
-          name: "Regular Laundry",
-          quantity: 1,
-          price: 25.00,
-          service_type: "laundry"
-        });
-      }
-      if (formData.serviceTypes.duvets) {
-        items.push({
-          name: "Duvets & Bedding",
-          quantity: 1,
-          price: 35.00,
-          service_type: "duvets"
-        });
-      }
-      if (formData.serviceTypes.dryCleaning) {
-        items.push({
-          name: "Dry Cleaning",
-          quantity: 1,
-          price: 45.00,
-          service_type: "dry_cleaning"
-        });
+      if (!response.ok) {
+        throw new Error('Failed to create order');
       }
 
-      // Create order in CleanCloud and our database
-      const order = await cleanCloudAPI.orders.createOrder({
-        customerId: customer.id,
-        items,
-        lockerNumber: formData.lockerNumber,
-        notes: formData.notes,
-        serviceTypes: formData.serviceTypes,
-        collectionDate: formData.collectionDate,
-        total,
-      });
+      const order = await response.json();
 
       toast({
         title: "Success!",
-        description: "Your order has been registered with both our system and CleanCloud.",
+        description: "Your order has been registered successfully.",
       });
 
       onSubmit({ ...formData, orderId: order.id });
@@ -113,6 +166,55 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
     }
   };
 
+  const renderCustomerTypeStep = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="space-y-6"
+    >
+      <div className="text-center mb-8">
+        <h3 className="text-2xl font-semibold text-primary mb-2">Welcome</h3>
+        <p className="text-muted-foreground">
+          Are you a new or returning customer?
+        </p>
+      </div>
+      <RadioGroup
+        value={customerType}
+        onValueChange={(value) => setCustomerType(value as 'new' | 'returning')}
+        className="grid grid-cols-2 gap-4"
+      >
+        <div>
+          <RadioGroupItem
+            value="new"
+            id="new"
+            className="peer sr-only"
+          />
+          <Label
+            htmlFor="new"
+            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-transparent p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+          >
+            <span className="text-lg font-semibold">New Customer</span>
+            <span className="text-sm text-muted-foreground">First time using our service</span>
+          </Label>
+        </div>
+        <div>
+          <RadioGroupItem
+            value="returning"
+            id="returning"
+            className="peer sr-only"
+          />
+          <Label
+            htmlFor="returning"
+            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-transparent p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+          >
+            <span className="text-lg font-semibold">Returning Customer</span>
+            <span className="text-sm text-muted-foreground">Already have an account</span>
+          </Label>
+        </div>
+      </RadioGroup>
+    </motion.div>
+  );
+
   const updateFormData = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -120,6 +222,9 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
   const renderStep = () => {
     switch (step) {
       case 1:
+        return renderCustomerTypeStep();
+
+      case 2:
         return (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -127,50 +232,19 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
             className="space-y-6"
           >
             <div className="text-center mb-8">
-              <h3 className="text-2xl font-semibold text-primary mb-2">Your Details</h3>
+              <h3 className="text-2xl font-semibold text-primary mb-2">Welcome Back</h3>
               <p className="text-muted-foreground">
-                Let us know who you are so we can take the best care of your items
+                Please enter your email to continue
               </p>
             </div>
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={formData.firstName}
-                  onChange={(e) => updateFormData("firstName", e.target.value)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  value={formData.lastName}
-                  onChange={(e) => updateFormData("lastName", e.target.value)}
-                  required
-                  className="mt-1"
-                />
-              </div>
               <div>
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => updateFormData("email", e.target.value)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="mobile">Mobile</Label>
-                <Input
-                  id="mobile"
-                  type="tel"
-                  value={formData.mobile}
-                  onChange={(e) => updateFormData("mobile", e.target.value)}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                   className="mt-1"
                 />
@@ -179,7 +253,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
           </motion.div>
         );
 
-      case 2:
+      case 3:
         return (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -251,7 +325,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
           </motion.div>
         );
 
-      case 3:
+      case 4:
         return (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -340,7 +414,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
 
       <div className="mb-8">
         <div className="flex justify-between mb-2">
-          {[1, 2, 3].map((stepNumber) => (
+          {[1, 2, 3, 4].map((stepNumber) => (
             <div key={stepNumber} className="text-center">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center mb-1
@@ -359,7 +433,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
         <div className="h-2 bg-gray-100 rounded-full mt-2">
           <div
             className="h-full bg-primary rounded-full transition-all duration-300"
-            style={{ width: `${((step - 1) / 2) * 100}%` }}
+            style={{ width: `${((step - 1) / 3) * 100}%` }}
           />
         </div>
       </div>
@@ -377,7 +451,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
               Previous
             </Button>
           )}
-          {step < 3 ? (
+          {step < 4 ? (
             <Button
               type="button"
               onClick={() => setStep((prev) => prev + 1)}
