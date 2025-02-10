@@ -4,9 +4,10 @@ import { Label } from "@/components/ui/label";
 
 interface CustomerDetailsFormProps {
   formData: {
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
-    phone: string;
+    mobile: string;
     postcode: string;
   };
   onChange: (field: string, value: string) => void;
@@ -22,13 +23,24 @@ const CustomerDetailsForm = ({
 }: CustomerDetailsFormProps) => (
   <div className="space-y-4">
     <div>
-      <Label htmlFor="name">Full Name</Label>
+      <Label htmlFor="firstName">First Name</Label>
       <Input
-        id="name"
+        id="firstName"
         type="text"
-        placeholder="Full Name"
-        value={formData.name}
-        onChange={(e) => onChange("name", e.target.value)}
+        placeholder="First Name"
+        value={formData.firstName}
+        onChange={(e) => onChange("firstName", e.target.value)}
+        required
+      />
+    </div>
+    <div>
+      <Label htmlFor="lastName">Last Name</Label>
+      <Input
+        id="lastName"
+        type="text"
+        placeholder="Last Name"
+        value={formData.lastName}
+        onChange={(e) => onChange("lastName", e.target.value)}
         required
       />
     </div>
@@ -44,13 +56,13 @@ const CustomerDetailsForm = ({
       />
     </div>
     <div>
-      <Label htmlFor="phone">Phone Number</Label>
+      <Label htmlFor="mobile">Mobile Number</Label>
       <Input
-        id="phone"
+        id="mobile"
         type="tel"
-        placeholder="Phone Number"
-        value={formData.phone}
-        onChange={(e) => onChange("phone", e.target.value)}
+        placeholder="Mobile Number"
+        value={formData.mobile}
+        onChange={(e) => onChange("mobile", e.target.value)}
         required
       />
     </div>
