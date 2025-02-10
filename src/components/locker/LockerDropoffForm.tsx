@@ -53,8 +53,8 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
       let customerId;
 
       if (customerType === 'returning') {
-        const customer = await cleanCloudAPI.customers.findByEmail(formData.email);
-        if (!customer) {
+        const customers = await cleanCloudAPI.customers.searchCustomers(formData.email);
+        if (!customers || customers.length === 0) {
           toast({
             title: "Customer Not Found",
             description: "We couldn't find your account. Please check your email or sign up as a new customer.",
@@ -62,45 +62,57 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
           });
           return;
         }
-        customerId = customer.id;
+        customerId = customers[0].id;
       } else {
         // Create new customer
-        const customer = await cleanCloudAPI.customers.create({
-          first_name: formData.firstName,
-          last_name: formData.lastName,
+        const customer = await cleanCloudAPI.customers.createCustomer({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
           email: formData.email,
           mobile: formData.mobile,
         });
         customerId = customer.id;
       }
 
-      // Create order
-      const order = await cleanCloudAPI.orders.create({
-        customer_id: customerId,
-        pickup_time: formData.collectionDate.toISOString(),
-        items: [
-          ...(formData.serviceTypes.laundry ? [{
-            name: "Regular Laundry",
-            quantity: 1,
-            price: 25.00,
-            service_type: "wash_and_fold"
-          }] : []),
-          ...(formData.serviceTypes.duvets ? [{
-            name: "Duvets & Bedding",
-            quantity: 1,
-            price: 35.00,
-            service_type: "bedding"
-          }] : []),
-          ...(formData.serviceTypes.dryCleaning ? [{
-            name: "Dry Cleaning",
-            quantity: 1,
-            price: 45.00,
-            service_type: "dry_clean"
-          }] : []),
-        ],
+      // Calculate total based on selected services
+      const total = calculateTotal();
+
+      // Create items array based on selected services
+      const items = [];
+      if (formData.serviceTypes.laundry) {
+        items.push({
+          name: "Regular Laundry",
+          quantity: 1,
+          price: 25.00,
+          service_type: "laundry"
+        });
+      }
+      if (formData.serviceTypes.duvets) {
+        items.push({
+          name: "Duvets & Bedding",
+          quantity: 1,
+          price: 35.00,
+          service_type: "duvets"
+        });
+      }
+      if (formData.serviceTypes.dryCleaning) {
+        items.push({
+          name: "Dry Cleaning",
+          quantity: 1,
+          price: 45.00,
+          service_type: "dry_cleaning"
+        });
+      }
+
+      // Create order in CleanCloud
+      const order = await cleanCloudAPI.orders.createOrder({
+        customerId,
+        items,
+        lockerNumber: formData.lockerNumber,
         notes: formData.notes,
-        locker_number: formData.lockerNumber,
-        total: calculateTotal(),
+        serviceTypes: formData.serviceTypes,
+        collectionDate: formData.collectionDate,
+        total
       });
 
       toast({
