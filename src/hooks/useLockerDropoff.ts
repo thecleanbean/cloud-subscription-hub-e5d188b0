@@ -8,7 +8,7 @@ interface FormData {
   lastName: string;
   email: string;
   mobile: string;
-  lockerNumber: string;
+  lockerNumber: string[];  // Changed to array
   notes: string;
   serviceTypes: {
     laundry: boolean;
@@ -29,7 +29,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     lastName: "",
     email: "",
     mobile: "",
-    lockerNumber: "",
+    lockerNumber: [],  // Initialize as empty array
     notes: "",
     serviceTypes: {
       laundry: false,
@@ -60,7 +60,10 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
       let customerId;
 
       if (customerType === 'returning') {
-        const customers = await cleanCloudAPI.customers.searchCustomers(formData.email);
+        // For returning customers, use the Edge Function to handle CleanCloud API call
+        const response = await fetch('/api/cleancloud-proxy?email=' + encodeURIComponent(formData.email));
+        const customers = await response.json();
+        
         if (!customers || customers.length === 0) {
           toast({
             title: "Customer Not Found",
@@ -108,22 +111,25 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
         });
       }
 
-      const order = await cleanCloudAPI.orders.createOrder({
-        customerId,
-        items,
-        lockerNumber: formData.lockerNumber,
-        notes: formData.notes,
-        serviceTypes: formData.serviceTypes,
-        collectionDate: formData.collectionDate,
-        total
-      });
+      // Create an order for each selected locker
+      for (const lockerNum of formData.lockerNumber) {
+        await cleanCloudAPI.orders.createOrder({
+          customerId,
+          items,
+          lockerNumber: lockerNum,
+          notes: formData.notes,
+          serviceTypes: formData.serviceTypes,
+          collectionDate: formData.collectionDate,
+          total: total / formData.lockerNumber.length // Split total across lockers
+        });
+      }
 
       toast({
         title: "Success!",
-        description: "Your order has been registered successfully.",
+        description: `Your order${formData.lockerNumber.length > 1 ? 's have' : ' has'} been registered successfully.`,
       });
 
-      onSubmit({ ...formData, orderId: order.id });
+      onSubmit({ ...formData });
     } catch (error) {
       console.error('Error processing order:', error);
       toast({

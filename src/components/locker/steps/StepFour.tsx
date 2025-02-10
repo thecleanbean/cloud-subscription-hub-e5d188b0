@@ -11,7 +11,7 @@ import { CalendarIcon } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface StepFourProps {
-  lockerNumber: string;
+  lockerNumber: string[];  // Changed to array to support multiple selections
   collectionDate: Date;
   notes: string;
   updateFormData: (field: string, value: any) => void;
@@ -34,18 +34,33 @@ const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepF
       </div>
       <div className="space-y-4">
         <div>
-          <Label htmlFor="lockerNumber">Select Locker</Label>
+          <Label htmlFor="lockerNumber">Select Lockers</Label>
           <Select
             value={lockerNumber}
-            onValueChange={(value) => updateFormData("lockerNumber", value)}
+            onValueChange={(value) => {
+              const newLockers = lockerNumber.includes(value)
+                ? lockerNumber.filter(l => l !== value)
+                : [...lockerNumber, value];
+              updateFormData("lockerNumber", newLockers);
+            }}
           >
             <SelectTrigger className="w-full mt-1">
-              <SelectValue placeholder="Select a locker" />
+              <SelectValue placeholder="Select lockers">
+                {lockerNumber.length > 0 
+                  ? `${lockerNumber.length} locker${lockerNumber.length > 1 ? 's' : ''} selected`
+                  : 'Select lockers'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {lockerNumbers.map((number) => (
                 <SelectItem key={number} value={number}>
-                  Locker {number}
+                  <div className="flex items-center">
+                    <div className={cn(
+                      "w-4 h-4 border rounded-sm mr-2",
+                      lockerNumber.includes(number) ? "bg-primary border-primary" : "border-input"
+                    )} />
+                    Locker {number}
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
