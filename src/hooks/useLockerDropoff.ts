@@ -58,12 +58,81 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (customerType === 'returning') {
-      navigate('/auth');
-      return;
-    }
-
     try {
+      if (customerType === 'returning') {
+        // For returning customers, search in CleanCloud first
+        const existingCustomers = await cleanCloudAPI.customers.searchCustomers(formData.email);
+        
+        if (existingCustomers.length === 0) {
+          toast({
+            title: "Customer Not Found",
+            description: "No customer found with this email. Please sign up as a new customer.",
+            variant: "destructive",
+          });
+          setCustomerType('new');
+          return;
+        }
+
+        // Use the first matching customer
+        const customer = existingCustomers[0];
+        
+        // Create orders for the existing customer
+        const total = calculateTotal();
+        const perLockerTotal = total / formData.lockerNumber.length;
+
+        const items = Object.entries(formData.serviceTypes)
+          .filter(([_, isSelected]) => isSelected)
+          .map(([service]) => {
+            switch (service) {
+              case 'laundry':
+                return {
+                  name: "Regular Laundry",
+                  quantity: 1,
+                  price: 25.00,
+                  service_type: "laundry"
+                };
+              case 'duvets':
+                return {
+                  name: "Duvets & Bedding",
+                  quantity: 1,
+                  price: 35.00,
+                  service_type: "duvets"
+                };
+              case 'dryCleaning':
+                return {
+                  name: "Dry Cleaning",
+                  quantity: 1,
+                  price: 45.00,
+                  service_type: "dry_cleaning"
+                };
+              default:
+                return null;
+            }
+          })
+          .filter((item): item is NonNullable<typeof item> => item !== null);
+
+        // Create an order for each selected locker
+        await Promise.all(formData.lockerNumber.map(async (lockerNum) => {
+          return cleanCloudAPI.orders.createOrder({
+            customerId: customer.id,
+            items,
+            lockerNumber: lockerNum,
+            notes: formData.notes,
+            serviceTypes: formData.serviceTypes,
+            collectionDate: formData.collectionDate,
+            total: perLockerTotal
+          });
+        }));
+
+        toast({
+          title: "Success!",
+          description: `Your order${formData.lockerNumber.length > 1 ? 's have' : ' has'} been registered successfully.`,
+        });
+
+        onSubmit(formData);
+        return;
+      }
+
       // For new customers, create customer record in CleanCloud
       const customer = await cleanCloudAPI.customers.createCustomer({
         firstName: formData.firstName,
