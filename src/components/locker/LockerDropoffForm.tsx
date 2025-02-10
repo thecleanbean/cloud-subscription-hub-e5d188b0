@@ -11,7 +11,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { cleanCloudAPI } from "@/services/cleanCloudAPI";
+import { cleanCloudAPI } from "@/services/cleanCloud";
 import { useToast } from "@/components/ui/use-toast";
 
 interface LockerDropoffFormProps {
