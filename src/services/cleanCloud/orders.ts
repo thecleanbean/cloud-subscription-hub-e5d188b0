@@ -11,7 +11,6 @@ export class OrderService extends BaseCleanCloudClient {
       quantity: number;
       price: number;
       service_type: string;
-      notes?: string;
     }>;
     lockerNumber?: string;
     notes?: string;
@@ -21,39 +20,32 @@ export class OrderService extends BaseCleanCloudClient {
       dryCleaning: boolean;
     };
     collectionDate?: Date;
-    deliveryDate?: Date;
-    deliveryAddress?: string;
-    deliveryPostcode?: string;
     total: number;
   }): Promise<CleanCloudOrder> {
     const apiKey = await this.getApiKey();
     
-    console.log('Creating order in CleanCloud:', {
+    console.log('Creating order:', { 
       ...orderData,
       customerId: '***'
     });
 
-    // Format dates to ISO strings if they exist
-    const formattedOrderData = {
-      ...orderData,
-      collection_date: orderData.collectionDate?.toISOString(),
-      delivery_date: orderData.deliveryDate?.toISOString(),
-      customer_id: orderData.customerId, // API expects customer_id
-      locker_number: orderData.lockerNumber,
-      delivery_address: orderData.deliveryAddress,
-      delivery_postcode: orderData.deliveryPostcode,
+    // Format the order data for CleanCloud API
+    const cleanCloudOrderData = {
+      customer_id: orderData.customerId,
+      items: orderData.items,
+      pickup_time: orderData.collectionDate?.toISOString(),
+      notes: `Locker: ${orderData.lockerNumber}\n${orderData.notes || ''}`.trim(),
+      total: orderData.total,
     };
 
-    const response = await fetch(`${this.baseUrl}/orders/create`, {
+    // Create order in CleanCloud
+    const response = await fetch(`${this.baseUrl}/v1/orders`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        api_token: apiKey,
-        ...formattedOrderData,
-      }),
+      body: JSON.stringify(cleanCloudOrderData),
     });
 
     if (!response.ok) {
@@ -63,13 +55,12 @@ export class OrderService extends BaseCleanCloudClient {
         statusText: response.statusText,
         error: errorText
       });
-      throw new Error(`Failed to create order in CleanCloud: ${response.statusText}`);
+      throw new Error(`Failed to create order: ${response.statusText}`);
     }
 
     const order = await response.json();
-    console.log('Order created successfully:', { id: order.id });
 
-    // Get the customer from our database
+    // Get customer from our database
     const { data: customer, error: customerError } = await supabase
       .from('cleancloud_customers')
       .select('id')
@@ -81,7 +72,7 @@ export class OrderService extends BaseCleanCloudClient {
       throw new Error('Failed to find customer');
     }
 
-    // Store the order in our database
+    // Store order in our database
     const { error: orderError } = await supabase
       .from('orders')
       .insert({
@@ -89,7 +80,6 @@ export class OrderService extends BaseCleanCloudClient {
         locker_number: orderData.lockerNumber,
         instructions: orderData.notes,
         collection_date: orderData.collectionDate?.toISOString(),
-        delivery_date: orderData.deliveryDate?.toISOString(),
         service_types: orderData.serviceTypes,
         total: orderData.total,
         cleancloud_order_id: order.id,
@@ -101,59 +91,5 @@ export class OrderService extends BaseCleanCloudClient {
     }
 
     return order;
-  }
-
-  async getOrder(orderId: string): Promise<CleanCloudOrder> {
-    const apiKey = await this.getApiKey();
-    
-    console.log('Fetching order from CleanCloud:', { orderId: '***' });
-    const response = await fetch(`${this.baseUrl}/orders/${orderId}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('CleanCloud API Error:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText
-      });
-      throw new Error(`Failed to fetch order from CleanCloud: ${response.statusText}`);
-    }
-
-    return response.json();
-  }
-
-  async updateOrderStatus(orderId: string, status: CleanCloudOrder['status']): Promise<CleanCloudOrder> {
-    const apiKey = await this.getApiKey();
-    
-    console.log('Updating order status in CleanCloud:', { orderId: '***', status });
-    const response = await fetch(`${this.baseUrl}/orders/${orderId}/status`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        api_token: apiKey,
-        status,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('CleanCloud API Error:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText
-      });
-      throw new Error(`Failed to update order status in CleanCloud: ${response.statusText}`);
-    }
-
-    return response.json();
   }
 }

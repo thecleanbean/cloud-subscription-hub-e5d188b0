@@ -9,23 +9,22 @@ export class CustomerService extends BaseCleanCloudClient {
     lastName: string;
     mobile: string;
     email: string;
-    address?: string;
-    postcode?: string;
-    notes?: string;
   }): Promise<CleanCloudCustomer> {
     const apiKey = await this.getApiKey();
     
-    console.log('Creating customer in CleanCloud:', { ...customerData, email: '***' });
-    const response = await fetch(`${this.baseUrl}/customers/create`, {
+    console.log('Creating customer with data:', { 
+      ...customerData,
+      email: '***' 
+    });
+
+    // First create customer in CleanCloud
+    const response = await fetch(`${this.baseUrl}/v1/customers`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        api_token: apiKey,
-        ...customerData,
-      }),
+      body: JSON.stringify(customerData),
     });
 
     if (!response.ok) {
@@ -35,12 +34,12 @@ export class CustomerService extends BaseCleanCloudClient {
         statusText: response.statusText,
         error: errorText
       });
-      throw new Error(`Failed to create customer in CleanCloud: ${response.statusText}`);
+      throw new Error(`Failed to create customer: ${response.statusText}`);
     }
 
     const customer = await response.json();
-    console.log('Customer created successfully:', { id: customer.id });
 
+    // Then store the mapping in our database
     const { data: cleancloudCustomer, error } = await supabase
       .from('cleancloud_customers')
       .insert({
@@ -51,47 +50,50 @@ export class CustomerService extends BaseCleanCloudClient {
       .single();
 
     if (error) {
-      console.error('Failed to store CleanCloud customer mapping:', error);
+      console.error('Failed to store customer mapping:', error);
       throw new Error('Failed to store customer mapping');
     }
 
     return customer;
   }
 
-  async updateCustomer(customerId: string, customerData: Partial<CleanCloudCustomer>): Promise<CleanCloudCustomer> {
+  async searchCustomers(email: string): Promise<CleanCloudCustomer[]> {
     const apiKey = await this.getApiKey();
     
-    console.log('Updating customer in CleanCloud:', { customerId: '***', data: customerData });
-    const response = await fetch(`${this.baseUrl}/customers/${customerId}/update`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        api_token: apiKey,
-        ...customerData,
-      }),
-    });
+    console.log('Searching for customer:', { email: '***' });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('CleanCloud API Error:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText
-      });
-      throw new Error(`Failed to update customer in CleanCloud: ${response.statusText}`);
+    // First check our database for the customer
+    const { data: existingCustomer, error: dbError } = await supabase
+      .from('cleancloud_customers')
+      .select('cleancloud_customer_id')
+      .eq('email', email)
+      .single();
+
+    if (dbError && dbError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+      console.error('Database error:', dbError);
+      throw new Error('Failed to search for customer');
     }
 
-    return response.json();
-  }
+    if (existingCustomer) {
+      // If found, get customer details from CleanCloud
+      const response = await fetch(`${this.baseUrl}/v1/customers/${existingCustomer.cleancloud_customer_id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-  async getCustomer(customerId: string): Promise<CleanCloudCustomer> {
-    const apiKey = await this.getApiKey();
-    
-    console.log('Fetching customer from CleanCloud:', { customerId: '***' });
-    const response = await fetch(`${this.baseUrl}/customers/${customerId}`, {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch customer: ${response.statusText}`);
+      }
+
+      const customer = await response.json();
+      return [customer];
+    }
+
+    // If not found in our database, search CleanCloud directly
+    const response = await fetch(`${this.baseUrl}/v1/customers/search?email=${encodeURIComponent(email)}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -100,42 +102,7 @@ export class CustomerService extends BaseCleanCloudClient {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('CleanCloud API Error:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText
-      });
-      throw new Error(`Failed to fetch customer from CleanCloud: ${response.statusText}`);
-    }
-
-    return response.json();
-  }
-
-  async searchCustomers(query: string): Promise<CleanCloudCustomer[]> {
-    const apiKey = await this.getApiKey();
-    
-    console.log('Searching customers in CleanCloud:', { query: '***' });
-    const response = await fetch(`${this.baseUrl}/customers/search`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        api_token: apiKey,
-        query,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('CleanCloud API Error:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText
-      });
-      throw new Error(`Failed to search customers in CleanCloud: ${response.statusText}`);
+      throw new Error(`Failed to search customers: ${response.statusText}`);
     }
 
     return response.json();
