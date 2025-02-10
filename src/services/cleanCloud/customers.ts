@@ -17,8 +17,8 @@ export class CustomerService extends BaseCleanCloudClient {
       email: '***' 
     });
 
-    // First create customer in CleanCloud
-    const response = await fetch(`${this.baseUrl}/v1/customers`, {
+    // First create customer in CleanCloud using the correct endpoint
+    const response = await fetch(`${this.baseUrl}/api/addCustomer`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
