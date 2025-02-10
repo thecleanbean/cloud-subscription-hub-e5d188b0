@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { cleanCloudAPI } from "@/services/cleanCloudAPI";
+import { cleanCloudAPI } from "@/services/cleanCloud";
 import { useToast } from "./ui/use-toast";
 import OrderConfirmation from "./OrderConfirmation";
 import { ArrowLeft } from "lucide-react";
