@@ -3,9 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface CleanCloudCustomer {
   id: string;
-  firstName: string;  // Changed from 'name' to match API
-  lastName: string;   // Added to match API
-  mobile: string;     // Changed from 'phone' to match API
+  firstName: string;
+  lastName: string;
+  mobile: string;
   email: string;
 }
 
@@ -13,8 +13,8 @@ interface CleanCloudOrder {
   id: string;
   customerId: string;
   lockerNumber?: string;
-  notes?: string;     // Changed from 'instructions' to match API
-  serviceTypes: {     // Keeping these as they match the API
+  notes?: string;
+  serviceTypes: {
     laundry: boolean;
     duvets: boolean;
     dryCleaning: boolean;
@@ -25,14 +25,25 @@ interface CleanCloudOrder {
 
 class CleanCloudAPI {
   private apiKey: string | null = null;
-  private baseUrl = 'https://cleancloudapp.com/api';  // Updated to match specified base URL
+  private baseUrl = 'https://api.cleancloud.io/v1';  // Updated to match actual CleanCloud API URL
 
   private async getApiKey(): Promise<string> {
     if (this.apiKey) return this.apiKey;
     
+    console.log('Fetching CleanCloud API key from Supabase function...');
     const { data, error } = await supabase.functions.invoke('get-cleancloud-key');
-    if (error) throw new Error('Failed to get CleanCloud API key');
     
+    if (error) {
+      console.error('Failed to get CleanCloud API key:', error);
+      throw new Error('Failed to get CleanCloud API key');
+    }
+    
+    if (!data?.key) {
+      console.error('No API key returned from function');
+      throw new Error('No CleanCloud API key found');
+    }
+
+    console.log('Successfully retrieved API key');
     this.apiKey = data.key;
     return this.apiKey;
   }
@@ -45,7 +56,8 @@ class CleanCloudAPI {
   }): Promise<CleanCloudCustomer> {
     const apiKey = await this.getApiKey();
     
-    const response = await fetch(`${this.baseUrl}/addCustomer`, {
+    console.log('Creating customer in CleanCloud:', { ...customerData, email: '***' });
+    const response = await fetch(`${this.baseUrl}/customers`, {  // Updated endpoint
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -55,10 +67,17 @@ class CleanCloudAPI {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create customer in CleanCloud');
+      const errorText = await response.text();
+      console.error('CleanCloud API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
+      throw new Error(`Failed to create customer in CleanCloud: ${response.statusText}`);
     }
 
     const customer = await response.json();
+    console.log('Customer created successfully:', { id: customer.id });
 
     // Store the customer mapping in our database
     const { data: cleancloudCustomer, error } = await supabase
@@ -92,7 +111,12 @@ class CleanCloudAPI {
   }): Promise<CleanCloudOrder> {
     const apiKey = await this.getApiKey();
     
-    const response = await fetch(`${this.baseUrl}/store`, {
+    console.log('Creating order in CleanCloud:', {
+      ...orderData,
+      customerId: '***'
+    });
+
+    const response = await fetch(`${this.baseUrl}/orders`, {  // Updated endpoint
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -102,10 +126,17 @@ class CleanCloudAPI {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create order in CleanCloud');
+      const errorText = await response.text();
+      console.error('CleanCloud API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
+      throw new Error(`Failed to create order in CleanCloud: ${response.statusText}`);
     }
 
     const order = await response.json();
+    console.log('Order created successfully:', { id: order.id });
 
     // Get the customer from our database
     const { data: customer, error: customerError } = await supabase
@@ -128,7 +159,7 @@ class CleanCloudAPI {
       .insert({
         customer_id: customer.id,
         locker_number: orderData.lockerNumber,
-        instructions: orderData.notes,  // Updated to match API field name
+        instructions: orderData.notes,
         collection_date: collectionDateString,
         service_types: orderData.serviceTypes,
         total: orderData.total,
@@ -145,4 +176,3 @@ class CleanCloudAPI {
 }
 
 export const cleanCloudAPI = new CleanCloudAPI();
-
