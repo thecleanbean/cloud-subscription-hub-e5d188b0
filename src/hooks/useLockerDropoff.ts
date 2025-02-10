@@ -25,6 +25,8 @@ interface UseLockerDropoffProps {
 }
 
 export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [customerType, setCustomerType] = useState<'new' | 'returning'>('new');
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -41,9 +43,6 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     collectionDate: new Date(),
   });
 
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
   const calculateTotal = () => {
     let total = 0;
     if (formData.serviceTypes.laundry) total += 25.00;
@@ -59,14 +58,12 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (customerType === 'returning') {
+      navigate('/auth');
+      return;
+    }
+
     try {
-      let customerId;
-
-      if (customerType === 'returning') {
-        navigate('/auth');
-        return;
-      }
-
       // For new customers, create customer record in CleanCloud
       const customer = await cleanCloudAPI.customers.createCustomer({
         firstName: formData.firstName,
@@ -75,7 +72,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
         mobile: formData.mobile,
       });
       
-      customerId = customer.id;
+      const customerId = customer.id;
       
       // Sign up the customer in Supabase
       const { error: signUpError } = await supabase.auth.signUp({
