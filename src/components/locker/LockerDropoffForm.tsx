@@ -1,19 +1,14 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
 import { cleanCloudAPI } from "@/services/cleanCloud";
 import { useToast } from "@/components/ui/use-toast";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { cn } from "@/lib/utils";
+import StepOne from "./steps/StepOne";
+import StepTwo from "./steps/StepTwo";
+import StepThree from "./steps/StepThree";
+import StepFour from "./steps/StepFour";
 
 interface LockerDropoffFormProps {
   onSubmit: (data: any) => void;
@@ -46,6 +41,10 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
     return total;
   };
 
+  const updateFormData = (field: string, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -64,7 +63,6 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
         }
         customerId = customers[0].id;
       } else {
-        // Create new customer
         const customer = await cleanCloudAPI.customers.createCustomer({
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -74,11 +72,9 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
         customerId = customer.id;
       }
 
-      // Calculate total based on selected services
       const total = calculateTotal();
-
-      // Create items array based on selected services
       const items = [];
+      
       if (formData.serviceTypes.laundry) {
         items.push({
           name: "Regular Laundry",
@@ -104,7 +100,6 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
         });
       }
 
-      // Create order in CleanCloud
       const order = await cleanCloudAPI.orders.createOrder({
         customerId,
         items,
@@ -131,238 +126,38 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
     }
   };
 
-  const renderCustomerTypeStep = () => (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="space-y-6"
-    >
-      <div className="text-center mb-8">
-        <h3 className="text-2xl font-semibold text-primary mb-2">Welcome</h3>
-        <p className="text-muted-foreground">
-          Are you a new or returning customer?
-        </p>
-      </div>
-      <RadioGroup
-        value={customerType}
-        onValueChange={(value) => setCustomerType(value as 'new' | 'returning')}
-        className="grid grid-cols-2 gap-4"
-      >
-        <div>
-          <RadioGroupItem
-            value="new"
-            id="new"
-            className="peer sr-only"
-          />
-          <Label
-            htmlFor="new"
-            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-transparent p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-          >
-            <span className="text-lg font-semibold">New Customer</span>
-            <span className="text-sm text-muted-foreground">First time using our service</span>
-          </Label>
-        </div>
-        <div>
-          <RadioGroupItem
-            value="returning"
-            id="returning"
-            className="peer sr-only"
-          />
-          <Label
-            htmlFor="returning"
-            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-transparent p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-          >
-            <span className="text-lg font-semibold">Returning Customer</span>
-            <span className="text-sm text-muted-foreground">Already have an account</span>
-          </Label>
-        </div>
-      </RadioGroup>
-    </motion.div>
-  );
-
-  const updateFormData = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
   const renderStep = () => {
     switch (step) {
       case 1:
-        return renderCustomerTypeStep();
-
+        return (
+          <StepOne
+            customerType={customerType}
+            setCustomerType={setCustomerType}
+          />
+        );
       case 2:
         return (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
-          >
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-semibold text-primary mb-2">Welcome Back</h3>
-              <p className="text-muted-foreground">
-                Please enter your email to continue
-              </p>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                  className="mt-1"
-                />
-              </div>
-            </div>
-          </motion.div>
+          <StepTwo
+            email={formData.email}
+            setEmail={(email) => updateFormData("email", email)}
+          />
         );
-
       case 3:
         return (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
-          >
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-semibold text-primary mb-2">Service Details</h3>
-              <p className="text-muted-foreground">
-                Tell us what services you need
-              </p>
-            </div>
-            <div className="space-y-4">
-              <Card className="p-4 hover:border-primary transition-colors">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="laundry"
-                    checked={formData.serviceTypes.laundry}
-                    onCheckedChange={(checked) =>
-                      updateFormData("serviceTypes", {
-                        ...formData.serviceTypes,
-                        laundry: checked,
-                      })
-                    }
-                  />
-                  <div>
-                    <Label htmlFor="laundry" className="font-medium">Regular Laundry</Label>
-                    <p className="text-sm text-muted-foreground">Wash, dry, and fold service</p>
-                  </div>
-                </div>
-              </Card>
-              <Card className="p-4 hover:border-primary transition-colors">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="duvets"
-                    checked={formData.serviceTypes.duvets}
-                    onCheckedChange={(checked) =>
-                      updateFormData("serviceTypes", {
-                        ...formData.serviceTypes,
-                        duvets: checked,
-                      })
-                    }
-                  />
-                  <div>
-                    <Label htmlFor="duvets" className="font-medium">Duvets & Bedding</Label>
-                    <p className="text-sm text-muted-foreground">Professional cleaning for duvets</p>
-                  </div>
-                </div>
-              </Card>
-              <Card className="p-4 hover:border-primary transition-colors">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="dryCleaning"
-                    checked={formData.serviceTypes.dryCleaning}
-                    onCheckedChange={(checked) =>
-                      updateFormData("serviceTypes", {
-                        ...formData.serviceTypes,
-                        dryCleaning: checked,
-                      })
-                    }
-                  />
-                  <div>
-                    <Label htmlFor="dryCleaning" className="font-medium">Dry Cleaning</Label>
-                    <p className="text-sm text-muted-foreground">For delicate items</p>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </motion.div>
+          <StepThree
+            serviceTypes={formData.serviceTypes}
+            updateServiceTypes={(newTypes) => updateFormData("serviceTypes", newTypes)}
+          />
         );
-
       case 4:
         return (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
-          >
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-semibold text-primary mb-2">Locker & Collection Details</h3>
-              <p className="text-muted-foreground">
-                Final details for your dropoff
-              </p>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="lockerNumber">Locker Number (1-17)</Label>
-                <Input
-                  id="lockerNumber"
-                  type="number"
-                  min="1"
-                  max="17"
-                  value={formData.lockerNumber}
-                  onChange={(e) => updateFormData("lockerNumber", e.target.value)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label>Collection Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal mt-1",
-                        !formData.collectionDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.collectionDate ? (
-                        format(formData.collectionDate, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={formData.collectionDate}
-                      onSelect={(date) => date && updateFormData("collectionDate", date)}
-                      disabled={(date) =>
-                        date < new Date() || date < new Date("1900-01-01")
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div>
-                <Label htmlFor="notes">Special Instructions</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => updateFormData("notes", e.target.value)}
-                  placeholder="Any special care instructions..."
-                  className="mt-1"
-                />
-              </div>
-            </div>
-          </motion.div>
+          <StepFour
+            lockerNumber={formData.lockerNumber}
+            collectionDate={formData.collectionDate}
+            notes={formData.notes}
+            updateFormData={updateFormData}
+          />
         );
-
       default:
         return null;
     }
