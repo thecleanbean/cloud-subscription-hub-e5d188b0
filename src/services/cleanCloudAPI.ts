@@ -25,7 +25,7 @@ interface CleanCloudOrder {
 
 class CleanCloudAPI {
   private apiKey: string | null = null;
-  private baseUrl = 'https://api.cleancloud.io/v1';  // Updated to match actual CleanCloud API URL
+  private baseUrl = 'https://cleancloudapp.com/api';  // Base URL from the documentation
 
   private async getApiKey(): Promise<string> {
     if (this.apiKey) return this.apiKey;
@@ -57,13 +57,16 @@ class CleanCloudAPI {
     const apiKey = await this.getApiKey();
     
     console.log('Creating customer in CleanCloud:', { ...customerData, email: '***' });
-    const response = await fetch(`${this.baseUrl}/customers`, {  // Updated endpoint
+    const response = await fetch(`${this.baseUrl}/createCustomer`, {  // Updated endpoint
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(customerData),
+      body: JSON.stringify({
+        ...customerData,
+        api_token: apiKey  // Added as per documentation
+      }),
     });
 
     if (!response.ok) {
@@ -97,6 +100,36 @@ class CleanCloudAPI {
     return customer;
   }
 
+  async getCustomer(customerId: string): Promise<CleanCloudCustomer> {
+    const apiKey = await this.getApiKey();
+    
+    console.log('Fetching customer from CleanCloud:', { customerId: '***' });
+    const response = await fetch(`${this.baseUrl}/getCustomer`, {  // Correct endpoint from documentation
+      method: 'POST',  // POST method as shown in documentation
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        api_token: apiKey,  // Required parameter from documentation
+        customerID: customerId
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('CleanCloud API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
+      throw new Error(`Failed to fetch customer from CleanCloud: ${response.statusText}`);
+    }
+
+    const customer = await response.json();
+    return customer;
+  }
+
   async createOrder(orderData: {
     customerId: string;
     lockerNumber?: string;
@@ -116,13 +149,16 @@ class CleanCloudAPI {
       customerId: '***'
     });
 
-    const response = await fetch(`${this.baseUrl}/orders`, {  // Updated endpoint
+    const response = await fetch(`${this.baseUrl}/createOrder`, {  // Updated endpoint
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(orderData),
+      body: JSON.stringify({
+        api_token: apiKey,  // Added as per documentation
+        ...orderData
+      }),
     });
 
     if (!response.ok) {
