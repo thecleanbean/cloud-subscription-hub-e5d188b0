@@ -12,8 +12,8 @@ export const createNewCustomer = async (formData: FormData) => {
     mobile: formData.mobile,
   });
   
-  // Sign up the customer in Supabase
-  const { error: signUpError } = await supabase.auth.signUp({
+  // Create Supabase account silently in the background
+  await supabase.auth.signUp({
     email: formData.email,
     password: Math.random().toString(36).slice(-8), // Generate a random password
     options: {
@@ -23,39 +23,13 @@ export const createNewCustomer = async (formData: FormData) => {
       }
     }
   });
-
-  if (signUpError) throw signUpError;
   
   return customer;
 };
 
 export const findCustomerByEmail = async (email: string) => {
-  // Try to find if customer exists in CleanCloud
+  // Only search in CleanCloud
   const customers = await cleanCloudAPI.customers.searchCustomers(email);
-  
-  if (customers.length === 0) {
-    return null;
-  }
-
-  // If customer exists in CleanCloud but not in Supabase, create Supabase account
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (!user) {
-    // Create Supabase account for existing customer
-    const customer = customers[0];
-    const { error: signUpError } = await supabase.auth.signUp({
-      email: email,
-      password: Math.random().toString(36).slice(-8), // Generate a random password
-      options: {
-        data: {
-          first_name: customer.firstName || '',
-          last_name: customer.lastName || '',
-        }
-      }
-    });
-
-    if (signUpError) throw signUpError;
-  }
-  
-  return customers[0];
+  return customers.length > 0 ? customers[0] : null;
 };
+

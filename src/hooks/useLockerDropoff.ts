@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 import { FormData, UseLockerDropoffProps, CustomerType } from "@/types/locker";
 import { calculateTotal, createOrderItems, createOrders } from "@/utils/orderUtils";
 import { createNewCustomer, findCustomerByEmail } from "@/services/customerService";
@@ -10,7 +9,6 @@ import { createNewCustomer, findCustomerByEmail } from "@/services/customerServi
 export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { profile } = useAuth();
   const [customerType, setCustomerType] = useState<CustomerType>('new');
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -36,19 +34,10 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     
     try {
       if (customerType === 'returning') {
-        // Check if user is logged in
-        if (!profile) {
-          // Not logged in, redirect to auth page with context
-          navigate('/auth', {
-            state: { isReturningCustomer: true }
-          });
-          return;
-        }
-
-        // User is logged in, proceed with CleanCloud order
-        const existingCustomers = await findCustomerByEmail(profile.email);
+        // Check if customer exists in CleanCloud
+        const existingCustomer = await findCustomerByEmail(formData.email);
         
-        if (existingCustomers.length === 0) {
+        if (!existingCustomer) {
           toast({
             title: "Customer Not Found",
             description: "No customer found with this email. Please sign up as a new customer.",
@@ -58,15 +47,12 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
           return;
         }
 
-        // Use the first matching customer
-        const customer = existingCustomers[0];
-        
         // Create orders for the existing customer
         const total = calculateTotal(formData.serviceTypes);
         const items = createOrderItems(formData.serviceTypes);
 
         await createOrders(
-          customer.id,
+          existingCustomer.id,
           items,
           formData.lockerNumber,
           formData.notes,
@@ -125,3 +111,4 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     handleSubmit,
   };
 };
+
