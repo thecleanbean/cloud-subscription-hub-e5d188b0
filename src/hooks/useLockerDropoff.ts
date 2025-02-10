@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { cleanCloudAPI } from "@/services/cleanCloud";
 import { useToast } from "@/components/ui/use-toast";
@@ -64,12 +63,10 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
       if (customerType === 'returning') {
         // Check if user is logged in
         if (!profile) {
-          // Not logged in, redirect to auth page
-          toast({
-            title: "Login Required",
-            description: "Please login to continue with your order.",
+          // Not logged in, redirect to auth page with context
+          navigate('/auth', {
+            state: { isReturningCustomer: true }
           });
-          navigate('/auth');
           return;
         }
 
