@@ -3,17 +3,18 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface CleanCloudCustomer {
   id: string;
-  name: string;
+  firstName: string;  // Changed from 'name' to match API
+  lastName: string;   // Added to match API
+  mobile: string;     // Changed from 'phone' to match API
   email: string;
-  phone: string;
 }
 
 interface CleanCloudOrder {
   id: string;
   customerId: string;
   lockerNumber?: string;
-  instructions?: string;
-  serviceTypes?: {
+  notes?: string;     // Changed from 'instructions' to match API
+  serviceTypes: {     // Keeping these as they match the API
     laundry: boolean;
     duvets: boolean;
     dryCleaning: boolean;
@@ -24,7 +25,7 @@ interface CleanCloudOrder {
 
 class CleanCloudAPI {
   private apiKey: string | null = null;
-  private baseUrl = 'https://cleancloudapp.com';
+  private baseUrl = 'https://cleancloudapp.com/api';  // Updated to match specified base URL
 
   private async getApiKey(): Promise<string> {
     if (this.apiKey) return this.apiKey;
@@ -37,13 +38,14 @@ class CleanCloudAPI {
   }
 
   async createCustomer(customerData: {
-    name: string;
+    firstName: string;
+    lastName: string;
+    mobile: string;
     email: string;
-    phone: string;
   }): Promise<CleanCloudCustomer> {
     const apiKey = await this.getApiKey();
     
-    const response = await fetch(`${this.baseUrl}/api/addCustomer`, {
+    const response = await fetch(`${this.baseUrl}/addCustomer`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -79,8 +81,8 @@ class CleanCloudAPI {
   async createOrder(orderData: {
     customerId: string;
     lockerNumber?: string;
-    instructions?: string;
-    serviceTypes?: {
+    notes?: string;
+    serviceTypes: {
       laundry: boolean;
       duvets: boolean;
       dryCleaning: boolean;
@@ -90,7 +92,6 @@ class CleanCloudAPI {
   }): Promise<CleanCloudOrder> {
     const apiKey = await this.getApiKey();
     
-    // Create order in CleanCloud
     const response = await fetch(`${this.baseUrl}/store`, {
       method: 'POST',
       headers: {
@@ -127,7 +128,7 @@ class CleanCloudAPI {
       .insert({
         customer_id: customer.id,
         locker_number: orderData.lockerNumber,
-        instructions: orderData.instructions,
+        instructions: orderData.notes,  // Updated to match API field name
         collection_date: collectionDateString,
         service_types: orderData.serviceTypes,
         total: orderData.total,
@@ -144,3 +145,4 @@ class CleanCloudAPI {
 }
 
 export const cleanCloudAPI = new CleanCloudAPI();
+
