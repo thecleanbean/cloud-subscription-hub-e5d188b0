@@ -49,7 +49,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
     
     try {
       // Create customer in CleanCloud
-      const customer = await cleanCloudAPI.createCustomer({
+      const customer = await cleanCloudAPI.customers.createCustomer({
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -59,9 +59,37 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
       // Calculate total based on selected services
       const total = calculateTotal();
 
+      // Create items array based on selected services
+      const items = [];
+      if (formData.serviceTypes.laundry) {
+        items.push({
+          name: "Regular Laundry",
+          quantity: 1,
+          price: 25.00,
+          service_type: "laundry"
+        });
+      }
+      if (formData.serviceTypes.duvets) {
+        items.push({
+          name: "Duvets & Bedding",
+          quantity: 1,
+          price: 35.00,
+          service_type: "duvets"
+        });
+      }
+      if (formData.serviceTypes.dryCleaning) {
+        items.push({
+          name: "Dry Cleaning",
+          quantity: 1,
+          price: 45.00,
+          service_type: "dry_cleaning"
+        });
+      }
+
       // Create order in CleanCloud and our database
-      const order = await cleanCloudAPI.createOrder({
+      const order = await cleanCloudAPI.orders.createOrder({
         customerId: customer.id,
+        items,
         lockerNumber: formData.lockerNumber,
         notes: formData.notes,
         serviceTypes: formData.serviceTypes,

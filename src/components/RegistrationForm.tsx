@@ -91,7 +91,7 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
 
     try {
       // Create customer in CleanCloud
-      const customer = await cleanCloudAPI.createCustomer({
+      const customer = await cleanCloudAPI.customers.createCustomer({
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -100,9 +100,18 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
 
       const total = parseFloat(calculateTotalPrice());
 
+      // Create default items based on the selected plan
+      const items = [{
+        name: selectedPlan,
+        quantity: 1,
+        price: total,
+        service_type: "subscription"
+      }];
+
       // Create order in CleanCloud
-      const order = await cleanCloudAPI.createOrder({
+      const order = await cleanCloudAPI.orders.createOrder({
         customerId: customer.id,
+        items,
         total,
         serviceTypes: {
           laundry: false,
