@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { cleanCloudAPI } from "@/services/cleanCloudAPI";
@@ -102,14 +101,13 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
       // Create order in CleanCloud
       const order = await cleanCloudAPI.createOrder({
         customerId: customer.id,
-        plan: selectedPlan,
-        deliveryOption: formData.deliveryOption as 'pickup' | 'delivery',
-        addons: {
-          homeDelivery: formData.homeDelivery,
-          sortingService: formData.sortingService,
-        },
         total,
-        billingPeriod: formData.billingPeriod as 'monthly' | 'yearly',
+        serviceTypes: {
+          laundry: false,
+          duvets: false,
+          dryCleaning: false,
+        },
+        instructions: `Plan: ${selectedPlan}, Billing: ${formData.billingPeriod}, Home Delivery: ${formData.homeDelivery}, Sorting: ${formData.sortingService}`,
       });
 
       // Navigate to payment page with order details

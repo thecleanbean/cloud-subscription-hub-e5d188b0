@@ -118,6 +118,9 @@ class CleanCloudAPI {
       throw new Error('Failed to find customer');
     }
 
+    // Convert Date to ISO string for Supabase
+    const collectionDateString = orderData.collectionDate?.toISOString();
+
     // Store the order in our database
     const { error: orderError } = await supabase
       .from('orders')
@@ -125,7 +128,7 @@ class CleanCloudAPI {
         customer_id: customer.id,
         locker_number: orderData.lockerNumber,
         instructions: orderData.instructions,
-        collection_date: orderData.collectionDate,
+        collection_date: collectionDateString,
         service_types: orderData.serviceTypes,
         total: orderData.total,
         cleancloud_order_id: order.id,
