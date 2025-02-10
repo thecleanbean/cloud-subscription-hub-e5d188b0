@@ -9,8 +9,10 @@ import { createNewCustomer, findCustomerByEmail } from "@/services/customerServi
 export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  
+  // Group all useState hooks together at the top
   const [customerType, setCustomerType] = useState<CustomerType>('new');
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
@@ -42,6 +44,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
             description: "Please enter your email address to continue.",
             variant: "destructive",
           });
+          setIsLoading(false);
           return;
         }
 
@@ -55,6 +58,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
             variant: "destructive",
           });
           setCustomerType('new');
+          setIsLoading(false);
           return;
         }
 
@@ -88,6 +92,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
           description: "Please fill in all required fields.",
           variant: "destructive",
         });
+        setIsLoading(false);
         return;
       }
 
