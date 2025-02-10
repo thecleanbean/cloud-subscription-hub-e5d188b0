@@ -9,6 +9,7 @@ import StepOne from "./steps/StepOne";
 import StepTwo from "./steps/StepTwo";
 import StepThree from "./steps/StepThree";
 import StepFour from "./steps/StepFour";
+import ProgressBar from "./ProgressBar";
 
 interface LockerDropoffFormProps {
   onSubmit: (data: any) => void;
@@ -172,31 +173,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
         </p>
       </div>
 
-      <div className="mb-8">
-        <div className="flex justify-between mb-2">
-          {[1, 2, 3, 4].map((stepNumber) => (
-            <div key={stepNumber} className="text-center">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center mb-1
-                  ${step >= stepNumber ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}
-              >
-                {stepNumber}
-              </div>
-              <span className={`text-xs ${
-                step >= stepNumber ? 'text-primary font-medium' : 'text-gray-400'
-              }`}>
-                Step {stepNumber}
-              </span>
-            </div>
-          ))}
-        </div>
-        <div className="h-2 bg-gray-100 rounded-full mt-2">
-          <div
-            className="h-full bg-primary rounded-full transition-all duration-300"
-            style={{ width: `${((step - 1) / 3) * 100}%` }}
-          />
-        </div>
-      </div>
+      <ProgressBar currentStep={step} totalSteps={4} />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {renderStep()}
