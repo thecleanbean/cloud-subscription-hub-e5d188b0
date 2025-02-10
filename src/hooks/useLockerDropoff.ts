@@ -4,6 +4,7 @@ import { cleanCloudAPI } from "@/services/cleanCloud";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface FormData {
   firstName: string;
@@ -27,6 +28,7 @@ interface UseLockerDropoffProps {
 export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { profile } = useAuth();
   const [customerType, setCustomerType] = useState<'new' | 'returning'>('new');
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -60,8 +62,19 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     
     try {
       if (customerType === 'returning') {
-        // For returning customers, search in CleanCloud first
-        const existingCustomers = await cleanCloudAPI.customers.searchCustomers(formData.email);
+        // Check if user is logged in
+        if (!profile) {
+          // Not logged in, redirect to auth page
+          toast({
+            title: "Login Required",
+            description: "Please login to continue with your order.",
+          });
+          navigate('/auth');
+          return;
+        }
+
+        // User is logged in, proceed with CleanCloud order
+        const existingCustomers = await cleanCloudAPI.customers.searchCustomers(profile.email);
         
         if (existingCustomers.length === 0) {
           toast({
