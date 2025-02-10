@@ -3,9 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 export class BaseCleanCloudClient {
   protected apiKey: string | null = null;
-  protected baseUrl = 'https://cleancloudapp.com/api';
+  public baseUrl = 'https://cleancloudapp.com/api';
 
-  protected async getApiKey(): Promise<string> {
+  public async getApiKey(): Promise<string> {
     if (this.apiKey) return this.apiKey;
     
     console.log('Fetching CleanCloud API key from Supabase function...');

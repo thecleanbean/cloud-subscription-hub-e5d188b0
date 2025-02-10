@@ -46,27 +46,6 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
     return total;
   };
 
-  const findCustomerByEmail = async (email: string) => {
-    try {
-      const response = await fetch(`${cleanCloudAPI.baseUrl}/customers?email=${encodeURIComponent(email)}`, {
-        headers: {
-          'Authorization': `Bearer ${await cleanCloudAPI.getApiKey()}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to find customer');
-      }
-
-      const data = await response.json();
-      return data.customers?.[0] || null;
-    } catch (error) {
-      console.error('Error finding customer:', error);
-      return null;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -74,8 +53,8 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
       let customerId;
 
       if (customerType === 'returning') {
-        const existingCustomer = await findCustomerByEmail(formData.email);
-        if (!existingCustomer) {
+        const customer = await cleanCloudAPI.customers.findByEmail(formData.email);
+        if (!customer) {
           toast({
             title: "Customer Not Found",
             description: "We couldn't find your account. Please check your email or sign up as a new customer.",
@@ -83,72 +62,46 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
           });
           return;
         }
-        customerId = existingCustomer.id;
+        customerId = customer.id;
       } else {
         // Create new customer
-        const response = await fetch(`${cleanCloudAPI.baseUrl}/customers`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${await cleanCloudAPI.getApiKey()}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            email: formData.email,
-            mobile: formData.mobile,
-          }),
+        const customer = await cleanCloudAPI.customers.create({
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          email: formData.email,
+          mobile: formData.mobile,
         });
-
-        if (!response.ok) {
-          throw new Error('Failed to create customer');
-        }
-
-        const newCustomer = await response.json();
-        customerId = newCustomer.id;
+        customerId = customer.id;
       }
 
       // Create order
-      const response = await fetch(`${cleanCloudAPI.baseUrl}/orders`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${await cleanCloudAPI.getApiKey()}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          customer_id: customerId,
-          pickup_time: formData.collectionDate.toISOString(),
-          items: [
-            ...(formData.serviceTypes.laundry ? [{
-              name: "Regular Laundry",
-              quantity: 1,
-              price: 25.00,
-              service_type: "wash_and_fold"
-            }] : []),
-            ...(formData.serviceTypes.duvets ? [{
-              name: "Duvets & Bedding",
-              quantity: 1,
-              price: 35.00,
-              service_type: "bedding"
-            }] : []),
-            ...(formData.serviceTypes.dryCleaning ? [{
-              name: "Dry Cleaning",
-              quantity: 1,
-              price: 45.00,
-              service_type: "dry_clean"
-            }] : []),
-          ],
-          notes: formData.notes,
-          locker_number: formData.lockerNumber,
-          total: calculateTotal(),
-        }),
+      const order = await cleanCloudAPI.orders.create({
+        customer_id: customerId,
+        pickup_time: formData.collectionDate.toISOString(),
+        items: [
+          ...(formData.serviceTypes.laundry ? [{
+            name: "Regular Laundry",
+            quantity: 1,
+            price: 25.00,
+            service_type: "wash_and_fold"
+          }] : []),
+          ...(formData.serviceTypes.duvets ? [{
+            name: "Duvets & Bedding",
+            quantity: 1,
+            price: 35.00,
+            service_type: "bedding"
+          }] : []),
+          ...(formData.serviceTypes.dryCleaning ? [{
+            name: "Dry Cleaning",
+            quantity: 1,
+            price: 45.00,
+            service_type: "dry_clean"
+          }] : []),
+        ],
+        notes: formData.notes,
+        locker_number: formData.lockerNumber,
+        total: calculateTotal(),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to create order');
-      }
-
-      const order = await response.json();
 
       toast({
         title: "Success!",
