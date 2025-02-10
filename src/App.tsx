@@ -12,6 +12,7 @@ import RegistrationForm from "./components/RegistrationForm";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Navbar } from "./components/layout/Navbar";
 import Home from "./pages/Home";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => {
               <Navbar />
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/auth" element={<Auth />} />
                 <Route 
                   path="/subscriptions" 
                   element={
