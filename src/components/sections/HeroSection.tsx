@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -28,14 +29,14 @@ const HeroSection = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="bg-white text-primary hover:bg-gray-100">
-              <Link to="/book-collection" className="flex items-center gap-2">
-                Book Now <ArrowRight className="w-4 h-4" />
+              <Link to="/subscriptions" className="flex items-center gap-2">
+                View Plans <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
-              <a href="#pricing">
-                View Pricing
-              </a>
+              <Link to="/locker-dropoff" className="flex items-center gap-2">
+                Locker Dropoff <ArrowRight className="w-4 h-4" />
+              </Link>
             </Button>
           </div>
         </motion.div>
