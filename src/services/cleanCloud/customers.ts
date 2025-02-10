@@ -44,6 +44,9 @@ export class CustomerService extends BaseCleanCloudClient {
       .from('cleancloud_customers')
       .insert({
         email: customerData.email,
+        first_name: customerData.firstName,
+        last_name: customerData.lastName,
+        mobile: customerData.mobile,
         cleancloud_customer_id: customer.id,
       })
       .select()
@@ -65,43 +68,35 @@ export class CustomerService extends BaseCleanCloudClient {
     // First check our database for the customer
     const { data: existingCustomer, error: dbError } = await supabase
       .from('cleancloud_customers')
-      .select('cleancloud_customer_id')
+      .select('cleancloud_customer_id, first_name, last_name, mobile, email')
       .eq('email', email)
-      .single();
+      .maybeSingle();  // Changed from .single() to .maybeSingle()
 
-    if (dbError && dbError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+    if (dbError) {
       console.error('Database error:', dbError);
       throw new Error('Failed to search for customer');
     }
 
     if (existingCustomer) {
-      // If found, get customer details from CleanCloud
-      const response = await fetch(`${this.baseUrl}/v1/customers/${existingCustomer.cleancloud_customer_id}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch customer: ${response.statusText}`);
-      }
-
-      const customer = await response.json();
-      return [customer];
+      // If found in our database, return as a CleanCloud customer format
+      return [{
+        id: existingCustomer.cleancloud_customer_id,
+        firstName: existingCustomer.first_name || '',
+        lastName: existingCustomer.last_name || '',
+        mobile: existingCustomer.mobile || '',
+        email: existingCustomer.email
+      }];
     }
 
-    // If not found in our database, search CleanCloud directly
-    const response = await fetch(`${this.baseUrl}/v1/customers/search?email=${encodeURIComponent(email)}`, {
+    // If not found in our database, we need to search through our Edge Function
+    const response = await fetch(`/api/cleancloud/customers/search?email=${encodeURIComponent(email)}`, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
     });
 
     if (!response.ok) {
+      if (response.status === 404) {
+        return []; // No customers found
+      }
       throw new Error(`Failed to search customers: ${response.statusText}`);
     }
 
