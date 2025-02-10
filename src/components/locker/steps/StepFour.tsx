@@ -11,7 +11,7 @@ import { CalendarIcon } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface StepFourProps {
-  lockerNumber: string[];  // Changed to array to support multiple selections
+  lockerNumber: string[];
   collectionDate: Date;
   notes: string;
   updateFormData: (field: string, value: any) => void;
@@ -19,6 +19,13 @@ interface StepFourProps {
 
 const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepFourProps) => {
   const lockerNumbers = Array.from({ length: 17 }, (_, i) => (i + 1).toString());
+
+  const handleLockerSelect = (value: string) => {
+    const newLockers = lockerNumber.includes(value)
+      ? lockerNumber.filter(l => l !== value)
+      : [...lockerNumber, value];
+    updateFormData("lockerNumber", newLockers);
+  };
 
   return (
     <motion.div
@@ -36,13 +43,8 @@ const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepF
         <div>
           <Label htmlFor="lockerNumber">Select Lockers</Label>
           <Select
-            value={lockerNumber}
-            onValueChange={(value) => {
-              const newLockers = lockerNumber.includes(value)
-                ? lockerNumber.filter(l => l !== value)
-                : [...lockerNumber, value];
-              updateFormData("lockerNumber", newLockers);
-            }}
+            value={lockerNumber[0] || ""} // Use the first selected locker as the current value
+            onValueChange={handleLockerSelect}
           >
             <SelectTrigger className="w-full mt-1">
               <SelectValue placeholder="Select lockers">
