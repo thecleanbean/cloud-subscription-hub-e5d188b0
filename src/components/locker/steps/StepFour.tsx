@@ -23,7 +23,7 @@ const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepF
   const handleLockerSelect = (value: string) => {
     const newLockers = lockerNumber.includes(value)
       ? lockerNumber.filter(l => l !== value)
-      : [...lockerNumber, value];
+      : [...lockerNumber, value].sort((a, b) => Number(a) - Number(b));
     updateFormData("lockerNumber", newLockers);
   };
 
@@ -42,31 +42,19 @@ const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepF
       <div className="space-y-4">
         <div>
           <Label htmlFor="lockerNumber">Select Lockers</Label>
-          <Select
-            value={lockerNumber[0] || ""} // Use the first selected locker as the current value
-            onValueChange={handleLockerSelect}
-          >
-            <SelectTrigger className="w-full mt-1">
-              <SelectValue placeholder="Select lockers">
-                {lockerNumber.length > 0 
-                  ? `${lockerNumber.length} locker${lockerNumber.length > 1 ? 's' : ''} selected`
-                  : 'Select lockers'}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {lockerNumbers.map((number) => (
-                <SelectItem key={number} value={number}>
-                  <div className="flex items-center">
-                    <div className={cn(
-                      "w-4 h-4 border rounded-sm mr-2",
-                      lockerNumber.includes(number) ? "bg-primary border-primary" : "border-input"
-                    )} />
-                    Locker {number}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            {lockerNumbers.map((number) => (
+              <Button
+                key={number}
+                type="button"
+                variant={lockerNumber.includes(number) ? "default" : "outline"}
+                onClick={() => handleLockerSelect(number)}
+                className="w-full"
+              >
+                Locker {number}
+              </Button>
+            ))}
+          </div>
         </div>
         <div>
           <Label>Collection Date</Label>

@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { cleanCloudAPI } from "@/services/cleanCloud";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 interface FormData {
   firstName: string;
@@ -40,6 +42,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
   });
 
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const calculateTotal = () => {
     let total = 0;
@@ -60,16 +63,11 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
       let customerId;
 
       if (customerType === 'returning') {
-        // For returning customers, we'll handle authentication separately
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to continue as a returning customer.",
-          variant: "destructive",
-        });
+        navigate('/auth');
         return;
       }
 
-      // For new customers, create a customer record
+      // For new customers, create customer record in CleanCloud
       const customer = await cleanCloudAPI.customers.createCustomer({
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -78,8 +76,25 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
       });
       
       customerId = customer.id;
-      const total = calculateTotal();
       
+      // Sign up the customer in Supabase
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: Math.random().toString(36).slice(-8), // Generate a random password
+        options: {
+          data: {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+          }
+        }
+      });
+
+      if (signUpError) throw signUpError;
+
+      // Create orders for each selected locker
+      const total = calculateTotal();
+      const perLockerTotal = total / formData.lockerNumber.length;
+
       const items = Object.entries(formData.serviceTypes)
         .filter(([_, isSelected]) => isSelected)
         .map(([service]) => {
@@ -109,20 +124,20 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
               return null;
           }
         })
-        .filter(Boolean);
+        .filter((item): item is NonNullable<typeof item> => item !== null);
 
       // Create an order for each selected locker
-      for (const lockerNum of formData.lockerNumber) {
-        await cleanCloudAPI.orders.createOrder({
+      await Promise.all(formData.lockerNumber.map(async (lockerNum) => {
+        return cleanCloudAPI.orders.createOrder({
           customerId,
           items,
           lockerNumber: lockerNum,
           notes: formData.notes,
           serviceTypes: formData.serviceTypes,
           collectionDate: formData.collectionDate,
-          total: total / formData.lockerNumber.length
+          total: perLockerTotal
         });
-      }
+      }));
 
       toast({
         title: "Success!",
