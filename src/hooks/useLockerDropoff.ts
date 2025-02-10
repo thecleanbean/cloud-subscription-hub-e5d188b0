@@ -9,6 +9,7 @@ import { createNewCustomer, findCustomerByEmail } from "@/services/customerServi
 export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const [customerType, setCustomerType] = useState<CustomerType>('new');
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -31,6 +32,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
     try {
       if (customerType === 'returning') {
@@ -43,7 +45,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
           return;
         }
 
-        // Check if customer exists in CleanCloud
+        console.log('Attempting to find customer with email:', formData.email);
         const existingCustomer = await findCustomerByEmail(formData.email);
         
         if (!existingCustomer) {
@@ -118,6 +120,8 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
         description: error instanceof Error ? error.message : "There was a problem processing your request. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -127,5 +131,6 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     formData,
     updateFormData,
     handleSubmit,
+    isLoading
   };
 };

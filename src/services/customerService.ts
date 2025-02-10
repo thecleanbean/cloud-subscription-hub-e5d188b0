@@ -36,16 +36,37 @@ export const findCustomerByEmail = async (email: string) => {
   console.log('Searching for customer:', { email: '***' });
   
   try {
-    // Only search in CleanCloud
-    const customers = await cleanCloudAPI.customers.searchCustomers(email);
-    
-    // Add proper error handling and type checking
-    if (!Array.isArray(customers)) {
-      console.error('Unexpected response format:', customers);
+    // Search in CleanCloud with proper error handling
+    const response = await cleanCloudAPI.customers.searchCustomers(email);
+    console.log('CleanCloud API Response:', response);
+
+    // Basic validation of response
+    if (!response || typeof response !== 'object') {
+      console.error('Invalid API response:', response);
       throw new Error('Invalid response from CleanCloud API');
     }
+
+    // Handle potential string response (error message)
+    if (typeof response === 'string') {
+      console.error('API returned string instead of object:', response);
+      throw new Error('Invalid response format from CleanCloud API');
+    }
+
+    // Ensure response is array-like
+    const customers = Array.isArray(response) ? response : [response];
     
-    return customers.length > 0 ? customers[0] : null;
+    if (customers.length === 0) {
+      return null;
+    }
+
+    // Validate customer object structure
+    const customer = customers[0];
+    if (!customer || !customer.id || !customer.email) {
+      console.error('Invalid customer data:', customer);
+      throw new Error('Invalid customer data format');
+    }
+
+    return customer;
   } catch (error) {
     console.error('Error searching for customer:', error);
     throw new Error('Failed to search for customer');
