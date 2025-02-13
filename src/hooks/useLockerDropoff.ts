@@ -1,14 +1,11 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { useNavigate } from "react-router-dom";
 import { FormData, UseLockerDropoffProps, CustomerType } from "@/types/locker";
 import { calculateTotal, createOrderItems, createOrders } from "@/utils/orderUtils";
 import { createNewCustomer, findCustomerByEmail } from "@/services/customerService";
-import { supabase } from "@/integrations/supabase/client";
 
-export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
-  const navigate = useNavigate();
+export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {  
   const { toast } = useToast();
   
   const [customerType, setCustomerType] = useState<CustomerType>('new');
@@ -27,32 +24,6 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     },
     collectionDate: new Date(),
   });
-
-  // Listen for auth state changes
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && customerType === 'returning') {
-        // When a returning customer signs in, try to find their details
-        try {
-          const customer = await findCustomerByEmail(formData.email);
-          if (customer) {
-            setFormData(prev => ({
-              ...prev,
-              firstName: customer.firstName,
-              lastName: customer.lastName,
-              mobile: customer.mobile || '',
-            }));
-          }
-        } catch (error) {
-          console.error('Error fetching customer details:', error);
-        }
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [customerType, formData.email]);
 
   const updateFormData = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -73,34 +44,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
           return;
         }
 
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          // If not authenticated, start auth flow
-          const { error: signInError } = await supabase.auth.signInWithOtp({
-            email: formData.email,
-            options: {
-              emailRedirectTo: window.location.origin + '/locker-dropoff'
-            }
-          });
-
-          if (signInError) {
-            toast({
-              title: "Authentication Error",
-              description: "Failed to send verification email. Please try again.",
-              variant: "destructive",
-            });
-            return;
-          }
-
-          toast({
-            title: "Check Your Email",
-            description: "We've sent you a verification link. Please check your email to continue.",
-          });
-          return;
-        }
-
-        // User is authenticated, proceed with customer lookup
+        // Look up existing customer
         const existingCustomer = await findCustomerByEmail(formData.email);
         
         if (!existingCustomer) {
