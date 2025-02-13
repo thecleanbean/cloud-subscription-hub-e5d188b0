@@ -96,8 +96,7 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
         lastName: formData.lastName,
         email: formData.email,
         mobile: formData.mobile,
-        customerAddress: formData.postcode, // Using postcode as address
-        customerTel: formData.mobile // Using mobile as telephone
+        customerAddress: formData.postcode // Using postcode as address
       });
 
       const total = parseFloat(calculateTotalPrice());
