@@ -29,6 +29,7 @@ export class OrderService extends BaseCleanCloudClient {
 
     // Format the order data for CleanCloud API
     const cleanCloudOrderData = {
+      api_token: undefined, // This will be added by the proxy
       customerID: orderData.customerId,
       products: orderData.items.map(item => ({
         id: '0', // Custom product
@@ -50,14 +51,14 @@ export class OrderService extends BaseCleanCloudClient {
     }
 
     // Create order through our proxy
-    const order = await this.makeRequest('/addOrder', {
+    const response = await this.makeRequest('/addOrder', {
       method: 'POST',
       body: JSON.stringify(cleanCloudOrderData),
     });
 
-    if (!order || !order.id) {
-      console.error('Invalid order response:', order);
-      throw new Error('Failed to create order in CleanCloud');
+    if (!response || response.Error) {
+      console.error('Invalid order response:', response);
+      throw new Error(response?.Error || 'Failed to create order in CleanCloud');
     }
 
     // Get customer from our database using maybeSingle to handle no results
@@ -100,7 +101,7 @@ export class OrderService extends BaseCleanCloudClient {
       .from('orders')
       .insert({
         customer_id: finalCustomer.id,
-        cleancloud_order_id: order.id,
+        cleancloud_order_id: response.id,
         locker_number: orderData.lockerNumber,
         service_types: orderData.serviceTypes,
         notes: orderData.notes,
@@ -114,6 +115,6 @@ export class OrderService extends BaseCleanCloudClient {
       throw new Error('Failed to store order');
     }
 
-    return order;
+    return response;
   }
 }
