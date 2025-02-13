@@ -20,34 +20,90 @@ serve(async (req) => {
       throw new Error('CleanCloud API key not configured');
     }
 
-    // Test endpoint: search customers with a test email
-    const url = 'https://cleancloudapp.com/api/getCustomer';
-    const body = {
-      api_token: apiKey.trim(),
-      customerID: '1' // Using ID 1 as a test
-    };
+    const results: any = {};
 
-    console.log('Making test request to:', url);
-    console.log('With body:', { ...body, api_token: '***' });
-
-    const response = await fetch(url, {
+    // 1. Search for existing customer
+    console.log('Step 1: Searching for existing customer');
+    const searchUrl = 'https://cleancloudapp.com/api/getCustomer';
+    const searchResponse = await fetch(searchUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify({
+        api_token: apiKey.trim(),
+        dateFrom: '2024-01-01',
+        dateTo: '2024-12-31'
+      })
     });
 
-    const responseText = await response.text();
-    console.log('Raw response:', responseText);
+    const searchResult = await searchResponse.text();
+    console.log('Search customer response:', searchResult);
+    results.customerSearch = searchResult;
 
+    // 2. Create a test order for the existing customer
+    console.log('Step 2: Creating order for existing customer');
+    const createOrderUrl = 'https://cleancloudapp.com/api/addOrder';
+    const orderData = {
+      api_token: apiKey.trim(),
+      customerID: '1', // We'll update this with the actual ID from search
+      products: [
+        {
+          id: '0',
+          price: '25.00',
+          pieces: '1',
+          quantity: '1',
+          name: 'Test Laundry Service'
+        }
+      ],
+      finalTotal: '25.00',
+      orderNotes: 'Test order via API',
+      notifyMethod: '2', // Email notification
+      status: '0' // Cleaning Order
+    };
+
+    const orderResponse = await fetch(createOrderUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(orderData)
+    });
+
+    const orderResult = await orderResponse.text();
+    console.log('Create order response:', orderResult);
+    results.existingCustomerOrder = orderResult;
+
+    // 3. Create a new test customer
+    console.log('Step 3: Creating new test customer');
+    const createCustomerUrl = 'https://cleancloudapp.com/api/addCustomer';
+    const newCustomerData = {
+      api_token: apiKey.trim(),
+      customerName: 'Test Customer',
+      customerTel: '1234567890',
+      customerEmail: 'test@example.com'
+    };
+
+    const customerResponse = await fetch(createCustomerUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(newCustomerData)
+    });
+
+    const customerResult = await customerResponse.text();
+    console.log('Create customer response:', customerResult);
+    results.newCustomer = customerResult;
+
+    // Return all results
     return new Response(
       JSON.stringify({
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries([...response.headers.entries()]),
-        body: responseText
+        success: true,
+        results
       }),
       { 
         status: 200, 
