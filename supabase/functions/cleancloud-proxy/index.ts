@@ -14,39 +14,38 @@ serve(async (req) => {
       );
     }
 
-    // Extract the email from query params for customer search
-    const email = url.searchParams.get('email');
-    if (!email) {
-      return new Response(
-        JSON.stringify({ error: 'Email parameter is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+      'Content-Type': 'application/json'
+    };
+
+    // Handle CORS preflight requests
+    if (req.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders });
     }
 
-    // Call CleanCloud API
-    const cleanCloudResponse = await fetch(
-      `https://cleancloudapp.com/api/v1/customers/search?email=${encodeURIComponent(email)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const path = url.pathname.replace('/functions/cleancloud-proxy', '');
+    const cleanCloudUrl = `https://api.cleancloud.io${path}${url.search}`;
 
-    const data = await cleanCloudResponse.json();
+    // Forward the request to CleanCloud
+    const response = await fetch(cleanCloudUrl, {
+      method: req.method,
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: req.method !== 'GET' ? await req.text() : undefined,
+    });
+
+    const data = await response.json();
     
     return new Response(
       JSON.stringify(data),
       { 
-        status: cleanCloudResponse.status, 
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-        } 
+        status: response.status, 
+        headers: corsHeaders
       }
     );
 

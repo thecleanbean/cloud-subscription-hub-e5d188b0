@@ -3,26 +3,21 @@ import { supabase } from "@/integrations/supabase/client";
 
 export class BaseCleanCloudClient {
   protected apiKey: string | null = null;
-  public baseUrl = 'https://api.cleancloud.io';  // Changed from cleancloudapp.com to api.cleancloud.io
-
-  public async getApiKey(): Promise<string> {
-    if (this.apiKey) return this.apiKey;
+  protected async makeRequest(path: string, options: RequestInit = {}) {
+    console.log(`Making request to ${path}`);
     
-    console.log('Fetching CleanCloud API key from Supabase function...');
-    const { data, error } = await supabase.functions.invoke('get-cleancloud-key');
+    const response = await supabase.functions.invoke('cleancloud-proxy', {
+      body: {
+        path,
+        ...options
+      }
+    });
     
-    if (error) {
-      console.error('Failed to get CleanCloud API key:', error);
-      throw new Error('Failed to get CleanCloud API key');
+    if (response.error) {
+      console.error('CleanCloud API Error:', response.error);
+      throw new Error(response.error.message);
     }
     
-    if (!data?.key) {
-      console.error('No API key returned from function');
-      throw new Error('No CleanCloud API key found');
-    }
-
-    console.log('Successfully retrieved API key');
-    this.apiKey = data.key;
-    return this.apiKey;
+    return response.data;
   }
 }
