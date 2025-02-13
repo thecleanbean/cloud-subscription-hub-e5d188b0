@@ -29,15 +29,28 @@ export class OrderService extends BaseCleanCloudClient {
 
     // Format the order data for CleanCloud API
     const cleanCloudOrderData = {
-      customer_id: orderData.customerId,
-      items: orderData.items,
-      pickup_time: orderData.collectionDate?.toISOString(),
-      notes: `Locker: ${orderData.lockerNumber}\n${orderData.notes || ''}`.trim(),
-      total: orderData.total,
+      customerID: orderData.customerId,
+      products: orderData.items.map(item => ({
+        id: '0', // Custom product
+        price: item.price.toString(),
+        pieces: '1',
+        quantity: item.quantity.toString(),
+        name: item.name
+      })),
+      finalTotal: orderData.total.toString(),
+      orderNotes: `Locker: ${orderData.lockerNumber}\n${orderData.notes || ''}`.trim(),
+      notifyMethod: '2', // Email notification
+      status: '0', // Cleaning Order
+      lockerOrder: '1',
+      lockerNumber: orderData.lockerNumber
     };
 
+    if (orderData.collectionDate) {
+      cleanCloudOrderData['pickupDate'] = Math.floor(orderData.collectionDate.getTime() / 1000).toString();
+    }
+
     // Create order through our proxy
-    const order = await this.makeRequest('/orders', {
+    const order = await this.makeRequest('/addOrder', {
       method: 'POST',
       body: JSON.stringify(cleanCloudOrderData),
     });
@@ -56,15 +69,16 @@ export class OrderService extends BaseCleanCloudClient {
 
     // Store order in our database
     const { error: orderError } = await supabase
-      .from('orders')
+      .from('locker_orders')
       .insert({
         customer_id: customer.id,
-        locker_number: orderData.lockerNumber,
-        instructions: orderData.notes,
-        collection_date: orderData.collectionDate?.toISOString(),
-        service_types: orderData.serviceTypes,
-        total: orderData.total,
+        cleancloud_customer_id: orderData.customerId,
         cleancloud_order_id: order.id,
+        locker_numbers: [orderData.lockerNumber],
+        service_types: orderData.serviceTypes,
+        notes: orderData.notes,
+        collection_date: orderData.collectionDate?.toISOString(),
+        status: 'pending'
       });
 
     if (orderError) {

@@ -9,7 +9,7 @@ export class CustomerService extends BaseCleanCloudClient {
     lastName: string;
     mobile: string;
     email: string;
-    password?: string; // Make password optional
+    password?: string;
   }): Promise<CleanCloudCustomer> {
     console.log('Creating customer with data:', { 
       ...customerData,
@@ -18,14 +18,13 @@ export class CustomerService extends BaseCleanCloudClient {
     });
 
     // Create customer through our proxy
-    const customer = await this.makeRequest('/customers', {
+    const customer = await this.makeRequest('/addCustomer', {
       method: 'POST',
       body: JSON.stringify({
-        first_name: customerData.firstName,
-        last_name: customerData.lastName,
-        email: customerData.email,
-        mobile: customerData.mobile,
-        customerPassword: customerData.password // Send password if provided
+        customerName: `${customerData.firstName} ${customerData.lastName}`,
+        customerTel: customerData.mobile,
+        customerEmail: customerData.email,
+        customerPassword: customerData.password // Include password if provided
       }),
     });
 
@@ -52,7 +51,12 @@ export class CustomerService extends BaseCleanCloudClient {
     console.log('Searching for customer:', { email: '***' });
 
     // Search through our proxy
-    const customers = await this.makeRequest(`/customers/search?email=${encodeURIComponent(email)}`);
+    const customers = await this.makeRequest('/getCustomer', {
+      method: 'POST',
+      body: JSON.stringify({
+        customerEmail: email
+      })
+    });
     return Array.isArray(customers) ? customers : [];
   }
 
@@ -71,7 +75,12 @@ export class CustomerService extends BaseCleanCloudClient {
 
       if (response && response.customerID) {
         // Get full customer details after successful login
-        const customerDetails = await this.makeRequest(`/customers/${response.customerID}`);
+        const customerDetails = await this.makeRequest(`/getCustomer`, {
+          method: 'POST',
+          body: JSON.stringify({
+            customerID: response.customerID
+          })
+        });
         return customerDetails;
       }
 

@@ -5,8 +5,8 @@ export class BaseCleanCloudClient {
   protected apiKey: string | null = null;
   
   protected async makeRequest(path: string, options: RequestInit = {}) {
-    // Ensure path is properly formatted
-    const apiPath = path.startsWith('/v1') ? path : `/v1${path.startsWith('/') ? path : `/${path}`}`;
+    // Ensure path starts with forward slash
+    const apiPath = path.startsWith('/') ? path : `/${path}`;
     
     console.log(`Making request to CleanCloud:`, {
       path: apiPath,
@@ -17,7 +17,7 @@ export class BaseCleanCloudClient {
       body: {
         path: apiPath,
         method: options.method || 'GET',
-        body: options.body
+        body: options.body ? JSON.parse(options.body) : undefined
       }
     });
     
