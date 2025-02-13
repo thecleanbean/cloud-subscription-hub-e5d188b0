@@ -85,9 +85,9 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     try {
       if (customerType === 'returning') {
         // Search for existing customer by email
-        const existingCustomers = await findCustomerByEmail(formData.email);
+        const customer = await findCustomerByEmail(formData.email);
         
-        if (!existingCustomers || existingCustomers.length === 0) {
+        if (!customer) {
           toast({
             title: "Customer Not Found",
             description: "We couldn't find an account with this email. Please try again or create a new account.",
@@ -95,8 +95,6 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
           });
           return;
         }
-
-        const customer = existingCustomers[0];
         
         // Create orders for the existing customer
         const total = calculateTotal(formData.serviceTypes);
