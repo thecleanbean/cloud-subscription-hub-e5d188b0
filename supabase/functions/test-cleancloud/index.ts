@@ -21,16 +21,16 @@ serve(async (req) => {
     }
 
     // Test endpoint: search customers with a test email
-    const url = new URL('https://cleancloudapp.com/api/getCustomer');
+    const url = 'https://cleancloudapp.com/api/getCustomer';
     const body = {
       api_token: apiKey.trim(),
       customerID: '1' // Using ID 1 as a test
     };
 
-    console.log('Making test request to:', url.toString());
+    console.log('Making test request to:', url);
     console.log('With body:', { ...body, api_token: '***' });
 
-    const response = await fetch(url.toString(), {
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
