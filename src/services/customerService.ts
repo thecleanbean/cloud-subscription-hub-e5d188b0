@@ -18,7 +18,7 @@ export const createNewCustomer = async (formData: FormData) => {
       mobile: formData.mobile,
     });
     
-    // Create Supabase account and customer record
+    // Create customer record in our database with the auth user ID
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: formData.email,
       password: Math.random().toString(36).slice(-8), // Generate a random password
@@ -35,11 +35,15 @@ export const createNewCustomer = async (formData: FormData) => {
       throw new Error('Failed to create user account');
     }
 
+    if (!authData.user?.id) {
+      throw new Error('No user ID returned from auth signup');
+    }
+
     // Create customer record in our database
     const { error: dbError } = await supabase
       .from('cleancloud_customers')
       .insert({
-        id: authData.user?.id,
+        id: authData.user.id,
         email: formData.email,
         first_name: formData.firstName,
         last_name: formData.lastName,
@@ -63,52 +67,43 @@ export const findCustomerByEmail = async (email: string) => {
   console.log('Searching for customer:', { email: '***' });
   
   try {
-    // First check if customer exists in Supabase
+    // First check if customer exists in our database
     const { data: customerData, error: dbError } = await supabase
       .from('cleancloud_customers')
       .select('*')
       .eq('email', email)
-      .single();
+      .maybeSingle();
 
     if (dbError) {
-      if (dbError.code === 'PGRST116') {
-        // No customer found
-        // Send magic link for authentication
-        const { error: signInError } = await supabase.auth.signInWithOtp({
-          email: email,
-          options: {
-            emailRedirectTo: window.location.origin + '/locker-dropoff'
-          }
-        });
-
-        if (signInError) {
-          console.error('Auth error:', signInError);
-          throw new Error('Authentication failed. Please check your email and try again.');
-        }
-
-        return null;
-      }
-      throw dbError;
+      console.error('Database error:', dbError);
+      throw new Error('Failed to search for customer');
     }
 
-    // If we found a customer, search in CleanCloud to get latest data
-    const response = await fetch(`/api/cleancloud/customers/search?email=${encodeURIComponent(email)}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
+    // If no customer found in our database, try to authenticate them
+    if (!customerData) {
+      // Try to sign in the user
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: Math.random().toString(36).slice(-8), // Use any password since we disabled email verification
+      });
+
+      if (signInError) {
+        console.error('Auth error:', signInError);
+        throw new Error('Authentication failed. Please try again.');
       }
-    });
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    if (!data || !Array.isArray(data) || data.length === 0) {
       return null;
     }
 
-    return data[0];
+    // If we found a customer in our database, get their latest data from CleanCloud
+    const customers = await cleanCloudAPI.customers.searchCustomers(email);
+    
+    if (!customers || customers.length === 0) {
+      console.error('Customer not found in CleanCloud');
+      return null;
+    }
+
+    return customers[0];
   } catch (error) {
     console.error('Error searching for customer:', error);
     throw error;
