@@ -5,12 +5,10 @@ import { motion } from "framer-motion";
 
 interface StepTwoProps {
   email: string;
-  password: string;
   setEmail: (email: string) => void;
-  setPassword: (password: string) => void;
 }
 
-const StepTwo = ({ email, password, setEmail, setPassword }: StepTwoProps) => {
+const StepTwo = ({ email, setEmail }: StepTwoProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -20,7 +18,7 @@ const StepTwo = ({ email, password, setEmail, setPassword }: StepTwoProps) => {
       <div className="text-center mb-8">
         <h3 className="text-2xl font-semibold text-primary mb-2">Welcome Back</h3>
         <p className="text-muted-foreground">
-          Please enter your login details to continue
+          Please enter your email to continue with your order
         </p>
       </div>
       <div className="space-y-4">
@@ -31,17 +29,6 @@ const StepTwo = ({ email, password, setEmail, setPassword }: StepTwoProps) => {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
-            className="mt-1"
-          />
-        </div>
-        <div>
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             required
             className="mt-1"
           />

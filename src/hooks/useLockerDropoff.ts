@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { FormData, UseLockerDropoffProps, CustomerType } from "@/types/locker";
 import { calculateTotal, createOrderItems, createOrders } from "@/utils/orderUtils";
-import { createNewCustomer, findCustomerByEmail, loginCustomer } from "@/services/customerService";
+import { createNewCustomer, findCustomerByEmail } from "@/services/customerService";
 import { toast } from "@/components/ui/use-toast";
 
 export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {  
@@ -12,7 +12,6 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     firstName: "",
     lastName: "",
     email: "",
-    password: "",
     mobile: "",
     lockerNumber: [],
     notes: "",
@@ -29,12 +28,12 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
   };
 
   const validateForm = () => {
-    // For returning customers, email and password are required
+    // For returning customers, only email is required
     if (customerType === 'returning') {
-      if (!formData.email || !formData.password) {
+      if (!formData.email) {
         toast({
-          title: "Login Required",
-          description: "Please enter both your email and password to continue.",
+          title: "Email Required",
+          description: "Please enter your email to continue.",
           variant: "destructive",
         });
         return false;
@@ -85,24 +84,26 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     
     try {
       if (customerType === 'returning') {
-        // Verify login credentials first
-        const loggedInCustomer = await loginCustomer(formData.email, formData.password!);
+        // Search for existing customer by email
+        const existingCustomers = await findCustomerByEmail(formData.email);
         
-        if (!loggedInCustomer) {
+        if (!existingCustomers || existingCustomers.length === 0) {
           toast({
-            title: "Login Failed",
-            description: "Invalid email or password. Please try again.",
+            title: "Customer Not Found",
+            description: "We couldn't find an account with this email. Please try again or create a new account.",
             variant: "destructive",
           });
           return;
         }
 
+        const customer = existingCustomers[0];
+        
         // Create orders for the existing customer
         const total = calculateTotal(formData.serviceTypes);
         const items = createOrderItems(formData.serviceTypes);
 
         await createOrders(
-          loggedInCustomer.id,
+          customer.id,
           items,
           formData.lockerNumber,
           formData.notes,

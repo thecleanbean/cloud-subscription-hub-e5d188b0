@@ -38,16 +38,3 @@ export const findCustomerByEmail = async (email: string) => {
     throw error;
   }
 };
-
-export const loginCustomer = async (email: string, password: string) => {
-  console.log('Logging in customer:', { email: '***' });
-  
-  try {
-    // Login through CleanCloud API
-    const customer = await cleanCloudAPI.customers.loginCustomer(email, password);
-    return customer;
-  } catch (error) {
-    console.error('Error logging in customer:', error);
-    return null;
-  }
-};
