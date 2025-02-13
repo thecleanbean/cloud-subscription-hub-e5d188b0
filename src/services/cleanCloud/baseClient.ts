@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export class BaseCleanCloudClient {
   protected apiKey: string | null = null;
-  public baseUrl = 'https://cleancloudapp.com/api';
+  public baseUrl = 'https://api.cleancloud.io';  // Changed from cleancloudapp.com to api.cleancloud.io
 
   public async getApiKey(): Promise<string> {
     if (this.apiKey) return this.apiKey;

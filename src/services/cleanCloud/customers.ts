@@ -17,12 +17,13 @@ export class CustomerService extends BaseCleanCloudClient {
       email: '***' 
     });
 
-    // Create customer in CleanCloud using the v1 endpoint
-    const response = await fetch(`${this.baseUrl}/v1/customers`, {
+    // Create customer in CleanCloud
+    const response = await fetch(`${this.baseUrl}/customers`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
       body: JSON.stringify({
         first_name: customerData.firstName,
@@ -68,12 +69,13 @@ export class CustomerService extends BaseCleanCloudClient {
     
     console.log('Searching for customer:', { email: '***' });
 
-    // Search in CleanCloud using the v1 endpoint
-    const response = await fetch(`${this.baseUrl}/v1/customers/search?email=${encodeURIComponent(email)}`, {
+    // Search in CleanCloud
+    const response = await fetch(`${this.baseUrl}/customers/search?email=${encodeURIComponent(email)}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
     });
 
