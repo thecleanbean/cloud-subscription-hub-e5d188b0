@@ -43,3 +43,10 @@ export interface CleanCloudOrder {
     dryCleaning: boolean;
   };
 }
+
+export interface CreateCustomerParams {
+  customerName: string;
+  customerEmail: string;
+  customerTel: string;
+  customerAddress: string;
+}

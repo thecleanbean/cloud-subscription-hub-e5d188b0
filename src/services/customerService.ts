@@ -15,9 +15,7 @@ export const createNewCustomer = async (formData: FormData) => {
       firstName: formData.firstName,
       lastName: formData.lastName,
       email: formData.email,
-      mobile: formData.mobile,
-      customerAddress: '', // Added empty string as API requires this field
-      customerTel: formData.mobile // Added to match API requirements
+      mobile: formData.mobile
     });
 
     return customer;
