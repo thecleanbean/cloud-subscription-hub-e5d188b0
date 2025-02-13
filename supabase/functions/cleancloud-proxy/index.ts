@@ -35,20 +35,18 @@ serve(async (req) => {
       throw new Error('Path is required');
     }
 
-    // Ensure path starts with /v1
-    const apiPath = requestData.path.startsWith('/v1') ? 
-      requestData.path : 
-      `/v1${requestData.path.startsWith('/') ? requestData.path : `/${requestData.path}`}`;
-
+    // Remove /v1 prefix if it exists and construct the correct path
+    const cleanPath = requestData.path.replace(/^\/v1/, '');
+    
     // Construct the CleanCloud API URL
-    const cleanCloudUrl = new URL(`https://cleancloudapp.com/api${apiPath}`);
+    const cleanCloudUrl = new URL(`https://cleancloudapp.com/api${cleanPath}`);
     
     // Add api_token as a query parameter for GET requests
     if (requestData.method === 'GET') {
       cleanCloudUrl.searchParams.append('api_token', apiKey.trim());
     }
     
-    console.log('Making request to:', cleanCloudUrl.toString());
+    console.log('Making request to:', cleanCloudUrl.toString().replace(apiKey, '***'));
 
     try {
       const controller = new AbortController();
