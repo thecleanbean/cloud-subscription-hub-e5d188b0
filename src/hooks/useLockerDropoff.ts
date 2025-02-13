@@ -27,21 +27,63 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const validateForm = () => {
+    // For returning customers, only email is required
+    if (customerType === 'returning') {
+      if (!formData.email) {
+        toast({
+          title: "Email Required",
+          description: "Please enter your email address to continue.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    } else {
+      // For new customers, all fields are required
+      if (!formData.firstName || !formData.lastName || !formData.email || !formData.mobile) {
+        toast({
+          title: "Missing Information",
+          description: "Please fill in all required fields.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    }
+
+    // Validate locker number selection
+    if (formData.lockerNumber.length === 0) {
+      toast({
+        title: "Locker Required",
+        description: "Please select at least one locker number.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Validate service types
+    if (!formData.serviceTypes.laundry && !formData.serviceTypes.duvets && !formData.serviceTypes.dryCleaning) {
+      toast({
+        title: "Service Required",
+        description: "Please select at least one service type.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
     
     try {
       if (customerType === 'returning') {
-        if (!formData.email) {
-          toast({
-            title: "Email Required",
-            description: "Please enter your email address to continue.",
-            variant: "destructive",
-          });
-          return;
-        }
-
         // Look up existing customer
         const existingCustomer = await findCustomerByEmail(formData.email);
         
@@ -71,15 +113,6 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
 
       } else {
         // For new customers
-        if (!formData.firstName || !formData.lastName || !formData.email || !formData.mobile) {
-          toast({
-            title: "Missing Information",
-            description: "Please fill in all required fields.",
-            variant: "destructive",
-          });
-          return;
-        }
-
         const customer = await createNewCustomer(formData);
         
         const total = calculateTotal(formData.serviceTypes);
