@@ -40,7 +40,7 @@ serve(async (req) => {
       requestData.path : 
       `/v1${requestData.path.startsWith('/') ? requestData.path : `/${requestData.path}`}`;
 
-    // Construct the CleanCloud API URL
+    // Construct the CleanCloud API URL with encoded parameters
     const cleanCloudUrl = new URL(`https://api.cleancloud.io${apiPath}`);
     console.log('Making request to:', cleanCloudUrl.toString());
 
@@ -55,11 +55,14 @@ serve(async (req) => {
       const requestInit: RequestInit = {
         method: requestData.method || 'GET',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          'Authorization': `Bearer ${apiKey.trim()}`, // Ensure no whitespace in API key
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        signal: controller.signal
+        signal: controller.signal,
+        // Add proper error handling for network issues
+        mode: 'cors',
+        credentials: 'omit'
       };
 
       // Only add body for non-GET requests
@@ -78,6 +81,7 @@ serve(async (req) => {
 
       console.log('Response status:', response.status);
       console.log('Response status text:', response.statusText);
+      console.log('Response headers:', Object.fromEntries([...response.headers.entries()]));
 
       // Get response body as text first
       const responseText = await response.text();
@@ -117,7 +121,15 @@ serve(async (req) => {
       if (fetchError.name === 'AbortError') {
         throw new Error('Request timed out after 30 seconds');
       }
-      console.error('Fetch error:', fetchError);
+      
+      // Improved error logging
+      console.error('Fetch error details:', {
+        name: fetchError.name,
+        message: fetchError.message,
+        cause: fetchError.cause,
+        stack: fetchError.stack
+      });
+      
       throw new Error(`Failed to communicate with CleanCloud API: ${fetchError.message}`);
     }
 
