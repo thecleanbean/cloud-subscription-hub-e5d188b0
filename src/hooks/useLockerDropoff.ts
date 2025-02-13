@@ -1,13 +1,11 @@
 
 import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
 import { FormData, UseLockerDropoffProps, CustomerType } from "@/types/locker";
 import { calculateTotal, createOrderItems, createOrders } from "@/utils/orderUtils";
 import { createNewCustomer, findCustomerByEmail } from "@/services/customerService";
+import { toast } from "@/components/ui/use-toast";
 
 export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {  
-  const { toast } = useToast();
-  
   const [customerType, setCustomerType] = useState<CustomerType>('new');
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
