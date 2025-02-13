@@ -21,7 +21,7 @@ serve(async (req) => {
       throw new Error('CleanCloud API key not configured');
     }
 
-    console.log('API Key exists and is set'); // Verify API key exists
+    console.log('API Key exists and is set');
 
     // Parse the request body
     const requestData = await req.json();
