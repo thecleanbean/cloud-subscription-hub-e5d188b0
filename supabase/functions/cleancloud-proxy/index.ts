@@ -38,24 +38,35 @@ serve(async (req) => {
       `/v1${requestData.path.startsWith('/') ? requestData.path : `/${requestData.path}`}`;
 
     // Construct the CleanCloud API URL
-    const cleanCloudUrl = `https://api.cleancloud.io${apiPath}`;
-    console.log('Making request to:', cleanCloudUrl);
+    const cleanCloudUrl = new URL(`https://api.cleancloud.io${apiPath}`);
+    console.log('Making request to:', cleanCloudUrl.toString());
 
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-      const response = await fetch(cleanCloudUrl, {
+      const requestInit: RequestInit = {
         method: requestData.method || 'GET',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: requestData.body ? requestData.body : undefined,
         signal: controller.signal
+      };
+
+      // Only add body for non-GET requests
+      if (requestData.method !== 'GET' && requestData.body) {
+        requestInit.body = JSON.stringify(requestData.body);
+      }
+
+      console.log('Request configuration:', {
+        method: requestInit.method,
+        headers: Object.fromEntries(Object.entries(requestInit.headers || {}).map(([k, v]) => [k, k === 'Authorization' ? '***' : v])),
+        url: cleanCloudUrl.toString()
       });
 
+      const response = await fetch(cleanCloudUrl.toString(), requestInit);
       clearTimeout(timeoutId);
 
       // Get response body as text first
@@ -78,7 +89,10 @@ serve(async (req) => {
         JSON.stringify(responseData),
         { 
           status: response.status, 
-          headers: corsHeaders
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
         }
       );
 
