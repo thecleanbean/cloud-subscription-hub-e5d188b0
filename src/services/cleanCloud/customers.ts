@@ -50,14 +50,16 @@ export class CustomerService extends BaseCleanCloudClient {
   async searchCustomers(email: string): Promise<CleanCloudCustomer[]> {
     console.log('Searching for customer:', { email: '***' });
 
-    // Search through our proxy
+    // Search through our proxy with the correct parameter
     const customers = await this.makeRequest('/getCustomer', {
       method: 'POST',
       body: JSON.stringify({
         customerEmail: email
       })
     });
-    return Array.isArray(customers) ? customers : [];
+
+    // If response is array, return it, otherwise wrap single customer in array
+    return Array.isArray(customers) ? customers : customers ? [customers] : [];
   }
 
   async loginCustomer(email: string, password: string): Promise<CleanCloudCustomer | null> {
@@ -75,10 +77,10 @@ export class CustomerService extends BaseCleanCloudClient {
 
       if (response && response.customerID) {
         // Get full customer details after successful login
-        const customerDetails = await this.makeRequest(`/getCustomer`, {
+        const customerDetails = await this.makeRequest('/getCustomer', {
           method: 'POST',
           body: JSON.stringify({
-            customerID: response.customerID
+            customerEmail: email // Use email to get customer details
           })
         });
         return customerDetails;

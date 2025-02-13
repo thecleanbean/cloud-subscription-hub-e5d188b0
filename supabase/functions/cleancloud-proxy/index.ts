@@ -21,36 +21,26 @@ serve(async (req) => {
       throw new Error('CleanCloud API key not configured');
     }
 
-    console.log('API Key exists and is set');
-
     // Parse the request body
     const requestData = await req.json();
     console.log('Received request:', {
       path: requestData.path,
       method: requestData.method,
-      body: requestData.method !== 'GET' ? '***' : undefined
+      body: requestData.method !== 'GET' ? JSON.stringify(requestData.body).replace(/(email|password)":"[^"]+/g, '$1":"***') : undefined
     });
 
     if (!requestData.path) {
       throw new Error('Path is required');
     }
 
-    // Remove /v1 prefix if it exists and ensure api/ prefix
-    const cleanPath = requestData.path.replace(/^\/v1/, '').replace(/^\//, '');
+    // Construct the CleanCloud API URL
+    const cleanCloudUrl = new URL(`https://cleancloudapp.com/api/${requestData.path.replace(/^\/+/, '')}`);
     
-    // Construct the CleanCloud API URL with api/ prefix
-    const cleanCloudUrl = new URL(`https://cleancloudapp.com/api/${cleanPath}`);
-    
-    // Add api_token as a query parameter for GET requests
-    if (requestData.method === 'GET') {
-      cleanCloudUrl.searchParams.append('api_token', apiKey.trim());
-    }
-    
-    console.log('Making request to:', cleanCloudUrl.toString().replace(apiKey, '***'));
+    console.log('Making request to:', cleanCloudUrl.toString());
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
       const requestInit: RequestInit = {
         method: requestData.method || 'GET',
@@ -61,19 +51,17 @@ serve(async (req) => {
         signal: controller.signal
       };
 
-      // For POST requests, include api_token in the body
-      if (requestData.method !== 'GET') {
-        const body = typeof requestData.body === 'object' ? requestData.body : {};
-        requestInit.body = JSON.stringify({
-          ...body,
-          api_token: apiKey.trim()
-        });
-      }
+      // For all requests, include api_token in the body for CleanCloud
+      const body = typeof requestData.body === 'object' ? requestData.body : {};
+      requestInit.body = JSON.stringify({
+        ...body,
+        api_token: apiKey.trim()
+      });
 
       console.log('Request configuration:', {
         method: requestInit.method,
-        url: cleanCloudUrl.toString().replace(apiKey, '***'),
-        headers: requestInit.headers
+        headers: requestInit.headers,
+        body: JSON.stringify(body).replace(/(email|password)":"[^"]+/g, '$1":"***')
       });
 
       const response = await fetch(cleanCloudUrl.toString(), requestInit);
@@ -81,35 +69,30 @@ serve(async (req) => {
 
       console.log('Response status:', response.status);
       console.log('Response status text:', response.statusText);
-      console.log('Response headers:', Object.fromEntries([...response.headers.entries()]));
 
-      // Get response body as text first
       const responseText = await response.text();
       console.log('Raw response:', responseText);
 
-      // Try to parse as JSON if possible
       let responseData;
       try {
         responseData = JSON.parse(responseText);
-        console.log('Parsed response data:', responseData);
       } catch (e) {
-        console.log('Failed to parse response as JSON, using text');
         responseData = { message: responseText };
       }
 
-      if (!response.ok) {
+      if (!response.ok || responseData.error) {
         console.error('CleanCloud API error:', {
           status: response.status,
           statusText: response.statusText,
           data: responseData
         });
-        throw new Error(`CleanCloud API responded with status ${response.status}: ${JSON.stringify(responseData)}`);
+        throw new Error(`CleanCloud API Error: ${responseData.error || responseData.message || 'Unknown error'}`);
       }
 
       return new Response(
         JSON.stringify(responseData),
         { 
-          status: response.status, 
+          status: 200,
           headers: {
             ...corsHeaders,
             'Content-Type': 'application/json'
@@ -121,15 +104,7 @@ serve(async (req) => {
       if (fetchError.name === 'AbortError') {
         throw new Error('Request timed out after 30 seconds');
       }
-      
-      console.error('Fetch error details:', {
-        name: fetchError.name,
-        message: fetchError.message,
-        cause: fetchError.cause,
-        stack: fetchError.stack
-      });
-      
-      throw new Error(`Failed to communicate with CleanCloud API: ${fetchError.message}`);
+      throw fetchError;
     }
 
   } catch (error) {
@@ -138,7 +113,6 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         error: error.message,
-        details: error.stack,
         timestamp: new Date().toISOString()
       }),
       {
