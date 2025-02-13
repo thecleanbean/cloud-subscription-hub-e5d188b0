@@ -55,16 +55,41 @@ export class OrderService extends BaseCleanCloudClient {
       body: JSON.stringify(cleanCloudOrderData),
     });
 
-    // Get customer from our database
+    if (!order || !order.id) {
+      console.error('Invalid order response:', order);
+      throw new Error('Failed to create order in CleanCloud');
+    }
+
+    // Get customer from our database using maybeSingle to handle no results
     const { data: customer, error: customerError } = await supabase
       .from('cleancloud_customers')
-      .select('id')
+      .select('*')
       .eq('cleancloud_customer_id', orderData.customerId)
-      .single();
+      .maybeSingle();
 
-    if (customerError) {
-      console.error('Failed to find customer:', customerError);
-      throw new Error('Failed to find customer');
+    if (customerError || !customer) {
+      console.error('Failed to find customer:', customerError || 'No customer found');
+      // If customer doesn't exist in our DB yet, create the mapping
+      const { data: newCustomer, error: insertError } = await supabase
+        .from('cleancloud_customers')
+        .insert({
+          cleancloud_customer_id: orderData.customerId,
+          // We don't have these details yet, but the schema allows nulls
+          email: '',
+          first_name: null,
+          last_name: null,
+          mobile: null,
+        })
+        .select()
+        .single();
+
+      if (insertError || !newCustomer) {
+        console.error('Failed to create customer mapping:', insertError);
+        throw new Error('Failed to create customer mapping');
+      }
+
+      // Use the newly created customer
+      customer = newCustomer;
     }
 
     // Store order in our database
