@@ -1,95 +1,56 @@
 
-import { supabase } from "@/integrations/supabase/client";
 import { BaseCleanCloudClient } from "./baseClient";
-import { CleanCloudCustomer } from "./types";
 
 export class CustomerService extends BaseCleanCloudClient {
-  async createCustomer(customerData: {
-    firstName: string;
-    lastName: string;
-    mobile: string;
-    email: string;
-    password?: string;
-  }): Promise<CleanCloudCustomer> {
-    console.log('Creating customer with data:', { 
-      ...customerData,
-      email: '***',
-      password: '***'
+  async searchCustomers(params: { email: string }) {
+    console.log('Searching for customer with params:', {
+      ...params,
+      email: '***'
     });
 
-    // Create customer through our proxy
-    const customer = await this.makeRequest('/addCustomer', {
+    const response = await this.makeRequest('/getCustomer', {
       method: 'POST',
       body: JSON.stringify({
-        customerName: `${customerData.firstName} ${customerData.lastName}`,
-        customerTel: customerData.mobile,
-        customerEmail: customerData.email,
-        customerPassword: customerData.password // Include password if provided
-      }),
-    });
-
-    // Store the mapping in our database
-    const { error } = await supabase
-      .from('cleancloud_customers')
-      .insert({
-        email: customerData.email,
-        first_name: customerData.firstName,
-        last_name: customerData.lastName,
-        mobile: customerData.mobile,
-        cleancloud_customer_id: customer.id,
-      });
-
-    if (error) {
-      console.error('Failed to store customer mapping:', error);
-      throw new Error('Failed to store customer mapping');
-    }
-
-    return customer;
-  }
-
-  async searchCustomers(email: string): Promise<CleanCloudCustomer[]> {
-    console.log('Searching for customer:', { email: '***' });
-
-    // Search through our proxy with the correct parameter
-    const customers = await this.makeRequest('/getCustomer', {
-      method: 'POST',
-      body: JSON.stringify({
-        customerEmail: email
+        customerEmail: params.email
       })
     });
 
-    // If response is array, return it, otherwise wrap single customer in array
-    return Array.isArray(customers) ? customers : customers ? [customers] : [];
+    if (!response || response.Error) {
+      console.error('Invalid customer search response:', response);
+      throw new Error(response?.Error || 'Failed to search for customer');
+    }
+
+    return Array.isArray(response) ? response : [response];
   }
 
-  async loginCustomer(email: string, password: string): Promise<CleanCloudCustomer | null> {
-    console.log('Logging in customer:', { email: '***' });
-    
-    try {
-      // Use CleanCloud's login endpoint
-      const response = await this.makeRequest('/loginCustomer', {
-        method: 'POST',
-        body: JSON.stringify({
-          customerEmail: email,
-          customerPassword: password
-        })
-      });
+  async createCustomer(params: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    mobile: string;
+    customerAddress: string;
+    customerTel: string;
+  }) {
+    console.log('Creating customer:', {
+      ...params,
+      email: '***'
+    });
 
-      if (response && response.customerID) {
-        // Get full customer details after successful login
-        const customerDetails = await this.makeRequest('/getCustomer', {
-          method: 'POST',
-          body: JSON.stringify({
-            customerEmail: email // Use email to get customer details
-          })
-        });
-        return customerDetails;
-      }
+    const response = await this.makeRequest('/addCustomer', {
+      method: 'POST',
+      body: JSON.stringify({
+        customerName: `${params.firstName} ${params.lastName}`,
+        customerEmail: params.email,
+        customerTel: params.customerTel,
+        customerAddress: params.customerAddress
+      })
+    });
 
-      return null;
-    } catch (error) {
-      console.error('Login failed:', error);
-      return null;
+    if (!response || response.Error) {
+      console.error('Invalid customer creation response:', response);
+      throw new Error(response?.Error || 'Failed to create customer');
     }
+
+    return response;
   }
 }

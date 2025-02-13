@@ -16,7 +16,8 @@ export const createNewCustomer = async (formData: FormData) => {
       lastName: formData.lastName,
       email: formData.email,
       mobile: formData.mobile,
-      password: formData.password // Include password for account creation
+      customerAddress: '', // Added empty string as API requires this field
+      customerTel: formData.mobile // Added to match API requirements
     });
 
     return customer;
@@ -30,8 +31,12 @@ export const findCustomerByEmail = async (email: string) => {
   console.log('Searching for customer:', { email: '***' });
   
   try {
-    // Search directly in CleanCloud
-    const customers = await cleanCloudAPI.customers.searchCustomers(email);
+    // Search directly in CleanCloud - passing email parameter
+    const customers = await cleanCloudAPI.customers.searchCustomers({
+      email: email
+    });
+    
+    console.log('Customer search result:', customers);
     return customers.length > 0 ? customers[0] : null;
   } catch (error) {
     console.error('Error searching for customer:', error);
