@@ -30,7 +30,7 @@ export class OrderService extends BaseCleanCloudClient {
     // Format the order data for CleanCloud API
     const cleanCloudOrderData = {
       api_token: undefined, // This will be added by the proxy
-      customerID: orderData.customerId,
+      customerId: orderData.customerId, // Changed from customerID to customerId
       products: orderData.items.map(item => ({
         id: '0', // Custom product
         price: item.price.toString(),
