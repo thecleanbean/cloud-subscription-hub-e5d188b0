@@ -8,8 +8,9 @@ export class BaseCleanCloudClient {
     
     const response = await supabase.functions.invoke('cleancloud-proxy', {
       body: {
-        path,
-        ...options
+        path: path.startsWith('/') ? path : `/${path}`,
+        method: options.method || 'GET',
+        body: options.body
       }
     });
     

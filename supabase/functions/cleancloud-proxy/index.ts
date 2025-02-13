@@ -4,7 +4,6 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 // This function handles the API proxy requests
 serve(async (req) => {
   try {
-    const url = new URL(req.url);
     const apiKey = Deno.env.get('CLEANCLOUD_API_KEY');
     
     if (!apiKey) {
@@ -26,17 +25,21 @@ serve(async (req) => {
       return new Response(null, { headers: corsHeaders });
     }
 
-    const path = url.pathname.replace('/functions/cleancloud-proxy', '');
-    const cleanCloudUrl = `https://api.cleancloud.io${path}${url.search}`;
+    // Parse the request body
+    const { path, method, body } = await req.json();
+
+    // Construct the CleanCloud API URL
+    const cleanCloudUrl = `https://api.cleancloud.io/v1${path}`;
+    console.log('Proxying request to:', cleanCloudUrl);
 
     // Forward the request to CleanCloud
     const response = await fetch(cleanCloudUrl, {
-      method: req.method,
+      method: method,
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: req.method !== 'GET' ? await req.text() : undefined,
+      body: body ? body : undefined,
     });
 
     const data = await response.json();
@@ -50,6 +53,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
+    console.error('Proxy error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
