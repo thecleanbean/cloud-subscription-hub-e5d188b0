@@ -40,40 +40,42 @@ serve(async (req) => {
       requestData.path : 
       `/v1${requestData.path.startsWith('/') ? requestData.path : `/${requestData.path}`}`;
 
-    // Construct the CleanCloud API URL with encoded parameters
-    const cleanCloudUrl = new URL(`https://api.cleancloud.io${apiPath}`);
+    // Construct the CleanCloud API URL
+    const cleanCloudUrl = new URL(`https://cleancloudapp.com/api${apiPath}`);
+    
+    // Add api_token as a query parameter for GET requests
+    if (requestData.method === 'GET') {
+      cleanCloudUrl.searchParams.append('api_token', apiKey.trim());
+    }
+    
     console.log('Making request to:', cleanCloudUrl.toString());
 
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-      // Log API key length (don't log the actual key)
-      console.log('API Key length:', apiKey.length);
-      console.log('First 4 chars of API key:', apiKey.substring(0, 4) + '...');
-
       const requestInit: RequestInit = {
         method: requestData.method || 'GET',
         headers: {
-          'Authorization': `Bearer ${apiKey.trim()}`, // Ensure no whitespace in API key
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          'Accept': 'application/json'
         },
-        signal: controller.signal,
-        // Add proper error handling for network issues
-        mode: 'cors',
-        credentials: 'omit'
+        signal: controller.signal
       };
 
-      // Only add body for non-GET requests
-      if (requestData.method !== 'GET' && requestData.body) {
-        requestInit.body = JSON.stringify(requestData.body);
+      // For POST requests, include api_token in the body
+      if (requestData.method !== 'GET') {
+        const body = typeof requestData.body === 'object' ? requestData.body : {};
+        requestInit.body = JSON.stringify({
+          ...body,
+          api_token: apiKey.trim()
+        });
       }
 
       console.log('Request configuration:', {
         method: requestInit.method,
-        headers: Object.fromEntries(Object.entries(requestInit.headers || {}).map(([k, v]) => [k, k === 'Authorization' ? '***' : v])),
-        url: cleanCloudUrl.toString()
+        url: cleanCloudUrl.toString().replace(apiKey, '***'),
+        headers: requestInit.headers
       });
 
       const response = await fetch(cleanCloudUrl.toString(), requestInit);
@@ -122,7 +124,6 @@ serve(async (req) => {
         throw new Error('Request timed out after 30 seconds');
       }
       
-      // Improved error logging
       console.error('Fetch error details:', {
         name: fetchError.name,
         message: fetchError.message,
