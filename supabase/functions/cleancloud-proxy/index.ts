@@ -82,6 +82,11 @@ serve(async (req) => {
       }
 
       if (!response.ok) {
+        console.error('CleanCloud API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          data: responseData
+        });
         throw new Error(`CleanCloud API responded with status ${response.status}: ${JSON.stringify(responseData)}`);
       }
 
