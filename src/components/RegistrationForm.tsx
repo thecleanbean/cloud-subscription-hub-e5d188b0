@@ -90,12 +90,14 @@ const RegistrationForm = ({ selectedPlan, onSubmit }: RegistrationFormProps) => 
     setIsLoading(true);
 
     try {
-      // Create customer in CleanCloud
+      // Create customer in CleanCloud - now passing all required fields
       const customer = await cleanCloudAPI.customers.createCustomer({
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         mobile: formData.mobile,
+        customerAddress: formData.postcode, // Using postcode as address
+        customerTel: formData.mobile // Using mobile as telephone
       });
 
       const total = parseFloat(calculateTotalPrice());
