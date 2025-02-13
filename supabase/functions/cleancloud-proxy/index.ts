@@ -1,33 +1,28 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-// This function handles the API proxy requests
 serve(async (req) => {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Content-Type': 'application/json'
+  };
+
   try {
-    const apiKey = Deno.env.get('CLEANCLOUD_API_KEY');
-    
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: 'CleanCloud API key not configured' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      'Content-Type': 'application/json'
-    };
-
     // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
 
+    const apiKey = Deno.env.get('CLEANCLOUD_API_KEY');
+    if (!apiKey) {
+      throw new Error('CleanCloud API key not configured');
+    }
+
     // Parse the request body
     const requestData = await req.json();
-    console.log('Received request data:', {
+    console.log('Received request:', {
       path: requestData.path,
       method: requestData.method,
     });
@@ -43,52 +38,64 @@ serve(async (req) => {
 
     // Construct the CleanCloud API URL
     const cleanCloudUrl = `https://api.cleancloud.io${apiPath}`;
-    console.log('Proxying request to:', cleanCloudUrl);
+    console.log('Making request to:', cleanCloudUrl);
 
-    // Forward the request to CleanCloud
-    const response = await fetch(cleanCloudUrl, {
-      method: requestData.method || 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: requestData.body ? requestData.body : undefined,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      console.error('CleanCloud API error:', {
-        status: response.status,
-        statusText: response.statusText,
-        data: errorData
+    try {
+      // Test the API key first
+      const response = await fetch(cleanCloudUrl, {
+        method: requestData.method || 'GET',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: requestData.body ? requestData.body : undefined,
       });
-      throw new Error(`CleanCloud API error: ${response.statusText}`);
+
+      // Get response body as text first
+      const responseText = await response.text();
+      console.log('Raw response:', responseText);
+
+      // Try to parse as JSON if possible
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch (e) {
+        responseData = { message: responseText };
+      }
+
+      if (!response.ok) {
+        throw new Error(`CleanCloud API responded with status ${response.status}: ${JSON.stringify(responseData)}`);
+      }
+
+      return new Response(
+        JSON.stringify(responseData),
+        { 
+          status: response.status, 
+          headers: corsHeaders
+        }
+      );
+
+    } catch (fetchError) {
+      console.error('Fetch error:', fetchError);
+      throw new Error(`Failed to communicate with CleanCloud API: ${fetchError.message}`);
     }
 
-    const data = await response.json();
-    console.log('CleanCloud API response:', { status: response.status });
+  } catch (error) {
+    console.error('Error in edge function:', error);
     
     return new Response(
-      JSON.stringify(data),
-      { 
-        status: response.status, 
-        headers: corsHeaders
-      }
-    );
-
-  } catch (error) {
-    console.error('Proxy error:', error);
-    return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: error.message,
-        details: error.stack
+        details: error.stack,
+        timestamp: new Date().toISOString()
       }),
-      { 
+      {
         status: 500,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        } 
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
       }
     );
   }
