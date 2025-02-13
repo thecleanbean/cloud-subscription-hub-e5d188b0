@@ -67,19 +67,22 @@ export class OrderService extends BaseCleanCloudClient {
       throw new Error('Failed to find customer');
     }
 
+    // Create the order data to insert
+    const orderInsertData = {
+      customer_id: customer.id,
+      cleancloud_customer_id: orderData.customerId,
+      cleancloud_order_id: order.id,
+      locker_numbers: [orderData.lockerNumber],
+      service_types: orderData.serviceTypes,
+      notes: orderData.notes,
+      collection_date: orderData.collectionDate?.toISOString(),
+      status: 'pending'
+    } as const;
+
     // Store order in our database
     const { error: orderError } = await supabase
-      .from('locker_orders')
-      .insert({
-        customer_id: customer.id,
-        cleancloud_customer_id: orderData.customerId,
-        cleancloud_order_id: order.id,
-        locker_numbers: [orderData.lockerNumber],
-        service_types: orderData.serviceTypes,
-        notes: orderData.notes,
-        collection_date: orderData.collectionDate?.toISOString(),
-        status: 'pending'
-      });
+      .from('cleancloud_customers')
+      .insert([orderInsertData]);
 
     if (orderError) {
       console.error('Failed to store order:', orderError);

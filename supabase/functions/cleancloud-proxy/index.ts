@@ -35,11 +35,11 @@ serve(async (req) => {
       throw new Error('Path is required');
     }
 
-    // Remove /v1 prefix if it exists and construct the correct path
-    const cleanPath = requestData.path.replace(/^\/v1/, '');
+    // Remove /v1 prefix if it exists and ensure api/ prefix
+    const cleanPath = requestData.path.replace(/^\/v1/, '').replace(/^\//, '');
     
-    // Construct the CleanCloud API URL
-    const cleanCloudUrl = new URL(`https://cleancloudapp.com/api${cleanPath}`);
+    // Construct the CleanCloud API URL with api/ prefix
+    const cleanCloudUrl = new URL(`https://cleancloudapp.com/api/${cleanPath}`);
     
     // Add api_token as a query parameter for GET requests
     if (requestData.method === 'GET') {
