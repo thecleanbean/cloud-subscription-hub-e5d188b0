@@ -61,15 +61,19 @@ export class OrderService extends BaseCleanCloudClient {
     }
 
     // Get customer from our database using maybeSingle to handle no results
-    let { data: customerData, error: customerError } = await supabase
+    const { data: existingCustomer, error: customerError } = await supabase
       .from('cleancloud_customers')
       .select('*')
       .eq('cleancloud_customer_id', orderData.customerId)
       .maybeSingle();
 
-    if (customerError || !customerData) {
-      console.error('Failed to find customer:', customerError || 'No customer found');
-      // If customer doesn't exist in our DB yet, create the mapping
+    // Determine the final customer data to use
+    const finalCustomer = await (async () => {
+      if (!customerError && existingCustomer) {
+        return existingCustomer;
+      }
+
+      console.log('Creating new customer mapping...');
       const { data: newCustomer, error: insertError } = await supabase
         .from('cleancloud_customers')
         .insert({
@@ -88,14 +92,14 @@ export class OrderService extends BaseCleanCloudClient {
         throw new Error('Failed to create customer mapping');
       }
 
-      customerData = newCustomer;
-    }
+      return newCustomer;
+    })();
 
     // Store order in our database
     const { error: orderError } = await supabase
       .from('orders')
       .insert({
-        customer_id: customerData.id,
+        customer_id: finalCustomer.id,
         cleancloud_order_id: order.id,
         locker_number: orderData.lockerNumber,
         service_types: orderData.serviceTypes,
