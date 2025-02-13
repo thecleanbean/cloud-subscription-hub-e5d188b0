@@ -21,11 +21,14 @@ serve(async (req) => {
       throw new Error('CleanCloud API key not configured');
     }
 
+    console.log('API Key exists and is set'); // Verify API key exists
+
     // Parse the request body
     const requestData = await req.json();
     console.log('Received request:', {
       path: requestData.path,
       method: requestData.method,
+      body: requestData.method !== 'GET' ? '***' : undefined
     });
 
     if (!requestData.path) {
@@ -44,6 +47,10 @@ serve(async (req) => {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      // Log API key length (don't log the actual key)
+      console.log('API Key length:', apiKey.length);
+      console.log('First 4 chars of API key:', apiKey.substring(0, 4) + '...');
 
       const requestInit: RequestInit = {
         method: requestData.method || 'GET',
@@ -69,6 +76,9 @@ serve(async (req) => {
       const response = await fetch(cleanCloudUrl.toString(), requestInit);
       clearTimeout(timeoutId);
 
+      console.log('Response status:', response.status);
+      console.log('Response status text:', response.statusText);
+
       // Get response body as text first
       const responseText = await response.text();
       console.log('Raw response:', responseText);
@@ -77,7 +87,9 @@ serve(async (req) => {
       let responseData;
       try {
         responseData = JSON.parse(responseText);
+        console.log('Parsed response data:', responseData);
       } catch (e) {
+        console.log('Failed to parse response as JSON, using text');
         responseData = { message: responseText };
       }
 
