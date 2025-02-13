@@ -69,16 +69,16 @@ export class OrderService extends BaseCleanCloudClient {
 
     // Store order in our database
     const { error: orderError } = await supabase
-      .from('locker_orders')
+      .from('orders')
       .insert({
         customer_id: customer.id,
-        cleancloud_customer_id: orderData.customerId,
         cleancloud_order_id: order.id,
-        locker_numbers: [orderData.lockerNumber],
+        locker_number: orderData.lockerNumber,
         service_types: orderData.serviceTypes,
         notes: orderData.notes,
         collection_date: orderData.collectionDate?.toISOString(),
-        status: 'pending'
+        status: 'pending',
+        total: orderData.total
       });
 
     if (orderError) {
