@@ -9,6 +9,7 @@ export interface FormData {
   firstName: string;
   lastName: string;
   email: string;
+  password?: string; // Add password for returning customers
   mobile: string;
   lockerNumber: string[];
   notes: string;

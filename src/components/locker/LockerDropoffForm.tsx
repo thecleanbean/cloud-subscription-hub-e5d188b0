@@ -37,7 +37,9 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
         return (
           <StepTwo
             email={formData.email}
+            password={formData.password || ''}
             setEmail={(email) => updateFormData("email", email)}
+            setPassword={(password) => updateFormData("password", password)}
           />
         );
       case 3:

@@ -5,7 +5,8 @@ import { FormData } from "@/types/locker";
 export const createNewCustomer = async (formData: FormData) => {
   console.log('Creating customer with data:', { 
     ...formData,
-    email: '***' 
+    email: '***',
+    password: '***' 
   });
   
   try {
@@ -15,6 +16,7 @@ export const createNewCustomer = async (formData: FormData) => {
       lastName: formData.lastName,
       email: formData.email,
       mobile: formData.mobile,
+      password: formData.password // Include password for account creation
     });
 
     return customer;
@@ -34,5 +36,18 @@ export const findCustomerByEmail = async (email: string) => {
   } catch (error) {
     console.error('Error searching for customer:', error);
     throw error;
+  }
+};
+
+export const loginCustomer = async (email: string, password: string) => {
+  console.log('Logging in customer:', { email: '***' });
+  
+  try {
+    // Login through CleanCloud API
+    const customer = await cleanCloudAPI.customers.loginCustomer(email, password);
+    return customer;
+  } catch (error) {
+    console.error('Error logging in customer:', error);
+    return null;
   }
 };

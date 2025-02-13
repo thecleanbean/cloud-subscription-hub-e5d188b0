@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { FormData, UseLockerDropoffProps, CustomerType } from "@/types/locker";
 import { calculateTotal, createOrderItems, createOrders } from "@/utils/orderUtils";
-import { createNewCustomer, findCustomerByEmail } from "@/services/customerService";
+import { createNewCustomer, findCustomerByEmail, loginCustomer } from "@/services/customerService";
 import { toast } from "@/components/ui/use-toast";
 
 export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {  
@@ -12,6 +12,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     firstName: "",
     lastName: "",
     email: "",
+    password: "",
     mobile: "",
     lockerNumber: [],
     notes: "",
@@ -28,12 +29,12 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
   };
 
   const validateForm = () => {
-    // For returning customers, only email is required
+    // For returning customers, email and password are required
     if (customerType === 'returning') {
-      if (!formData.email) {
+      if (!formData.email || !formData.password) {
         toast({
-          title: "Email Required",
-          description: "Please enter your email address to continue.",
+          title: "Login Required",
+          description: "Please enter both your email and password to continue.",
           variant: "destructive",
         });
         return false;
@@ -84,16 +85,15 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     
     try {
       if (customerType === 'returning') {
-        // Look up existing customer
-        const existingCustomer = await findCustomerByEmail(formData.email);
+        // Verify login credentials first
+        const loggedInCustomer = await loginCustomer(formData.email, formData.password!);
         
-        if (!existingCustomer) {
+        if (!loggedInCustomer) {
           toast({
-            title: "Customer Not Found",
-            description: "No customer found with this email. Please sign up as a new customer.",
+            title: "Login Failed",
+            description: "Invalid email or password. Please try again.",
             variant: "destructive",
           });
-          setCustomerType('new');
           return;
         }
 
@@ -102,7 +102,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
         const items = createOrderItems(formData.serviceTypes);
 
         await createOrders(
-          existingCustomer.id,
+          loggedInCustomer.id,
           items,
           formData.lockerNumber,
           formData.notes,
