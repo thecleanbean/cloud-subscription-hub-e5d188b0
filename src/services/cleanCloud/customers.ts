@@ -9,10 +9,12 @@ export class CustomerService extends BaseCleanCloudClient {
     lastName: string;
     mobile: string;
     email: string;
+    password?: string; // Make password optional
   }): Promise<CleanCloudCustomer> {
     console.log('Creating customer with data:', { 
       ...customerData,
-      email: '***' 
+      email: '***',
+      password: '***'
     });
 
     // Create customer through our proxy
@@ -23,6 +25,7 @@ export class CustomerService extends BaseCleanCloudClient {
         last_name: customerData.lastName,
         email: customerData.email,
         mobile: customerData.mobile,
+        customerPassword: customerData.password // Send password if provided
       }),
     });
 
