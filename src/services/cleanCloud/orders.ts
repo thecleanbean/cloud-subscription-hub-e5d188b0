@@ -22,8 +22,6 @@ export class OrderService extends BaseCleanCloudClient {
     collectionDate?: Date;
     total: number;
   }): Promise<CleanCloudOrder> {
-    const apiKey = await this.getApiKey();
-    
     console.log('Creating order:', { 
       ...orderData,
       customerId: '***'
@@ -38,27 +36,11 @@ export class OrderService extends BaseCleanCloudClient {
       total: orderData.total,
     };
 
-    // Create order in CleanCloud
-    const response = await fetch(`${this.baseUrl}/v1/orders`, {
+    // Create order through our proxy
+    const order = await this.makeRequest('/orders', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(cleanCloudOrderData),
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('CleanCloud API Error:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText
-      });
-      throw new Error(`Failed to create order: ${response.statusText}`);
-    }
-
-    const order = await response.json();
 
     // Get customer from our database
     const { data: customer, error: customerError } = await supabase
