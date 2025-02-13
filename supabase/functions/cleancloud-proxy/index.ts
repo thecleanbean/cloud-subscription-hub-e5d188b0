@@ -1,14 +1,15 @@
 
+// @ts-ignore
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-serve(async (req) => {
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Content-Type': 'application/json'
-  };
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Content-Type': 'application/json'
+};
 
+serve(async (req) => {
   try {
     // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
@@ -41,7 +42,9 @@ serve(async (req) => {
     console.log('Making request to:', cleanCloudUrl);
 
     try {
-      // Test the API key first
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
       const response = await fetch(cleanCloudUrl, {
         method: requestData.method || 'GET',
         headers: {
@@ -50,7 +53,10 @@ serve(async (req) => {
           'Accept': 'application/json',
         },
         body: requestData.body ? requestData.body : undefined,
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       // Get response body as text first
       const responseText = await response.text();
@@ -77,6 +83,9 @@ serve(async (req) => {
       );
 
     } catch (fetchError) {
+      if (fetchError.name === 'AbortError') {
+        throw new Error('Request timed out after 30 seconds');
+      }
       console.error('Fetch error:', fetchError);
       throw new Error(`Failed to communicate with CleanCloud API: ${fetchError.message}`);
     }
