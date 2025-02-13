@@ -52,4 +52,30 @@ export class CustomerService extends BaseCleanCloudClient {
     const customers = await this.makeRequest(`/customers/search?email=${encodeURIComponent(email)}`);
     return Array.isArray(customers) ? customers : [];
   }
+
+  async loginCustomer(email: string, password: string): Promise<CleanCloudCustomer | null> {
+    console.log('Logging in customer:', { email: '***' });
+    
+    try {
+      // Use CleanCloud's login endpoint
+      const response = await this.makeRequest('/loginCustomer', {
+        method: 'POST',
+        body: JSON.stringify({
+          customerEmail: email,
+          customerPassword: password
+        })
+      });
+
+      if (response && response.customerID) {
+        // Get full customer details after successful login
+        const customerDetails = await this.makeRequest(`/customers/${response.customerID}`);
+        return customerDetails;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Login failed:', error);
+      return null;
+    }
+  }
 }
