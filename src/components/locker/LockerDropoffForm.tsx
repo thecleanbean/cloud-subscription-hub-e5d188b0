@@ -76,7 +76,12 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
 
   const handleNext = () => {
     if (validateStep(step)) {
-      setStep(prev => prev + 1);
+      if (step === 4) {
+        // If we're on the last step and validation passes, submit the form
+        handleSubmit(new Event('submit') as React.FormEvent);
+      } else {
+        setStep(prev => prev + 1);
+      }
     }
   };
 
@@ -98,7 +103,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
       <FormHeader />
       <ProgressBar currentStep={step} totalSteps={totalSteps} />
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-6">
         <FormStepRenderer
           step={step}
           customerType={customerType}
@@ -117,7 +122,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
           onPrevious={handlePrevious}
           onNext={handleNext}
         />
-      </form>
+      </div>
     </Card>
   );
 };
