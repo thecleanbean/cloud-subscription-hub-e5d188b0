@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { FormData, UseLockerDropoffProps, CustomerType } from "@/types/locker";
-import { calculateTotal, createOrderItems, createOrders } from "@/utils/orderUtils";
 import { createNewCustomer, findCustomerByEmail } from "@/services/customerService";
 import { toast } from "@/components/ui/use-toast";
 import { addDays } from "date-fns";
@@ -29,80 +28,16 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
   });
 
   const updateFormData = (field: string, value: any) => {
-    setFormData((prev) => {
-      if (field === "address" && typeof value === "string") {
-        return {
-          ...prev,
-          address: value
-        };
-      }
-      return {
-        ...prev,
-        [field]: value
-      };
-    });
-  };
-
-  const validateForm = () => {
-    if (customerType === 'returning') {
-      if (!formData.email) {
-        toast({
-          title: "Email Required",
-          description: "Please enter your email to continue.",
-          variant: "destructive",
-        });
-        return false;
-      }
-      return true;
-    }
-
-    // For new customers, validate all required fields
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.mobile || !formData.address) {
-      toast({
-        title: "Required Fields Missing",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    // Validate mobile number (UK format)
-    const mobileRegex = /^(?:\+44|0)[0-9]{10}$/;
-    if (!mobileRegex.test(formData.mobile)) {
-      toast({
-        title: "Invalid Mobile Number",
-        description: "Please enter a valid UK mobile number.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    // Validate service types
-    if (!formData.serviceTypes.laundry && !formData.serviceTypes.duvets && !formData.serviceTypes.dryCleaning) {
-      toast({
-        title: "Service Type Required",
-        description: "Please select at least one service type.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    // Validate locker selection
-    if (formData.lockerNumber.length === 0) {
-      toast({
-        title: "Locker Required",
-        description: "Please select at least one locker.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    return true;
+    console.log('Updating form data:', field, value); // Debug log
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    console.log('Submit pressed, current form data:', formData); // Debug log
 
     setIsLoading(true);
     try {
@@ -115,12 +50,10 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
             variant: "destructive",
           });
           setCustomerType('new');
-          setIsLoading(false);
           return;
         }
       }
 
-      // Process the form submission
       onSubmit(formData);
       
       toast({
