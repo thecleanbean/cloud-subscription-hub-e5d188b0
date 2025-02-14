@@ -30,14 +30,17 @@ const LockerDropoff = () => {
       // Check if customer already exists in CleanCloud
       const { data: existingCustomer } = await supabase
         .from('cleancloud_customers')
-        .select('cleancloud_customer_id')
+        .select('*')  // Changed to select all fields
         .eq('email', formData.email)
         .maybeSingle();
 
       let customerResponse;
+      let customerData;
+      
       if (existingCustomer?.cleancloud_customer_id) {
         console.log('Using existing customer:', existingCustomer.cleancloud_customer_id);
         customerResponse = { id: existingCustomer.cleancloud_customer_id };
+        customerData = existingCustomer;
       } else {
         // Create customer in CleanCloud if new
         customerResponse = await cleanCloudAPI.customers.createCustomer({
@@ -55,7 +58,7 @@ const LockerDropoff = () => {
         }
 
         // Store customer mapping in our database
-        const { data: customerData, error: customerError } = await supabase
+        const { data: newCustomer, error: customerError } = await supabase
           .from('cleancloud_customers')
           .insert({
             cleancloud_customer_id: customerResponse.id,
@@ -67,10 +70,12 @@ const LockerDropoff = () => {
           .select()
           .single();
 
-        if (customerError || !customerData) {
+        if (customerError || !newCustomer) {
           console.error('Customer mapping error:', customerError);
           throw new Error('Failed to store customer mapping');
         }
+        
+        customerData = newCustomer;
       }
 
       // Create order items based on selected services
@@ -89,6 +94,25 @@ const LockerDropoff = () => {
 
       if (!orderResponse?.id) {
         throw new Error('Failed to create order in CleanCloud');
+      }
+
+      // Store order in our database
+      const { error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          customer_id: customerData.id,
+          cleancloud_order_id: orderResponse.id,
+          locker_number: formData.lockerNumber.join(', '),
+          service_types: formData.serviceTypes,
+          notes: formData.notes || null,
+          collection_date: formData.collectionDate.toISOString(),
+          status: 'pending',
+          total: total
+        });
+
+      if (orderError) {
+        console.error('Order error:', orderError);
+        throw new Error('Failed to store order in database');
       }
 
       setSubmittedData(formData);
