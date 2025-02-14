@@ -23,13 +23,23 @@ export class CustomerService extends BaseCleanCloudClient {
       method: 'POST',
       body: JSON.stringify({
         dateFrom,
-        dateTo
+        dateTo,
+        excludeDeactivated: 1
       })
     });
 
-    if (!response || response.Error) {
-      console.error('Invalid customer search response:', response);
-      throw new Error(response?.Error || 'Failed to search for customer');
+    if (!response) {
+      console.error('No response from API');
+      throw new Error('Failed to search for customer');
+    }
+
+    if (response.Error) {
+      console.error('API Error:', response.Error);
+      // If it's a new customer, return empty array instead of throwing
+      if (response.Error === "No Customer With That ID") {
+        return [];
+      }
+      throw new Error(response.Error);
     }
 
     // Filter customers by email since we get all customers in date range
