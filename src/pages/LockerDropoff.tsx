@@ -27,13 +27,19 @@ const LockerDropoff = () => {
 
       // Calculate order total based on selected services
       const total = calculateTotal(formData.serviceTypes);
+      console.log('Calculated total:', total);
 
       // Check if customer already exists in CleanCloud
-      const { data: existingCustomer } = await supabase
+      const { data: existingCustomer, error: customerQueryError } = await supabase
         .from('cleancloud_customers')
         .select('*')
         .eq('email', formData.email)
         .maybeSingle();
+
+      if (customerQueryError) {
+        console.error('Error querying customer:', customerQueryError);
+        throw new Error('Failed to check customer existence');
+      }
 
       let customerResponse;
       let customerData;
@@ -43,6 +49,7 @@ const LockerDropoff = () => {
         customerResponse = { id: existingCustomer.cleancloud_customer_id };
         customerData = existingCustomer;
       } else {
+        console.log('Creating new customer in CleanCloud');
         // Create customer in CleanCloud if new
         customerResponse = await cleanCloudAPI.customers.createCustomer({
           firstName: formData.firstName,
@@ -55,8 +62,11 @@ const LockerDropoff = () => {
         });
 
         if (!customerResponse?.id) {
+          console.error('Failed to create customer:', customerResponse);
           throw new Error('Failed to create customer in CleanCloud');
         }
+
+        console.log('Created customer in CleanCloud:', customerResponse.id);
 
         // Store customer mapping in our database
         const { data: newCustomer, error: customerError } = await supabase
@@ -81,6 +91,7 @@ const LockerDropoff = () => {
 
       // Create order items based on selected services
       const orderItems = createOrderItems(formData.serviceTypes);
+      console.log('Created order items:', orderItems);
 
       // Create order in CleanCloud
       const orderResponse = await cleanCloudAPI.orders.createOrder({
@@ -94,8 +105,11 @@ const LockerDropoff = () => {
       });
 
       if (!orderResponse?.id) {
+        console.error('Failed to create order:', orderResponse);
         throw new Error('Failed to create order in CleanCloud');
       }
+
+      console.log('Created order in CleanCloud:', orderResponse.id);
 
       // Convert ServiceTypes to a JSON-compatible object
       const serviceTypesJson: Json = {
@@ -119,9 +133,11 @@ const LockerDropoff = () => {
         });
 
       if (orderError) {
-        console.error('Order error:', orderError);
+        console.error('Order storage error:', orderError);
         throw new Error('Failed to store order in database');
       }
+
+      console.log('Order stored in database successfully');
 
       setSubmittedData(formData);
       setIsSubmitted(true);

@@ -28,6 +28,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
   });
 
   const updateFormData = <K extends keyof FormData>(field: K, value: FormData[K]) => {
+    console.log('Updating form data:', { field, value });
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -36,15 +37,62 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted with data:', formData);
+    
+    // Validate required fields based on customer type
+    if (customerType === 'new') {
+      const requiredFields = ['firstName', 'lastName', 'email', 'mobile', 'postcode', 'address'];
+      const missingFields = requiredFields.filter(field => !formData[field as keyof FormData]);
+      
+      if (missingFields.length > 0) {
+        toast({
+          title: "Required Fields Missing",
+          description: `Please fill in all required fields: ${missingFields.join(', ')}`,
+          variant: "destructive",
+        });
+        return;
+      }
+    } else if (!formData.email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate service selection
+    if (!Object.values(formData.serviceTypes).some(Boolean)) {
+      toast({
+        title: "Service Selection Required",
+        description: "Please select at least one service type",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate locker selection
+    if (formData.lockerNumber.length === 0) {
+      toast({
+        title: "Locker Selection Required",
+        description: "Please select at least one locker",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
+      console.log('Processing order submission...');
       await onSubmit(formData);
       
       toast({
         title: "Success",
         description: "Your locker dropoff order has been submitted.",
       });
+
+      console.log('Order submitted successfully');
     } catch (error) {
       console.error('Error processing order:', error);
       toast({
