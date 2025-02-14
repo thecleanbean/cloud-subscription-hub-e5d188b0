@@ -36,7 +36,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
   };
 
   const submitForm = async () => {
-    console.log('Form submitted with data:', formData);
+    console.log('submitForm called in hook with data:', formData);
     
     // Validate required fields based on customer type
     if (customerType === 'new') {
@@ -44,6 +44,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
       const missingFields = requiredFields.filter(field => !formData[field as keyof FormData]);
       
       if (missingFields.length > 0) {
+        console.log('Missing required fields:', missingFields);
         toast({
           title: "Required Fields Missing",
           description: `Please fill in all required fields: ${missingFields.join(', ')}`,
@@ -52,6 +53,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
         return;
       }
     } else if (!formData.email) {
+      console.log('Missing email for returning customer');
       toast({
         title: "Email Required",
         description: "Please enter your email address",
@@ -62,6 +64,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
 
     // Validate service selection
     if (!Object.values(formData.serviceTypes).some(Boolean)) {
+      console.log('No services selected');
       toast({
         title: "Service Selection Required",
         description: "Please select at least one service type",
@@ -72,6 +75,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
 
     // Validate locker selection
     if (formData.lockerNumber.length === 0) {
+      console.log('No lockers selected');
       toast({
         title: "Locker Selection Required",
         description: "Please select at least one locker",
@@ -83,7 +87,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     setIsLoading(true);
 
     try {
-      console.log('Processing order submission...');
+      console.log('All validation passed, calling onSubmit with data:', formData);
       await onSubmit(formData);
       
       toast({

@@ -18,7 +18,7 @@ const LockerDropoff = () => {
 
   const handleSubmit = async (formData: FormData) => {
     try {
-      console.log('Form submitted with data:', formData);
+      console.log('handleSubmit called in LockerDropoff page with data:', formData);
       
       toast({
         title: "Processing Order",
@@ -145,7 +145,7 @@ const LockerDropoff = () => {
       });
       
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('Error in handleSubmit:', error);
       toast({
         title: "Error",
         description: "There was a problem processing your request. Please try again.",

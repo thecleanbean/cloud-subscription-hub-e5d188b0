@@ -75,9 +75,10 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
   };
 
   const handleNext = () => {
+    console.log('handleNext called on step:', step);
     if (validateStep(step)) {
       if (step === 4) {
-        // If we're on the last step and validation passes, submit the form
+        console.log('On final step, calling submitForm');
         submitForm();
       } else {
         setStep(prev => prev + 1);
