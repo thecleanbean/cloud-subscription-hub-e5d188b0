@@ -2,6 +2,8 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
 interface StepTwoProps {
   email: string;
@@ -21,6 +23,15 @@ const StepTwo = ({ email, setEmail }: StepTwoProps) => {
           Please enter your email to continue with your order
         </p>
       </div>
+
+      <Alert variant="info" className="mb-6">
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          If you've previously used CleanCloud's mobile app or website but haven't used our locker service before, 
+          you'll need to create a new account specifically for the locker system. This ensures secure access to our lockers.
+        </AlertDescription>
+      </Alert>
+
       <div className="space-y-4">
         <div>
           <Label htmlFor="email">Email</Label>
