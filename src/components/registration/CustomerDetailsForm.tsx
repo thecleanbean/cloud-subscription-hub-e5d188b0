@@ -93,7 +93,7 @@ const CustomerDetailsForm = ({
         <Textarea
           id="address"
           placeholder="Enter your full address (required)"
-          value={formData.address || ''}
+          value={formData.address}
           onChange={handleAddressChange}
           className={!formData.address ? "border-red-500" : ""}
           required
