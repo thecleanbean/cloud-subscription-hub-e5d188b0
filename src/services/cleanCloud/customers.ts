@@ -15,9 +15,9 @@ export class CustomerService extends BaseCleanCloudClient {
       .from('cleancloud_customers')
       .select('*')
       .eq('email', params.email)
-      .single();
+      .maybeSingle(); // Changed from .single() to .maybeSingle()
 
-    if (dbError && dbError.code !== 'PGRST116') { // PGRST116 is "not found" error
+    if (dbError) {
       console.error('Database error:', dbError);
       throw new Error('Failed to search for customer in database');
     }
@@ -62,11 +62,16 @@ export class CustomerService extends BaseCleanCloudClient {
     });
 
     // First check if this customer already exists in our database
-    const { data: existingCustomer } = await supabase
+    const { data: existingCustomer, error: checkError } = await supabase
       .from('cleancloud_customers')
       .select('cleancloud_customer_id')
       .eq('email', input.email)
-      .single();
+      .maybeSingle(); // Changed from .single() to .maybeSingle()
+
+    if (checkError) {
+      console.error('Error checking for existing customer:', checkError);
+      throw new Error('Failed to check for existing customer');
+    }
 
     if (existingCustomer) {
       throw new Error('An account with this email already exists');
