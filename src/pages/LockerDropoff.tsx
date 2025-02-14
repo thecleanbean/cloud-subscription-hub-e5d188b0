@@ -4,25 +4,34 @@ import { BackToHome } from "@/components/ui/back-to-home";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 import { FormData } from "@/types/locker";
+import { useState } from "react";
+import OrderConfirmation from "@/components/OrderConfirmation";
 
 const LockerDropoff = () => {
   const navigate = useNavigate();
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submittedData, setSubmittedData] = useState<FormData | null>(null);
 
   const handleSubmit = async (formData: FormData) => {
     try {
       console.log('Form submitted with data:', formData);
       
       // Here you would typically make an API call to your backend
-      // For now, we'll just show a success message and redirect
+      toast({
+        title: "Processing Order",
+        description: "Please wait while we process your order...",
+      });
+
+      // Simulating API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setSubmittedData(formData);
+      setIsSubmitted(true);
+      
       toast({
         title: "Order Submitted Successfully",
         description: "Your locker dropoff has been registered.",
       });
-      
-      // Redirect to home or confirmation page after successful submission
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
       
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -33,6 +42,24 @@ const LockerDropoff = () => {
       });
     }
   };
+
+  const handleClose = () => {
+    navigate('/');
+  };
+
+  if (isSubmitted && submittedData) {
+    return (
+      <OrderConfirmation
+        customerName={`${submittedData.firstName} ${submittedData.lastName}`}
+        planName={Object.entries(submittedData.serviceTypes)
+          .filter(([_, value]) => value)
+          .map(([key]) => key)
+          .join(", ")}
+        deliveryOption="Locker Dropoff"
+        onClose={handleClose}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
