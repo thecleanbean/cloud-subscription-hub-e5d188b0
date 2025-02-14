@@ -31,11 +31,6 @@ const CustomerDetailsForm = ({
     onChange("mobile", numericValue);
   };
 
-  const handleAddressChange = (value: string) => {
-    // Directly update the address field
-    onChange("address", value);
-  };
-
   return (
     <div className="space-y-4">
       <div>
@@ -89,13 +84,12 @@ const CustomerDetailsForm = ({
       </div>
       <div>
         <Label htmlFor="address">Address <span className="text-red-500">*</span></Label>
-        <Input
+        <textarea
           id="address"
-          type="text"
           placeholder="Enter your full address (required)"
           value={formData.address || ''}
-          onChange={(e) => handleAddressChange(e.target.value)}
-          className={!formData.address ? "border-red-500" : ""}
+          onChange={(e) => onChange("address", e.target.value)}
+          className={`w-full min-h-[100px] p-2 border rounded-md ${!formData.address ? "border-red-500" : "border-input"}`}
           required
           aria-required="true"
         />
