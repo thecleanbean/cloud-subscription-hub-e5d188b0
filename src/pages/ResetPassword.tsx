@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { findCustomerByEmail, resetCustomerPassword } from "@/services/customerService";
+import { supabase } from "@/integrations/supabase/client";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -20,9 +20,17 @@ const ResetPassword = () => {
     setLoading(true);
 
     try {
-      // First check if the customer exists
-      const customer = await findCustomerByEmail(email);
-      
+      // Check if user exists in cleancloud_customers table
+      const { data: customer, error: customerError } = await supabase
+        .from('cleancloud_customers')
+        .select('email')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (customerError) {
+        throw customerError;
+      }
+
       if (!customer) {
         toast({
           title: "Account not found",
@@ -32,9 +40,15 @@ const ResetPassword = () => {
         return;
       }
 
-      // Request password reset
-      await resetCustomerPassword(email);
-      
+      // Request password reset through Supabase
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/update-password`,
+      });
+
+      if (error) {
+        throw error;
+      }
+
       setSubmitted(true);
       toast({
         title: "Reset link sent",
