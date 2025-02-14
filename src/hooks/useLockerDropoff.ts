@@ -88,11 +88,14 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
         const customer = await findCustomerByEmail(formData.email);
         
         if (!customer) {
+          // Show a more informative message directing them to create a new account
           toast({
-            title: "Customer Not Found",
-            description: "We couldn't find an account with this email. Please try again or create a new account.",
+            title: "Account Not Found",
+            description: "We couldn't find a locker service account with this email. If you've used CleanCloud before but not the locker service, please create a new account to get started.",
             variant: "destructive",
           });
+          // Automatically switch to new customer mode
+          setCustomerType('new');
           return;
         }
         
