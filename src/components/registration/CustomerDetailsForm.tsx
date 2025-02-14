@@ -2,6 +2,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 
 interface CustomerDetailsFormProps {
   formData: {
@@ -84,12 +85,12 @@ const CustomerDetailsForm = ({
       </div>
       <div>
         <Label htmlFor="address">Address <span className="text-red-500">*</span></Label>
-        <textarea
+        <Textarea
           id="address"
           placeholder="Enter your full address (required)"
           value={formData.address || ''}
           onChange={(e) => onChange("address", e.target.value)}
-          className={`w-full min-h-[100px] p-2 border rounded-md ${!formData.address ? "border-red-500" : "border-input"}`}
+          className={`min-h-[100px] resize-none ${!formData.address ? "border-red-500" : ""}`}
           required
           aria-required="true"
         />
