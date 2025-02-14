@@ -31,6 +31,11 @@ const CustomerDetailsForm = ({
     onChange("mobile", numericValue);
   };
 
+  const handleAddressChange = (value: string) => {
+    // Directly update the address field
+    onChange("address", value);
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -89,7 +94,7 @@ const CustomerDetailsForm = ({
           type="text"
           placeholder="Enter your full address (required)"
           value={formData.address || ''}
-          onChange={(e) => onChange("address", e.target.value)}
+          onChange={(e) => handleAddressChange(e.target.value)}
           className={!formData.address ? "border-red-500" : ""}
           required
           aria-required="true"
