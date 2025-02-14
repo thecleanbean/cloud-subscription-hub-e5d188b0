@@ -17,8 +17,6 @@ export const createNewCustomer = async (formData: FormData) => {
       email: formData.email,
       mobile: formData.mobile,
       customerAddress: formData.address || formData.postcode || '',
-      customerAddressInstructions: formData.addressInstructions,
-      marketingOptIn: formData.marketingOptIn ? 1 : 0
     });
 
     return customer;
