@@ -9,10 +9,16 @@ export class CustomerService extends BaseCleanCloudClient {
       email: '***'
     });
 
+    // Get customers from the last 31 days (API limit)
+    const today = new Date();
+    const thirtyOneDaysAgo = new Date();
+    thirtyOneDaysAgo.setDate(today.getDate() - 31);
+
     const response = await this.makeRequest('/getCustomer', {
       method: 'POST',
       body: JSON.stringify({
-        customerEmail: params.email
+        dateFrom: thirtyOneDaysAgo.toISOString().split('T')[0],
+        dateTo: today.toISOString().split('T')[0]
       })
     });
 
@@ -21,7 +27,9 @@ export class CustomerService extends BaseCleanCloudClient {
       throw new Error(response?.Error || 'Failed to search for customer');
     }
 
-    return Array.isArray(response) ? response : [response];
+    // Filter customers by email since we get all customers in date range
+    const customers = Array.isArray(response) ? response : [response];
+    return customers.filter(customer => customer.customerEmail === params.email);
   }
 
   async createCustomer(input: CreateCustomerInput) {

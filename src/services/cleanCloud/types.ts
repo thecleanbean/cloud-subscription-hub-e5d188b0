@@ -1,6 +1,9 @@
 
 export interface CleanCloudCustomer {
   id: string;
+  customerEmail: string;  // Updated to match API response
+  customerName: string;   // Updated to match API response
+  customerTel: string;    // Updated to match API response
   firstName: string;
   lastName: string;
   mobile: string;
