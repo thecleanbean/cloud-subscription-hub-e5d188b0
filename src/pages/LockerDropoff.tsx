@@ -3,13 +3,48 @@ import LockerDropoffForm from "@/components/locker/LockerDropoffForm";
 import { BackToHome } from "@/components/ui/back-to-home";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
+import { FormData } from "@/types/locker";
 
 const LockerDropoff = () => {
   const navigate = useNavigate();
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (formData: FormData) => {
     try {
-      console.log('Form submitted:', data);
+      // Validate required fields
+      if (!formData.mobile || !formData.address) {
+        toast({
+          title: "Required Fields Missing",
+          description: "Please fill in all required fields including mobile number and address.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate mobile number format (UK format)
+      const mobileRegex = /^(?:\+44|0)[0-9]{10}$/;
+      if (!mobileRegex.test(formData.mobile)) {
+        toast({
+          title: "Invalid Mobile Number",
+          description: "Please enter a valid UK mobile number.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate address length
+      if (formData.address.length < 5) {
+        toast({
+          title: "Invalid Address",
+          description: "Please enter a complete address.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Form submitted with valid data:', {
+        ...formData,
+        collectionDate: formData.collectionDate.toISOString(),
+      });
       
       toast({
         title: "Order Submitted Successfully",

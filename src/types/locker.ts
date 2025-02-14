@@ -22,7 +22,7 @@ export interface FormData {
 }
 
 export interface UseLockerDropoffProps {
-  onSubmit: (data: any) => void;
+  onSubmit: (data: FormData) => void;
 }
 
 export type CustomerType = 'new' | 'returning';
