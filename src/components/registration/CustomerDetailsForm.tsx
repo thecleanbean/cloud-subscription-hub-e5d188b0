@@ -32,12 +32,6 @@ const CustomerDetailsForm = ({
     onChange("mobile", numericValue);
   };
 
-  const handleAddressChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    console.log('Address changing:', value);
-    onChange("address", value);
-  };
-
   return (
     <div className="space-y-4">
       <div>
@@ -94,13 +88,13 @@ const CustomerDetailsForm = ({
         <Textarea
           id="address"
           placeholder="Enter your full address (required)"
-          value={formData.address || ''}
-          onChange={handleAddressChange}
-          className={`h-24 resize-none ${!formData.address?.trim() ? "border-red-500" : ""}`}
+          value={formData.address ?? ''}
+          onChange={(e) => onChange("address", e.target.value)}
+          className={`h-24 resize-none ${!formData.address ? "border-red-500" : ""}`}
           required
           aria-required="true"
         />
-        {!formData.address?.trim() && (
+        {!formData.address && (
           <p className="text-red-500 text-sm mt-1">Address is required</p>
         )}
       </div>
