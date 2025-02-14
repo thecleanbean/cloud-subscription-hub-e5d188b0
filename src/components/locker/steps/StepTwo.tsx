@@ -24,9 +24,9 @@ const StepTwo = ({ email, setEmail }: StepTwoProps) => {
         </p>
       </div>
 
-      <Alert variant="info" className="mb-6">
-        <Info className="h-4 w-4" />
-        <AlertDescription>
+      <Alert className="mb-6 bg-blue-50 border-blue-200">
+        <Info className="h-4 w-4 text-blue-500" />
+        <AlertDescription className="text-blue-700">
           If you've previously used CleanCloud's mobile app or website but haven't used our locker service before, 
           you'll need to create a new account specifically for the locker system. This ensures secure access to our lockers.
         </AlertDescription>
