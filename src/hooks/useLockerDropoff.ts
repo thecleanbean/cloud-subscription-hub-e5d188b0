@@ -27,12 +27,11 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     collectionDate: addDays(new Date(), 2),
   });
 
-  const updateFormData = (field: string, value: any) => {
-    setFormData((prevData) => {
-      const newData = { ...prevData };
-      newData[field as keyof FormData] = value;
-      return newData;
-    });
+  const updateFormData = <K extends keyof FormData>(field: K, value: FormData[K]) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
