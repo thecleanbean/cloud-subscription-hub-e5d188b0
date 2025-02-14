@@ -7,6 +7,7 @@ import StepOne from "./steps/StepOne";
 import StepTwo from "./steps/StepTwo";
 import StepThree from "./steps/StepThree";
 import StepFour from "./steps/StepFour";
+import CustomerDetailsForm from "../registration/CustomerDetailsForm";
 import ProgressBar from "./ProgressBar";
 import { useLockerDropoff } from "@/hooks/useLockerDropoff";
 
@@ -16,6 +17,7 @@ interface LockerDropoffFormProps {
 
 const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
   const [step, setStep] = useState(1);
+  const [isValidPostcode, setIsValidPostcode] = useState(true);
   const {
     customerType,
     setCustomerType,
@@ -23,6 +25,12 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
     updateFormData,
     handleSubmit,
   } = useLockerDropoff({ onSubmit });
+
+  const handlePostcodeValidate = (postcode: string) => {
+    // Simple UK postcode validation - can be made more sophisticated
+    const isValid = /^[A-Z]{1,2}[0-9][A-Z0-9]? ?[0-9][A-Z]{2}$/i.test(postcode);
+    setIsValidPostcode(isValid);
+  };
 
   const renderStep = () => {
     switch (step) {
@@ -34,8 +42,6 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
           />
         );
       case 2:
-        // For returning customers, show email input
-        // For new customers, show service types
         if (customerType === 'returning') {
           return (
             <StepTwo
@@ -45,14 +51,28 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
           );
         } else {
           return (
-            <StepThree
-              serviceTypes={formData.serviceTypes}
-              updateServiceTypes={(newTypes) => updateFormData("serviceTypes", newTypes)}
+            <CustomerDetailsForm
+              formData={{
+                firstName: formData.firstName || "",
+                lastName: formData.lastName || "",
+                email: formData.email || "",
+                mobile: formData.mobile || "",
+                postcode: formData.postcode || "",
+              }}
+              onChange={(field, value) => updateFormData(field, value)}
+              isValidPostcode={isValidPostcode}
+              onPostcodeValidate={handlePostcodeValidate}
             />
           );
         }
       case 3:
-        // For both types, show locker and collection details
+        return (
+          <StepThree
+            serviceTypes={formData.serviceTypes}
+            updateServiceTypes={(newTypes) => updateFormData("serviceTypes", newTypes)}
+          />
+        );
+      case 4:
         return (
           <StepFour
             lockerNumber={formData.lockerNumber}
@@ -66,8 +86,15 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
     }
   };
 
-  // Both flows now have 3 steps
-  const totalSteps = 3;
+  // New customers have 4 steps, returning customers have 3 steps
+  const totalSteps = customerType === 'returning' ? 3 : 4;
+
+  const canProceed = () => {
+    if (step === 2 && customerType === 'new') {
+      return isValidPostcode;
+    }
+    return true;
+  };
 
   return (
     <Card className="max-w-2xl mx-auto p-8">
@@ -101,6 +128,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
                 "ml-auto",
                 step === 1 && "w-full"
               )}
+              disabled={!canProceed()}
             >
               Next Step
             </Button>
