@@ -116,6 +116,45 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          address: string | null
+          address_instructions: string | null
+          created_at: string
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          mobile: string | null
+          postcode: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          address_instructions?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          mobile?: string | null
+          postcode?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          address_instructions?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          mobile?: string | null
+          postcode?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
