@@ -4,6 +4,7 @@ import { FormData, UseLockerDropoffProps, CustomerType } from "@/types/locker";
 import { calculateTotal, createOrderItems, createOrders } from "@/utils/orderUtils";
 import { createNewCustomer, findCustomerByEmail } from "@/services/customerService";
 import { toast } from "@/components/ui/use-toast";
+import { addDays } from "date-fns";
 
 export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {  
   const [customerType, setCustomerType] = useState<CustomerType>('new');
@@ -24,7 +25,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
       duvets: false,
       dryCleaning: false,
     },
-    collectionDate: new Date(),
+    collectionDate: addDays(new Date(), 2), // Default to 2 days from now
   });
 
   const updateFormData = (field: string, value: any) => {
@@ -44,7 +45,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
       }
     } else {
       // For new customers, all fields are required
-      if (!formData.firstName || !formData.lastName || !formData.email || !formData.mobile || !formData.postcode) {
+      if (!formData.firstName || !formData.lastName || !formData.email || !formData.mobile || !formData.postcode || !formData.address) {
         toast({
           title: "Missing Information",
           description: "Please fill in all required fields.",
@@ -74,6 +75,16 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
       return false;
     }
 
+    // Validate collection date
+    if (!formData.collectionDate) {
+      toast({
+        title: "Collection Date Required",
+        description: "Please select a collection date.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
     return true;
   };
 
@@ -92,13 +103,11 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
         const customer = await findCustomerByEmail(formData.email);
         
         if (!customer) {
-          // Show a more informative message directing them to create a new account
           toast({
             title: "Account Not Found",
             description: "We couldn't find a locker service account with this email. If you've used CleanCloud before but not the locker service, please create a new account to get started.",
             variant: "destructive",
           });
-          // Automatically switch to new customer mode
           setCustomerType('new');
           return;
         }

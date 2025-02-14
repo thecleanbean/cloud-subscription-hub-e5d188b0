@@ -4,7 +4,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
@@ -19,6 +18,8 @@ interface StepFourProps {
 
 const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepFourProps) => {
   const lockerNumbers = Array.from({ length: 17 }, (_, i) => (i + 1).toString());
+  const today = new Date();
+  const minDate = new Date(today.setDate(today.getDate() + 2)); // Minimum 2 days from today
 
   const handleLockerSelect = (value: string) => {
     const newLockers = lockerNumber.includes(value)
@@ -39,6 +40,7 @@ const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepF
           Final details for your dropoff
         </p>
       </div>
+
       <div className="space-y-4">
         <div>
           <Label htmlFor="lockerNumber">Select Lockers</Label>
@@ -56,14 +58,15 @@ const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepF
             ))}
           </div>
         </div>
+
         <div>
-          <Label>Collection Date</Label>
+          <Label className="block mb-1">Collection Date (Required)</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal mt-1",
+                  "w-full justify-start text-left font-normal",
                   !collectionDate && "text-muted-foreground"
                 )}
               >
@@ -81,13 +84,14 @@ const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepF
                 selected={collectionDate}
                 onSelect={(date) => date && updateFormData("collectionDate", date)}
                 disabled={(date) =>
-                  date < new Date() || date < new Date("1900-01-01")
+                  date < minDate || date < new Date("1900-01-01")
                 }
                 initialFocus
               />
             </PopoverContent>
           </Popover>
         </div>
+
         <div>
           <Label htmlFor="notes">Special Instructions</Label>
           <Textarea
