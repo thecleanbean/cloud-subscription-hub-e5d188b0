@@ -1,8 +1,8 @@
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface CustomerDetailsFormProps {
   formData: {
@@ -33,6 +33,7 @@ const CustomerDetailsForm = ({
 }: CustomerDetailsFormProps) => {
   const [isGoogleScriptLoaded, setIsGoogleScriptLoaded] = useState(false);
   const [addressInput, setAddressInput] = useState<HTMLInputElement | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const loadGooglePlaces = async () => {
@@ -42,15 +43,25 @@ const CustomerDetailsForm = ({
           .from('api_configs')
           .select('value')
           .eq('name', 'GOOGLE_PLACES_API_KEY')
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Error fetching Google Places API key:', error);
+          toast({
+            title: "Error",
+            description: "Unable to load address autocomplete. Please enter your address manually.",
+            variant: "destructive",
+          });
           return;
         }
 
         if (!data?.value) {
           console.error('Google Places API key not found');
+          toast({
+            title: "Notice",
+            description: "Address autocomplete is currently unavailable. Please enter your address manually.",
+            variant: "destructive",
+          });
           return;
         }
 
@@ -69,11 +80,16 @@ const CustomerDetailsForm = ({
         }
       } catch (error) {
         console.error('Error loading Google Places:', error);
+        toast({
+          title: "Error",
+          description: "Unable to load address autocomplete. Please enter your address manually.",
+          variant: "destructive",
+        });
       }
     };
 
     loadGooglePlaces();
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     if (isGoogleScriptLoaded && addressInput) {
