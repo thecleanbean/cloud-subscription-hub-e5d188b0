@@ -6,6 +6,9 @@ import { toast } from "@/components/ui/use-toast";
 import { FormData } from "@/types/locker";
 import { useState } from "react";
 import OrderConfirmation from "@/components/OrderConfirmation";
+import { cleanCloudAPI } from "@/services/cleanCloud";
+import { calculateTotal, createOrderItems } from "@/utils/orderUtils";
+import { supabase } from "@/integrations/supabase/client";
 
 const LockerDropoff = () => {
   const navigate = useNavigate();
@@ -16,14 +19,81 @@ const LockerDropoff = () => {
     try {
       console.log('Form submitted with data:', formData);
       
-      // Here you would typically make an API call to your backend
       toast({
         title: "Processing Order",
         description: "Please wait while we process your order...",
       });
 
-      // Simulating API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Calculate order total based on selected services
+      const total = calculateTotal(formData.serviceTypes);
+      
+      // Create customer in CleanCloud if new
+      const customerResponse = await cleanCloudAPI.customers.createCustomer({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        mobile: formData.mobile,
+        customerAddress: formData.address,
+        customerAddressInstructions: formData.addressInstructions,
+        marketingOptIn: formData.marketingOptIn ? 1 : 0
+      });
+
+      if (!customerResponse?.id) {
+        throw new Error('Failed to create customer in CleanCloud');
+      }
+
+      // Create order items based on selected services
+      const orderItems = createOrderItems(formData.serviceTypes);
+
+      // Create order in CleanCloud
+      const orderResponse = await cleanCloudAPI.orders.createOrder({
+        customerId: customerResponse.id,
+        items: orderItems,
+        lockerNumber: formData.lockerNumber.join(', '), // Join multiple locker numbers
+        notes: formData.notes || '',
+        serviceTypes: formData.serviceTypes,
+        collectionDate: formData.collectionDate,
+        total: total
+      });
+
+      if (!orderResponse?.id) {
+        throw new Error('Failed to create order in CleanCloud');
+      }
+
+      // Store customer mapping in our database
+      const { data: customerData, error: customerError } = await supabase
+        .from('cleancloud_customers')
+        .insert({
+          cleancloud_customer_id: customerResponse.id,
+          email: formData.email,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          mobile: formData.mobile
+        })
+        .select()
+        .single();
+
+      if (customerError || !customerData) {
+        throw new Error('Failed to store customer mapping');
+      }
+
+      // Store order in our database
+      const { error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          customer_id: customerData.id,
+          cleancloud_order_id: orderResponse.id,
+          locker_number: formData.lockerNumber.join(', '),
+          service_types: formData.serviceTypes,
+          notes: formData.notes,
+          collection_date: formData.collectionDate.toISOString(),
+          status: 'pending',
+          total: total
+        });
+
+      if (orderError) {
+        throw new Error('Failed to store order in database');
+      }
       
       setSubmittedData(formData);
       setIsSubmitted(true);
