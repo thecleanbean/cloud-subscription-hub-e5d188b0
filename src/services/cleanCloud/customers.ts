@@ -10,7 +10,7 @@ export class CustomerService extends BaseCleanCloudClient {
       email: '***'
     });
 
-    // First check if we have this customer in our Supabase database
+    // Only search for customers that were created through our system
     const { data: existingCustomer, error: dbError } = await supabase
       .from('cleancloud_customers')
       .select('*')
@@ -22,8 +22,8 @@ export class CustomerService extends BaseCleanCloudClient {
       throw new Error('Failed to search for customer in database');
     }
 
+    // Only return customers that were created through our system
     if (existingCustomer?.cleancloud_customer_id) {
-      // If we have the CleanCloud ID, use it to fetch the latest customer data
       const response = await this.makeRequest('/getCustomer', {
         method: 'POST',
         body: JSON.stringify({
@@ -45,10 +45,13 @@ export class CustomerService extends BaseCleanCloudClient {
         throw new Error(response.Error);
       }
 
+      // We only return customers that exist in both our database AND CleanCloud
+      // This ensures we only get customers that were created through our system
       return Array.isArray(response) ? response : [response];
     }
 
-    // If we don't have the customer in our database, they're new
+    // If we don't have the customer in our database, they need to create a new account
+    // Even if they exist in CleanCloud through SSO
     return [];
   }
 
@@ -57,6 +60,17 @@ export class CustomerService extends BaseCleanCloudClient {
       ...input,
       email: '***'
     });
+
+    // First check if this customer already exists in our database
+    const { data: existingCustomer } = await supabase
+      .from('cleancloud_customers')
+      .select('cleancloud_customer_id')
+      .eq('email', input.email)
+      .single();
+
+    if (existingCustomer) {
+      throw new Error('An account with this email already exists');
+    }
 
     // Transform the input into the format expected by the API
     const params: CreateCustomerParams = {
@@ -89,8 +103,8 @@ export class CustomerService extends BaseCleanCloudClient {
 
     if (insertError) {
       console.error('Failed to store customer mapping:', insertError);
-      // Don't throw here - the customer was created in CleanCloud successfully
-      // We'll try to insert the mapping again next time
+      // This is more serious now - we need to ensure consistency
+      throw new Error('Failed to complete account creation');
     }
 
     return response;
