@@ -34,17 +34,29 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
           />
         );
       case 2:
-        return (
+        return customerType === 'returning' ? (
           <StepTwo
             email={formData.email}
             setEmail={(email) => updateFormData("email", email)}
           />
-        );
-      case 3:
-        return (
+        ) : (
           <StepThree
             serviceTypes={formData.serviceTypes}
             updateServiceTypes={(newTypes) => updateFormData("serviceTypes", newTypes)}
+          />
+        );
+      case 3:
+        return customerType === 'returning' ? (
+          <StepThree
+            serviceTypes={formData.serviceTypes}
+            updateServiceTypes={(newTypes) => updateFormData("serviceTypes", newTypes)}
+          />
+        ) : (
+          <StepFour
+            lockerNumber={formData.lockerNumber}
+            collectionDate={formData.collectionDate}
+            notes={formData.notes}
+            updateFormData={updateFormData}
           />
         );
       case 4:
@@ -61,6 +73,8 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
     }
   };
 
+  const totalSteps = customerType === 'returning' ? 4 : 4;
+
   return (
     <Card className="max-w-2xl mx-auto p-8">
       <div className="mb-8 text-center">
@@ -70,7 +84,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
         </p>
       </div>
 
-      <ProgressBar currentStep={step} totalSteps={4} />
+      <ProgressBar currentStep={step} totalSteps={totalSteps} />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {renderStep()}
@@ -85,7 +99,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
               Previous
             </Button>
           )}
-          {step < 4 ? (
+          {step < totalSteps ? (
             <Button
               type="button"
               onClick={() => setStep((prev) => prev + 1)}
