@@ -53,6 +53,8 @@ export interface CreateCustomerInput {
   email: string;
   mobile: string;
   customerAddress?: string;
+  customerAddressInstructions?: string;
+  marketingOptIn?: number;
 }
 
 export interface CreateCustomerParams {
