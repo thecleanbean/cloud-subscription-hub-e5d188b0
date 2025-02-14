@@ -28,16 +28,15 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
   });
 
   const updateFormData = (field: string, value: any) => {
-    console.log('Updating form data:', field, value); // Debug log
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData((prevData) => {
+      const newData = { ...prevData };
+      newData[field as keyof FormData] = value;
+      return newData;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submit pressed, current form data:', formData); // Debug log
 
     setIsLoading(true);
     try {
