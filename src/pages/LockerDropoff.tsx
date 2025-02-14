@@ -7,7 +7,7 @@ import { FormData } from "@/types/locker";
 import { useState } from "react";
 import OrderConfirmation from "@/components/OrderConfirmation";
 import { cleanCloudAPI } from "@/services/cleanCloud";
-import { calculateTotal, createOrderItems } from "@/utils/orderUtils";
+import { calculateTotal, createOrderItems, createOrders } from "@/utils/orderUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
 
@@ -93,23 +93,18 @@ const LockerDropoff = () => {
       const orderItems = createOrderItems(formData.serviceTypes);
       console.log('Created order items:', orderItems);
 
-      // Create order in CleanCloud
-      const orderResponse = await cleanCloudAPI.orders.createOrder({
-        customerId: customerResponse.id,
-        items: orderItems,
-        lockerNumber: formData.lockerNumber.join(', '), // Join multiple locker numbers
-        notes: formData.notes || '',
-        serviceTypes: formData.serviceTypes,
-        collectionDate: formData.collectionDate,
-        total: total
-      });
+      // Create orders in CleanCloud (one per locker)
+      const orders = await createOrders(
+        customerResponse.id,
+        orderItems,
+        formData.lockerNumber,
+        formData.notes,
+        formData.serviceTypes,
+        formData.collectionDate,
+        total
+      );
 
-      if (!orderResponse?.id) {
-        console.error('Failed to create order:', orderResponse);
-        throw new Error('Failed to create order in CleanCloud');
-      }
-
-      console.log('Created order in CleanCloud:', orderResponse.id);
+      console.log('Created orders in CleanCloud:', orders);
 
       // Convert ServiceTypes to a JSON-compatible object
       const serviceTypesJson: Json = {
@@ -118,26 +113,28 @@ const LockerDropoff = () => {
         dryCleaning: formData.serviceTypes.dryCleaning
       };
 
-      // Store order in our database
-      const { error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          customer_id: customerData.id,
-          cleancloud_order_id: orderResponse.id,
-          locker_number: formData.lockerNumber.join(', '),
-          service_types: serviceTypesJson,
-          notes: formData.notes || null,
-          collection_date: formData.collectionDate.toISOString(),
-          status: 'pending',
-          total: total
-        });
+      // Store orders in our database
+      for (const order of orders) {
+        const { error: orderError } = await supabase
+          .from('orders')
+          .insert({
+            customer_id: customerData.id,
+            cleancloud_order_id: order.id,
+            locker_number: formData.lockerNumber.join(', '),
+            service_types: serviceTypesJson,
+            notes: formData.notes || null,
+            collection_date: formData.collectionDate.toISOString(),
+            status: 'pending',
+            total: total / formData.lockerNumber.length // Split total among lockers
+          });
 
-      if (orderError) {
-        console.error('Order storage error:', orderError);
-        throw new Error('Failed to store order in database');
+        if (orderError) {
+          console.error('Order storage error:', orderError);
+          throw new Error('Failed to store order in database');
+        }
       }
 
-      console.log('Order stored in database successfully');
+      console.log('Orders stored in database successfully');
 
       setSubmittedData(formData);
       setIsSubmitted(true);
