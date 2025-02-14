@@ -9,6 +9,7 @@ import CustomerDetailsForm from "../registration/CustomerDetailsForm";
 interface FormStepRendererProps {
   step: number;
   customerType: CustomerType;
+  setCustomerType: (type: CustomerType) => void;
   formData: FormData;
   updateFormData: <K extends keyof FormData>(field: K, value: FormData[K]) => void;
   isValidPostcode: boolean;
@@ -18,6 +19,7 @@ interface FormStepRendererProps {
 const FormStepRenderer = ({
   step,
   customerType,
+  setCustomerType,
   formData,
   updateFormData,
   isValidPostcode,

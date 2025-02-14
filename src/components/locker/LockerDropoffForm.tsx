@@ -102,6 +102,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
         <FormStepRenderer
           step={step}
           customerType={customerType}
+          setCustomerType={setCustomerType}
           formData={formData}
           updateFormData={updateFormData}
           isValidPostcode={isValidPostcode}
