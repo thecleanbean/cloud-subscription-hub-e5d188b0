@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      api_configs: {
+        Row: {
+          created_at: string
+          description: string | null
+          name: string
+          value: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          name: string
+          value?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          name?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
       cleancloud_customers: {
         Row: {
           cleancloud_customer_id: string
