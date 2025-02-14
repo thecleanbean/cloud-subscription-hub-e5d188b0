@@ -13,6 +13,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     lastName: "",
     email: "",
     mobile: "",
+    postcode: "", // Added postcode field with empty string as initial value
     lockerNumber: [],
     notes: "",
     serviceTypes: {
@@ -40,7 +41,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
       }
     } else {
       // For new customers, all fields are required
-      if (!formData.firstName || !formData.lastName || !formData.email || !formData.mobile) {
+      if (!formData.firstName || !formData.lastName || !formData.email || !formData.mobile || !formData.postcode) {
         toast({
           title: "Missing Information",
           description: "Please fill in all required fields.",
