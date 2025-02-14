@@ -1,6 +1,7 @@
 
 import { BaseCleanCloudClient } from "./baseClient";
 import { CreateCustomerInput, CreateCustomerParams } from "./types";
+import { supabase } from "@/integrations/supabase/client";
 
 export class CustomerService extends BaseCleanCloudClient {
   async searchCustomers(params: { email: string }) {
@@ -9,42 +10,46 @@ export class CustomerService extends BaseCleanCloudClient {
       email: '***'
     });
 
-    // Use a 30-day range which is within the API's 31-day limit
-    const today = new Date();
-    const thirtyDaysAgo = new Date(today);
-    thirtyDaysAgo.setDate(today.getDate() - 30);
+    // First check if we have this customer in our Supabase database
+    const { data: existingCustomer, error: dbError } = await supabase
+      .from('cleancloud_customers')
+      .select('*')
+      .eq('email', params.email)
+      .single();
 
-    const dateFrom = thirtyDaysAgo.toISOString().split('T')[0]; // Format as YYYY-MM-DD
-    const dateTo = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
-
-    console.log('Searching with date range:', { dateFrom, dateTo });
-
-    const response = await this.makeRequest('/getCustomer', {
-      method: 'POST',
-      body: JSON.stringify({
-        dateFrom,
-        dateTo,
-        excludeDeactivated: 1
-      })
-    });
-
-    if (!response) {
-      console.error('No response from API');
-      throw new Error('Failed to search for customer');
+    if (dbError && dbError.code !== 'PGRST116') { // PGRST116 is "not found" error
+      console.error('Database error:', dbError);
+      throw new Error('Failed to search for customer in database');
     }
 
-    if (response.Error) {
-      console.error('API Error:', response.Error);
-      // If it's a new customer, return empty array instead of throwing
-      if (response.Error === "No Customer With That ID") {
-        return [];
+    if (existingCustomer?.cleancloud_customer_id) {
+      // If we have the CleanCloud ID, use it to fetch the latest customer data
+      const response = await this.makeRequest('/getCustomer', {
+        method: 'POST',
+        body: JSON.stringify({
+          customerID: existingCustomer.cleancloud_customer_id,
+          excludeDeactivated: 1
+        })
+      });
+
+      if (!response) {
+        console.error('No response from API');
+        throw new Error('Failed to search for customer');
       }
-      throw new Error(response.Error);
+
+      if (response.Error) {
+        console.error('API Error:', response.Error);
+        if (response.Error === "No Customer With That ID") {
+          return [];
+        }
+        throw new Error(response.Error);
+      }
+
+      return Array.isArray(response) ? response : [response];
     }
 
-    // Always return array and filter by email
-    const customers = Array.isArray(response) ? response : [response];
-    return customers.filter(customer => customer.customerEmail === params.email);
+    // If we don't have the customer in our database, they're new
+    return [];
   }
 
   async createCustomer(input: CreateCustomerInput) {
@@ -69,6 +74,23 @@ export class CustomerService extends BaseCleanCloudClient {
     if (!response || response.Error) {
       console.error('Invalid customer creation response:', response);
       throw new Error(response?.Error || 'Failed to create customer');
+    }
+
+    // Store the mapping in our database
+    const { error: insertError } = await supabase
+      .from('cleancloud_customers')
+      .insert({
+        email: input.email,
+        cleancloud_customer_id: response.id,
+        first_name: input.firstName,
+        last_name: input.lastName,
+        mobile: input.mobile
+      });
+
+    if (insertError) {
+      console.error('Failed to store customer mapping:', insertError);
+      // Don't throw here - the customer was created in CleanCloud successfully
+      // We'll try to insert the mapping again next time
     }
 
     return response;
