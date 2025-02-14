@@ -44,7 +44,12 @@ const FormNavigation = ({
           Next Step
         </Button>
       ) : (
-        <Button type="submit" className="ml-auto" disabled={isLoading}>
+        <Button 
+          type="button" // Changed from "submit" to "button"
+          onClick={onNext}
+          className="ml-auto" 
+          disabled={!canProceed || isLoading}
+        >
           {isLoading ? "Processing..." : "Complete Drop-off"}
         </Button>
       )}

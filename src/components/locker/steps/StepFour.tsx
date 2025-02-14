@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, addDays, isSunday } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -19,7 +19,7 @@ interface StepFourProps {
 const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepFourProps) => {
   const lockerNumbers = Array.from({ length: 17 }, (_, i) => (i + 1).toString());
   const today = new Date();
-  const minDate = new Date(today.setDate(today.getDate() + 2));
+  const minDate = addDays(today, 2);
 
   const handleLockerSelect = (value: string) => {
     const newLockers = lockerNumber.includes(value)
@@ -80,7 +80,7 @@ const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepF
                 selected={collectionDate}
                 onSelect={(date) => date && updateFormData("collectionDate", date)}
                 disabled={(date) =>
-                  date < minDate || date < new Date("1900-01-01")
+                  date < minDate || date < new Date("1900-01-01") || isSunday(date)
                 }
                 initialFocus
               />
