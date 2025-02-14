@@ -1,3 +1,4 @@
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
@@ -18,111 +19,16 @@ interface CustomerDetailsFormProps {
   onPostcodeValidate: (postcode: string) => void;
 }
 
-declare global {
-  interface Window {
-    google: any;
-    initGooglePlaces: () => void;
-  }
-}
-
 const CustomerDetailsForm = ({
   formData,
   onChange,
   isValidPostcode,
   onPostcodeValidate,
 }: CustomerDetailsFormProps) => {
-  const [isGoogleScriptLoaded, setIsGoogleScriptLoaded] = useState(false);
-  const [addressInput, setAddressInput] = useState<HTMLInputElement | null>(null);
   const { toast } = useToast();
+  const [addressInput, setAddressInput] = useState<HTMLInputElement | null>(null);
 
-  useEffect(() => {
-    const loadGooglePlaces = async () => {
-      try {
-        // Get API key from Supabase
-        const { data, error } = await supabase
-          .from('api_configs')
-          .select('value')
-          .eq('name', 'GOOGLE_PLACES_API_KEY')
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error fetching Google Places API key:', error);
-          toast({
-            title: "Error",
-            description: "Unable to load address autocomplete. Please enter your address manually.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        if (!data?.value) {
-          console.error('Google Places API key not found');
-          toast({
-            title: "Notice",
-            description: "Address autocomplete is currently unavailable. Please enter your address manually.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        // Initialize Google Places only once
-        if (!window.google) {
-          window.initGooglePlaces = () => {
-            setIsGoogleScriptLoaded(true);
-          };
-
-          const script = document.createElement('script');
-          script.src = `https://maps.googleapis.com/maps/api/js?key=${data.value}&libraries=places&callback=initGooglePlaces`;
-          script.async = true;
-          document.head.appendChild(script);
-        } else {
-          setIsGoogleScriptLoaded(true);
-        }
-      } catch (error) {
-        console.error('Error loading Google Places:', error);
-        toast({
-          title: "Error",
-          description: "Unable to load address autocomplete. Please enter your address manually.",
-          variant: "destructive",
-        });
-      }
-    };
-
-    loadGooglePlaces();
-  }, [toast]);
-
-  useEffect(() => {
-    if (isGoogleScriptLoaded && addressInput) {
-      const autocomplete = new window.google.maps.places.Autocomplete(addressInput, {
-        componentRestrictions: { country: 'GB' },
-        fields: ['address_components', 'formatted_address'],
-      });
-
-      autocomplete.addListener('place_changed', () => {
-        const place = autocomplete.getPlace();
-        if (place.address_components) {
-          let postcode = '';
-          let fullAddress = place.formatted_address;
-
-          // Extract postcode from address components
-          for (const component of place.address_components) {
-            if (component.types.includes('postal_code')) {
-              postcode = component.long_name;
-              break;
-            }
-          }
-
-          // Update both address and postcode
-          onChange('address', fullAddress);
-          if (postcode) {
-            onChange('postcode', postcode);
-            onPostcodeValidate(postcode);
-          }
-        }
-      });
-    }
-  }, [isGoogleScriptLoaded, addressInput, onChange, onPostcodeValidate]);
-
+  // For now, let's make the address field work without Google Places
   return (
     <div className="space-y-4">
       <div>
@@ -174,10 +80,9 @@ const CustomerDetailsForm = ({
         <Input
           id="address"
           type="text"
-          placeholder="Start typing your address"
+          placeholder="Enter your full address"
           value={formData.address || ''}
           onChange={(e) => onChange("address", e.target.value)}
-          ref={setAddressInput}
           required
         />
       </div>

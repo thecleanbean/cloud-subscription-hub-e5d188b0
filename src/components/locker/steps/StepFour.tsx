@@ -19,7 +19,7 @@ interface StepFourProps {
 const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepFourProps) => {
   const lockerNumbers = Array.from({ length: 17 }, (_, i) => (i + 1).toString());
   const today = new Date();
-  const minDate = new Date(today.setDate(today.getDate() + 2)); // Minimum 2 days from today
+  const minDate = new Date(today.setDate(today.getDate() + 2));
 
   const handleLockerSelect = (value: string) => {
     const newLockers = lockerNumber.includes(value)
@@ -29,11 +29,7 @@ const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepF
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="space-y-6"
-    >
+    <div className="space-y-6">
       <div className="text-center mb-8">
         <h3 className="text-2xl font-semibold text-primary mb-2">Locker & Collection Details</h3>
         <p className="text-muted-foreground">
@@ -103,7 +99,7 @@ const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepF
           />
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
