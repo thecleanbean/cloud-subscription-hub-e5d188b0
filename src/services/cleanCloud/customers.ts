@@ -9,10 +9,21 @@ export class CustomerService extends BaseCleanCloudClient {
       email: '***'
     });
 
+    // Use a 30-day range which is within the API's 31-day limit
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+
+    const dateFrom = thirtyDaysAgo.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    const dateTo = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+    console.log('Searching with date range:', { dateFrom, dateTo });
+
     const response = await this.makeRequest('/getCustomer', {
       method: 'POST',
       body: JSON.stringify({
-        customerEmail: params.email,
+        dateFrom,
+        dateTo,
         excludeDeactivated: 1
       })
     });
@@ -31,9 +42,9 @@ export class CustomerService extends BaseCleanCloudClient {
       throw new Error(response.Error);
     }
 
-    // Handle both single customer and array responses
+    // Always return array and filter by email
     const customers = Array.isArray(response) ? response : [response];
-    return customers;
+    return customers.filter(customer => customer.customerEmail === params.email);
   }
 
   async createCustomer(input: CreateCustomerInput) {
