@@ -39,7 +39,12 @@ const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepF
 
       <div className="space-y-4">
         <div>
-          <Label htmlFor="lockerNumber">Select Lockers</Label>
+          <Label htmlFor="lockerNumber" className="flex items-center">
+            Select Lockers <span className="text-red-500 ml-1">*</span>
+            <span className="text-sm text-muted-foreground ml-2">
+              (At least one locker must be selected)
+            </span>
+          </Label>
           <div className="grid grid-cols-3 gap-2 mt-2">
             {lockerNumbers.map((number) => (
               <Button
@@ -47,16 +52,22 @@ const StepFour = ({ lockerNumber, collectionDate, notes, updateFormData }: StepF
                 type="button"
                 variant={lockerNumber.includes(number) ? "default" : "outline"}
                 onClick={() => handleLockerSelect(number)}
-                className="w-full"
+                className={cn(
+                  "w-full",
+                  lockerNumber.includes(number) && "border-2 border-primary"
+                )}
               >
                 Locker {number}
               </Button>
             ))}
           </div>
+          {lockerNumber.length === 0 && (
+            <p className="text-sm text-red-500 mt-1">Please select at least one locker</p>
+          )}
         </div>
 
         <div>
-          <Label className="block mb-1">Collection Date (Required)</Label>
+          <Label className="block mb-1">Collection Date <span className="text-red-500">*</span></Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button

@@ -88,10 +88,12 @@ export class CustomerService extends BaseCleanCloudClient {
       body: JSON.stringify(params)
     });
 
-    if (!response || response.Error) {
+    if (!response || !response.id) {
       console.error('Invalid customer creation response:', response);
       throw new Error(response?.Error || 'Failed to create customer');
     }
+
+    console.log('CleanCloud customer created with ID:', response.id);
 
     // Store the mapping in our database
     const { error: insertError } = await supabase
