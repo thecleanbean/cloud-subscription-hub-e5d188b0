@@ -42,3 +42,19 @@ export const findCustomerByEmail = async (email: string) => {
     throw error;
   }
 };
+
+export const resetCustomerPassword = async (email: string) => {
+  console.log('Requesting password reset for:', { email: '***' });
+  
+  try {
+    // Using CleanCloud's password reset endpoint
+    const response = await cleanCloudAPI.customers.resetPassword({
+      customerEmail: email
+    });
+    
+    return response;
+  } catch (error) {
+    console.error('Error requesting password reset:', error);
+    throw error;
+  }
+};

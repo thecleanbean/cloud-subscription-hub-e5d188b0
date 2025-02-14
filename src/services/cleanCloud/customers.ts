@@ -15,7 +15,7 @@ export class CustomerService extends BaseCleanCloudClient {
       .from('cleancloud_customers')
       .select('*')
       .eq('email', params.email)
-      .maybeSingle(); // Changed from .single() to .maybeSingle()
+      .maybeSingle();
 
     if (dbError) {
       console.error('Database error:', dbError);
@@ -46,12 +46,10 @@ export class CustomerService extends BaseCleanCloudClient {
       }
 
       // We only return customers that exist in both our database AND CleanCloud
-      // This ensures we only get customers that were created through our system
       return Array.isArray(response) ? response : [response];
     }
 
     // If we don't have the customer in our database, they need to create a new account
-    // Even if they exist in CleanCloud through SSO
     return [];
   }
 
@@ -66,7 +64,7 @@ export class CustomerService extends BaseCleanCloudClient {
       .from('cleancloud_customers')
       .select('cleancloud_customer_id')
       .eq('email', input.email)
-      .maybeSingle(); // Changed from .single() to .maybeSingle()
+      .maybeSingle();
 
     if (checkError) {
       console.error('Error checking for existing customer:', checkError);
@@ -108,8 +106,28 @@ export class CustomerService extends BaseCleanCloudClient {
 
     if (insertError) {
       console.error('Failed to store customer mapping:', insertError);
-      // This is more serious now - we need to ensure consistency
       throw new Error('Failed to complete account creation');
+    }
+
+    return response;
+  }
+
+  async resetPassword(params: { customerEmail: string }) {
+    console.log('Requesting password reset:', {
+      ...params,
+      customerEmail: '***'
+    });
+
+    const response = await this.makeRequest('/passwordCustomer', {
+      method: 'POST',
+      body: JSON.stringify({
+        customerEmail: params.customerEmail
+      })
+    });
+
+    if (!response || response.Error) {
+      console.error('Password reset request failed:', response);
+      throw new Error(response?.Error || 'Failed to request password reset');
     }
 
     return response;
