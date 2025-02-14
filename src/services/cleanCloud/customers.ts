@@ -1,6 +1,6 @@
 
 import { BaseCleanCloudClient } from "./baseClient";
-import { CreateCustomerParams } from "./types";
+import { CreateCustomerInput, CreateCustomerParams } from "./types";
 
 export class CustomerService extends BaseCleanCloudClient {
   async searchCustomers(params: { email: string }) {
@@ -24,28 +24,23 @@ export class CustomerService extends BaseCleanCloudClient {
     return Array.isArray(response) ? response : [response];
   }
 
-  async createCustomer(params: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    mobile: string;
-    customerAddress?: string;
-  }) {
+  async createCustomer(input: CreateCustomerInput) {
     console.log('Creating customer:', {
-      ...params,
+      ...input,
       email: '***'
     });
 
-    const cleanCloudParams: CreateCustomerParams = {
-      customerName: `${params.firstName} ${params.lastName}`,
-      customerEmail: params.email,
-      customerTel: params.mobile,
-      customerAddress: params.customerAddress || ''
+    // Transform the input into the format expected by the API
+    const params: CreateCustomerParams = {
+      customerName: `${input.firstName} ${input.lastName}`,
+      customerEmail: input.email,
+      customerTel: input.mobile,
+      customerAddress: input.customerAddress || ''
     };
 
     const response = await this.makeRequest('/addCustomer', {
       method: 'POST',
-      body: JSON.stringify(cleanCloudParams)
+      body: JSON.stringify(params)
     });
 
     if (!response || response.Error) {

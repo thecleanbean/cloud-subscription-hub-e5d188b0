@@ -44,6 +44,14 @@ export interface CleanCloudOrder {
   };
 }
 
+export interface CreateCustomerInput {
+  firstName: string;
+  lastName: string;
+  email: string;
+  mobile: string;
+  customerAddress?: string;
+}
+
 export interface CreateCustomerParams {
   customerName: string;
   customerEmail: string;
