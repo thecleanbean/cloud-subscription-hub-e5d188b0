@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -79,6 +80,14 @@ const Auth = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+          </div>
+          <div className="flex justify-end">
+            <Link
+              to="/reset-password"
+              className="text-sm text-primary hover:underline"
+            >
+              Forgot password?
+            </Link>
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Logging in..." : "Login"}
