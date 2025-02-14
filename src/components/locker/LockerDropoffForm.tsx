@@ -21,7 +21,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
     setCustomerType,
     formData,
     updateFormData,
-    handleSubmit,
+    submitForm,
     isLoading
   } = useLockerDropoff({ onSubmit });
 
@@ -77,8 +77,8 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
   const handleNext = () => {
     if (validateStep(step)) {
       if (step === 4) {
-        // If we're on the last step and validation passes, directly call handleSubmit
-        handleSubmit({} as React.FormEvent<HTMLFormElement>);
+        // If we're on the last step and validation passes, submit the form
+        submitForm();
       } else {
         setStep(prev => prev + 1);
       }

@@ -35,8 +35,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submitForm = async () => {
     console.log('Form submitted with data:', formData);
     
     // Validate required fields based on customer type
@@ -110,7 +109,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     setCustomerType,
     formData,
     updateFormData,
-    handleSubmit,
+    submitForm,
     isLoading
   };
 };
