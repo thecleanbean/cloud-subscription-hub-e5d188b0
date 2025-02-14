@@ -13,7 +13,10 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     lastName: "",
     email: "",
     mobile: "",
-    postcode: "", // Added postcode field with empty string as initial value
+    postcode: "",
+    address: "",
+    addressInstructions: "",
+    marketingOptIn: false,
     lockerNumber: [],
     notes: "",
     serviceTypes: {
