@@ -34,32 +34,25 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
           />
         );
       case 2:
-        return customerType === 'returning' ? (
-          <StepTwo
-            email={formData.email}
-            setEmail={(email) => updateFormData("email", email)}
-          />
-        ) : (
-          <StepThree
-            serviceTypes={formData.serviceTypes}
-            updateServiceTypes={(newTypes) => updateFormData("serviceTypes", newTypes)}
-          />
-        );
+        // For returning customers, show email input
+        // For new customers, show service types
+        if (customerType === 'returning') {
+          return (
+            <StepTwo
+              email={formData.email}
+              setEmail={(email) => updateFormData("email", email)}
+            />
+          );
+        } else {
+          return (
+            <StepThree
+              serviceTypes={formData.serviceTypes}
+              updateServiceTypes={(newTypes) => updateFormData("serviceTypes", newTypes)}
+            />
+          );
+        }
       case 3:
-        return customerType === 'returning' ? (
-          <StepThree
-            serviceTypes={formData.serviceTypes}
-            updateServiceTypes={(newTypes) => updateFormData("serviceTypes", newTypes)}
-          />
-        ) : (
-          <StepFour
-            lockerNumber={formData.lockerNumber}
-            collectionDate={formData.collectionDate}
-            notes={formData.notes}
-            updateFormData={updateFormData}
-          />
-        );
-      case 4:
+        // For both types, show locker and collection details
         return (
           <StepFour
             lockerNumber={formData.lockerNumber}
@@ -73,7 +66,8 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
     }
   };
 
-  const totalSteps = customerType === 'returning' ? 4 : 4;
+  // Both flows now have 3 steps
+  const totalSteps = 3;
 
   return (
     <Card className="max-w-2xl mx-auto p-8">
