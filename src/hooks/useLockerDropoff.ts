@@ -36,23 +36,10 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     setIsLoading(true);
-    try {
-      if (customerType === 'returning') {
-        const customer = await findCustomerByEmail(formData.email);
-        if (!customer) {
-          toast({
-            title: "Account Not Found",
-            description: "We couldn't find an account with this email. Please create a new account.",
-            variant: "destructive",
-          });
-          setCustomerType('new');
-          return;
-        }
-      }
 
-      onSubmit(formData);
+    try {
+      await onSubmit(formData);
       
       toast({
         title: "Success",

@@ -26,6 +26,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
     formData,
     updateFormData,
     handleSubmit,
+    isLoading
   } = useLockerDropoff({ onSubmit });
 
   const handlePostcodeValidate = (postcode: string) => {
@@ -104,7 +105,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
           return (
             <StepTwo
               email={formData.email}
-              setEmail={(email) => updateFormData("email" as keyof FormData, email)}
+              setEmail={(email) => updateFormData("email", email)}
             />
           );
         } else {
@@ -174,6 +175,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
               type="button"
               variant="outline"
               onClick={() => setStep((prev) => prev - 1)}
+              disabled={isLoading}
             >
               Previous
             </Button>
@@ -186,13 +188,13 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
                 "ml-auto",
                 step === 1 && "w-full"
               )}
-              disabled={!canProceed()}
+              disabled={!canProceed() || isLoading}
             >
               Next Step
             </Button>
           ) : (
-            <Button type="submit" className="ml-auto">
-              Complete Drop-off
+            <Button type="submit" className="ml-auto" disabled={isLoading}>
+              {isLoading ? "Processing..." : "Complete Drop-off"}
             </Button>
           )}
         </div>
