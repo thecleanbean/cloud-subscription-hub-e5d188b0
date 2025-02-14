@@ -9,8 +9,9 @@ export interface FormData {
   firstName: string;
   lastName: string;
   email: string;
-  password?: string; // Add password for returning customers
+  password?: string;
   mobile: string;
+  postcode: string; // Added postcode field
   lockerNumber: string[];
   notes: string;
   serviceTypes: ServiceTypes;
