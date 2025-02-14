@@ -1,8 +1,6 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
 interface CustomerDetailsFormProps {
@@ -26,9 +24,13 @@ const CustomerDetailsForm = ({
   onPostcodeValidate,
 }: CustomerDetailsFormProps) => {
   const { toast } = useToast();
-  const [addressInput, setAddressInput] = useState<HTMLInputElement | null>(null);
 
-  // For now, let's make the address field work without Google Places
+  const handleMobileChange = (value: string) => {
+    // Remove any non-numeric characters
+    const numericValue = value.replace(/[^0-9]/g, '');
+    onChange("mobile", numericValue);
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -65,26 +67,36 @@ const CustomerDetailsForm = ({
         />
       </div>
       <div>
-        <Label htmlFor="mobile">Mobile Number</Label>
+        <Label htmlFor="mobile">Mobile Number <span className="text-red-500">*</span></Label>
         <Input
           id="mobile"
           type="tel"
-          placeholder="Mobile Number"
+          placeholder="Mobile Number (required)"
           value={formData.mobile}
-          onChange={(e) => onChange("mobile", e.target.value)}
+          onChange={(e) => handleMobileChange(e.target.value)}
+          className={!formData.mobile ? "border-red-500" : ""}
           required
+          aria-required="true"
         />
+        {!formData.mobile && (
+          <p className="text-red-500 text-sm mt-1">Mobile number is required</p>
+        )}
       </div>
       <div>
-        <Label htmlFor="address">Address</Label>
+        <Label htmlFor="address">Address <span className="text-red-500">*</span></Label>
         <Input
           id="address"
           type="text"
-          placeholder="Enter your full address"
+          placeholder="Enter your full address (required)"
           value={formData.address || ''}
           onChange={(e) => onChange("address", e.target.value)}
+          className={!formData.address ? "border-red-500" : ""}
           required
+          aria-required="true"
         />
+        {!formData.address && (
+          <p className="text-red-500 text-sm mt-1">Address is required</p>
+        )}
       </div>
       <div>
         <Label htmlFor="postcode">Postcode</Label>
