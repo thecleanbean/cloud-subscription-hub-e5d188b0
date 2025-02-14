@@ -77,6 +77,13 @@ const LockerDropoff = () => {
         throw new Error('Failed to store customer mapping');
       }
 
+      // Convert ServiceTypes to a plain object for JSON storage
+      const serviceTypesJson = {
+        laundry: formData.serviceTypes.laundry,
+        duvets: formData.serviceTypes.duvets,
+        dryCleaning: formData.serviceTypes.dryCleaning
+      };
+
       // Store order in our database
       const { error: orderError } = await supabase
         .from('orders')
@@ -84,14 +91,15 @@ const LockerDropoff = () => {
           customer_id: customerData.id,
           cleancloud_order_id: orderResponse.id,
           locker_number: formData.lockerNumber.join(', '),
-          service_types: formData.serviceTypes,
-          notes: formData.notes,
+          service_types: serviceTypesJson,
+          notes: formData.notes || null,
           collection_date: formData.collectionDate.toISOString(),
           status: 'pending',
           total: total
-        });
+        } as const);
 
       if (orderError) {
+        console.error('Order error:', orderError);
         throw new Error('Failed to store order in database');
       }
       
