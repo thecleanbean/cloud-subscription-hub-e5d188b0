@@ -29,11 +29,12 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
   });
 
   const updateFormData = (field: string, value: any) => {
+    console.log('Updating form data:', field, value);
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const validateForm = () => {
-    // For returning customers, only email is required
+    // For returning customers, only email is required initially
     if (customerType === 'returning') {
       if (!formData.email) {
         toast({
@@ -44,14 +45,25 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
         return false;
       }
     } else {
-      // For new customers, all fields are required
-      if (!formData.firstName || !formData.lastName || !formData.email || !formData.mobile || !formData.postcode || !formData.address) {
-        toast({
-          title: "Missing Information",
-          description: "Please fill in all required fields.",
-          variant: "destructive",
-        });
-        return false;
+      // For new customers, validate all required fields
+      const requiredFields = {
+        firstName: "First Name",
+        lastName: "Last Name",
+        email: "Email",
+        mobile: "Mobile Number",
+        postcode: "Postcode",
+        address: "Address"
+      };
+
+      for (const [field, label] of Object.entries(requiredFields)) {
+        if (!formData[field as keyof typeof requiredFields]) {
+          toast({
+            title: "Required Field Missing",
+            description: `Please enter your ${label}.`,
+            variant: "destructive",
+          });
+          return false;
+        }
       }
     }
 
@@ -90,6 +102,7 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Submitting form with data:', formData);
     
     if (!validateForm()) {
       return;
@@ -99,20 +112,18 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
     
     try {
       if (customerType === 'returning') {
-        // Search for existing customer by email
         const customer = await findCustomerByEmail(formData.email);
         
         if (!customer) {
           toast({
             title: "Account Not Found",
-            description: "We couldn't find a locker service account with this email. If you've used CleanCloud before but not the locker service, please create a new account to get started.",
+            description: "We couldn't find a locker service account with this email. Please create a new account to get started.",
             variant: "destructive",
           });
           setCustomerType('new');
           return;
         }
         
-        // Create orders for the existing customer
         const total = calculateTotal(formData.serviceTypes);
         const items = createOrderItems(formData.serviceTypes);
 
@@ -125,11 +136,8 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
           formData.collectionDate,
           total
         );
-
       } else {
-        // For new customers
         const customer = await createNewCustomer(formData);
-        
         const total = calculateTotal(formData.serviceTypes);
         const items = createOrderItems(formData.serviceTypes);
 

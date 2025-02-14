@@ -1,11 +1,31 @@
 
 import LockerDropoffForm from "@/components/locker/LockerDropoffForm";
 import { BackToHome } from "@/components/ui/back-to-home";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/components/ui/use-toast";
 
 const LockerDropoff = () => {
-  const handleSubmit = (data: any) => {
-    console.log('Form submitted:', data);
-    // Handle form submission
+  const navigate = useNavigate();
+
+  const handleSubmit = async (data: any) => {
+    try {
+      console.log('Form submitted:', data);
+      
+      toast({
+        title: "Order Submitted Successfully",
+        description: "Your locker dropoff has been registered.",
+      });
+      
+      // Redirect to home or confirmation page
+      navigate('/');
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast({
+        title: "Error",
+        description: "There was a problem processing your request. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
