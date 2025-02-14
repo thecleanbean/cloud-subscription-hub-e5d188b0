@@ -32,6 +32,11 @@ const CustomerDetailsForm = ({
     onChange("mobile", numericValue);
   };
 
+  const handleAddressChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    console.log('Address changing:', e.target.value);
+    onChange("address", e.target.value);
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -89,8 +94,8 @@ const CustomerDetailsForm = ({
           id="address"
           placeholder="Enter your full address (required)"
           value={formData.address || ''}
-          onChange={(e) => onChange("address", e.target.value)}
-          className={`min-h-[100px] resize-none ${!formData.address ? "border-red-500" : ""}`}
+          onChange={handleAddressChange}
+          className={!formData.address ? "border-red-500" : ""}
           required
           aria-required="true"
         />
