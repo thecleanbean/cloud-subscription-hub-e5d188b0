@@ -26,20 +26,51 @@ const LockerDropoff = () => {
 
       // Calculate order total based on selected services
       const total = calculateTotal(formData.serviceTypes);
-      
-      // Create customer in CleanCloud if new
-      const customerResponse = await cleanCloudAPI.customers.createCustomer({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        mobile: formData.mobile,
-        customerAddress: formData.address,
-        customerAddressInstructions: formData.addressInstructions,
-        marketingOptIn: formData.marketingOptIn ? 1 : 0
-      });
 
-      if (!customerResponse?.id) {
-        throw new Error('Failed to create customer in CleanCloud');
+      // Check if customer already exists in CleanCloud
+      const { data: existingCustomer } = await supabase
+        .from('cleancloud_customers')
+        .select('cleancloud_customer_id')
+        .eq('email', formData.email)
+        .maybeSingle();
+
+      let customerResponse;
+      if (existingCustomer?.cleancloud_customer_id) {
+        console.log('Using existing customer:', existingCustomer.cleancloud_customer_id);
+        customerResponse = { id: existingCustomer.cleancloud_customer_id };
+      } else {
+        // Create customer in CleanCloud if new
+        customerResponse = await cleanCloudAPI.customers.createCustomer({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          mobile: formData.mobile,
+          customerAddress: formData.address,
+          customerAddressInstructions: formData.addressInstructions,
+          marketingOptIn: formData.marketingOptIn ? 1 : 0
+        });
+
+        if (!customerResponse?.id) {
+          throw new Error('Failed to create customer in CleanCloud');
+        }
+
+        // Store customer mapping in our database
+        const { data: customerData, error: customerError } = await supabase
+          .from('cleancloud_customers')
+          .insert({
+            cleancloud_customer_id: customerResponse.id,
+            email: formData.email,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            mobile: formData.mobile
+          })
+          .select()
+          .single();
+
+        if (customerError || !customerData) {
+          console.error('Customer mapping error:', customerError);
+          throw new Error('Failed to store customer mapping');
+        }
       }
 
       // Create order items based on selected services
@@ -60,49 +91,6 @@ const LockerDropoff = () => {
         throw new Error('Failed to create order in CleanCloud');
       }
 
-      // Store customer mapping in our database
-      const { data: customerData, error: customerError } = await supabase
-        .from('cleancloud_customers')
-        .insert({
-          cleancloud_customer_id: customerResponse.id,
-          email: formData.email,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          mobile: formData.mobile
-        })
-        .select()
-        .single();
-
-      if (customerError || !customerData) {
-        throw new Error('Failed to store customer mapping');
-      }
-
-      // Convert ServiceTypes to a plain object for JSON storage
-      const serviceTypesJson = {
-        laundry: formData.serviceTypes.laundry,
-        duvets: formData.serviceTypes.duvets,
-        dryCleaning: formData.serviceTypes.dryCleaning
-      };
-
-      // Store order in our database
-      const { error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          customer_id: customerData.id,
-          cleancloud_order_id: orderResponse.id,
-          locker_number: formData.lockerNumber.join(', '),
-          service_types: serviceTypesJson,
-          notes: formData.notes || null,
-          collection_date: formData.collectionDate.toISOString(),
-          status: 'pending',
-          total: total
-        } as const);
-
-      if (orderError) {
-        console.error('Order error:', orderError);
-        throw new Error('Failed to store order in database');
-      }
-      
       setSubmittedData(formData);
       setIsSubmitted(true);
       
