@@ -9,16 +9,21 @@ export class CustomerService extends BaseCleanCloudClient {
       email: '***'
     });
 
-    // Get customers from the last 31 days (API limit)
+    // Use a 7-day range instead of 31 days to be safe
     const today = new Date();
-    const thirtyOneDaysAgo = new Date();
-    thirtyOneDaysAgo.setDate(today.getDate() - 31);
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
+    const dateFrom = sevenDaysAgo.toISOString().slice(0, 10); // Format as YYYY-MM-DD
+    const dateTo = today.toISOString().slice(0, 10); // Format as YYYY-MM-DD
+
+    console.log('Searching with date range:', { dateFrom, dateTo });
 
     const response = await this.makeRequest('/getCustomer', {
       method: 'POST',
       body: JSON.stringify({
-        dateFrom: thirtyOneDaysAgo.toISOString().split('T')[0],
-        dateTo: today.toISOString().split('T')[0]
+        dateFrom,
+        dateTo
       })
     });
 
