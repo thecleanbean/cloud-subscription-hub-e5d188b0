@@ -11,6 +11,7 @@ import CustomerDetailsForm from "../registration/CustomerDetailsForm";
 import ProgressBar from "./ProgressBar";
 import { useLockerDropoff } from "@/hooks/useLockerDropoff";
 import { FormData } from "@/types/locker";
+import { toast } from "@/components/ui/use-toast";
 
 interface LockerDropoffFormProps {
   onSubmit: (data: any) => void;
@@ -28,9 +29,65 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
   } = useLockerDropoff({ onSubmit });
 
   const handlePostcodeValidate = (postcode: string) => {
-    // Simple UK postcode validation - can be made more sophisticated
     const isValid = /^[A-Z]{1,2}[0-9][A-Z0-9]? ?[0-9][A-Z]{2}$/i.test(postcode);
     setIsValidPostcode(isValid);
+  };
+
+  const validateStep = (currentStep: number): boolean => {
+    switch (currentStep) {
+      case 2:
+        if (customerType === 'new') {
+          const requiredFields: (keyof FormData)[] = ['firstName', 'lastName', 'email', 'mobile', 'postcode', 'address'];
+          const missingFields = requiredFields.filter(field => !formData[field]);
+          
+          if (missingFields.length > 0) {
+            toast({
+              title: "Required Fields Missing",
+              description: `Please fill in all required fields: ${missingFields.join(', ')}`,
+              variant: "destructive",
+            });
+            return false;
+          }
+          return isValidPostcode;
+        }
+        return formData.email !== '';
+      case 3:
+        const hasServiceSelected = Object.values(formData.serviceTypes).some(value => value);
+        if (!hasServiceSelected) {
+          toast({
+            title: "Service Selection Required",
+            description: "Please select at least one service type",
+            variant: "destructive",
+          });
+          return false;
+        }
+        return true;
+      case 4:
+        if (formData.lockerNumber.length === 0) {
+          toast({
+            title: "Locker Selection Required",
+            description: "Please select at least one locker",
+            variant: "destructive",
+          });
+          return false;
+        }
+        return true;
+      default:
+        return true;
+    }
+  };
+
+  const handleNext = () => {
+    if (validateStep(step)) {
+      setStep(prev => prev + 1);
+    }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateStep(step)) {
+      handleSubmit(e);
+    }
   };
 
   const renderStep = () => {
@@ -88,7 +145,6 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
     }
   };
 
-  // New customers have 4 steps, returning customers have 3 steps
   const totalSteps = customerType === 'returning' ? 3 : 4;
 
   const canProceed = () => {
@@ -109,7 +165,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
 
       <ProgressBar currentStep={step} totalSteps={totalSteps} />
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleFormSubmit} className="space-y-6">
         {renderStep()}
 
         <div className="flex justify-between pt-6">
@@ -125,7 +181,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
           {step < totalSteps ? (
             <Button
               type="button"
-              onClick={() => setStep((prev) => prev + 1)}
+              onClick={handleNext}
               className={cn(
                 "ml-auto",
                 step === 1 && "w-full"
