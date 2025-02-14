@@ -10,6 +10,7 @@ import StepFour from "./steps/StepFour";
 import CustomerDetailsForm from "../registration/CustomerDetailsForm";
 import ProgressBar from "./ProgressBar";
 import { useLockerDropoff } from "@/hooks/useLockerDropoff";
+import { FormData } from "@/types/locker";
 
 interface LockerDropoffFormProps {
   onSubmit: (data: any) => void;
@@ -46,7 +47,7 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
           return (
             <StepTwo
               email={formData.email}
-              setEmail={(email) => updateFormData("email", email)}
+              setEmail={(email) => updateFormData("email" as keyof FormData, email)}
             />
           );
         } else {
@@ -58,8 +59,9 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
                 email: formData.email || "",
                 mobile: formData.mobile || "",
                 postcode: formData.postcode || "",
+                address: formData.address || "",
               }}
-              onChange={(field, value) => updateFormData(field, value)}
+              onChange={(field, value) => updateFormData(field as keyof FormData, value)}
               isValidPostcode={isValidPostcode}
               onPostcodeValidate={handlePostcodeValidate}
             />
