@@ -11,7 +11,7 @@ const LockerDropoff = () => {
   const handleSubmit = async (formData: FormData) => {
     try {
       // Validate required fields
-      if (!formData.mobile || !formData.address) {
+      if (!formData.mobile || !formData.address?.trim()) {
         toast({
           title: "Required Fields Missing",
           description: "Please fill in all required fields including mobile number and address.",
@@ -32,10 +32,30 @@ const LockerDropoff = () => {
       }
 
       // Validate address length
-      if (formData.address.length < 5) {
+      if (formData.address.trim().length < 5) {
         toast({
           title: "Invalid Address",
           description: "Please enter a complete address.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate service type selection
+      if (!formData.serviceTypes.laundry && !formData.serviceTypes.duvets && !formData.serviceTypes.dryCleaning) {
+        toast({
+          title: "Service Type Required",
+          description: "Please select at least one service type.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate locker selection
+      if (formData.lockerNumber.length === 0) {
+        toast({
+          title: "Locker Selection Required",
+          description: "Please select at least one locker.",
           variant: "destructive",
         });
         return;

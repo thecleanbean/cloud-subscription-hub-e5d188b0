@@ -33,8 +33,9 @@ const CustomerDetailsForm = ({
   };
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    console.log('Address changing:', e.target.value);
-    onChange("address", e.target.value);
+    const value = e.target.value;
+    console.log('Address changing:', value);
+    onChange("address", value);
   };
 
   return (
@@ -93,13 +94,13 @@ const CustomerDetailsForm = ({
         <Textarea
           id="address"
           placeholder="Enter your full address (required)"
-          value={formData.address}
+          value={formData.address || ''}
           onChange={handleAddressChange}
-          className={!formData.address ? "border-red-500" : ""}
+          className={`h-24 resize-none ${!formData.address?.trim() ? "border-red-500" : ""}`}
           required
           aria-required="true"
         />
-        {!formData.address && (
+        {!formData.address?.trim() && (
           <p className="text-red-500 text-sm mt-1">Address is required</p>
         )}
       </div>
