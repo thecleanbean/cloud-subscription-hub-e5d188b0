@@ -9,6 +9,7 @@ import OrderConfirmation from "@/components/OrderConfirmation";
 import { cleanCloudAPI } from "@/services/cleanCloud";
 import { calculateTotal, createOrderItems } from "@/utils/orderUtils";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
 const LockerDropoff = () => {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ const LockerDropoff = () => {
       // Check if customer already exists in CleanCloud
       const { data: existingCustomer } = await supabase
         .from('cleancloud_customers')
-        .select('*')  // Changed to select all fields
+        .select('*')
         .eq('email', formData.email)
         .maybeSingle();
 
@@ -96,6 +97,13 @@ const LockerDropoff = () => {
         throw new Error('Failed to create order in CleanCloud');
       }
 
+      // Convert ServiceTypes to a JSON-compatible object
+      const serviceTypesJson: Json = {
+        laundry: formData.serviceTypes.laundry,
+        duvets: formData.serviceTypes.duvets,
+        dryCleaning: formData.serviceTypes.dryCleaning
+      };
+
       // Store order in our database
       const { error: orderError } = await supabase
         .from('orders')
@@ -103,7 +111,7 @@ const LockerDropoff = () => {
           customer_id: customerData.id,
           cleancloud_order_id: orderResponse.id,
           locker_number: formData.lockerNumber.join(', '),
-          service_types: formData.serviceTypes,
+          service_types: serviceTypesJson,
           notes: formData.notes || null,
           collection_date: formData.collectionDate.toISOString(),
           status: 'pending',
