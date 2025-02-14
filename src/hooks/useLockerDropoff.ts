@@ -30,7 +30,12 @@ export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {
 
   const updateFormData = (field: string, value: any) => {
     console.log('Updating form data:', field, value);
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      // Create a new object with the updated field
+      const newData = { ...prev, [field]: value };
+      console.log('New form data:', newData);
+      return newData;
+    });
   };
 
   const validateForm = () => {
