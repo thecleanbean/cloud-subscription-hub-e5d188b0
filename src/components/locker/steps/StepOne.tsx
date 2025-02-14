@@ -2,10 +2,11 @@
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { motion } from "framer-motion";
+import { CustomerType } from "@/types/locker";
 
 interface StepOneProps {
-  customerType: 'new' | 'returning';
-  setCustomerType: (type: 'new' | 'returning') => void;
+  customerType: CustomerType;
+  setCustomerType: (type: CustomerType) => void;
 }
 
 const StepOne = ({ customerType, setCustomerType }: StepOneProps) => {
@@ -23,7 +24,7 @@ const StepOne = ({ customerType, setCustomerType }: StepOneProps) => {
       </div>
       <RadioGroup
         value={customerType}
-        onValueChange={(value) => setCustomerType(value as 'new' | 'returning')}
+        onValueChange={(value) => setCustomerType(value as CustomerType)}
         className="grid grid-cols-2 gap-4"
       >
         <div>

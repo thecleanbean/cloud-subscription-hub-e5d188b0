@@ -28,7 +28,7 @@ const FormStepRenderer = ({
       return (
         <StepOne
           customerType={customerType}
-          setCustomerType={(type) => updateFormData("customerType", type)}
+          setCustomerType={setCustomerType}
         />
       );
     case 2:
