@@ -1,3 +1,4 @@
+
 import { BaseCleanCloudClient } from "./baseClient";
 import { CreateCustomerInput, CreateCustomerParams } from "./types";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +26,6 @@ export class CustomerService extends BaseCleanCloudClient {
         console.log('Found customer in local database:', {
           id: existingCustomer.id,
           cleancloud_id: existingCustomer.cleancloud_customer_id,
-          // email omitted for privacy
         });
         
         // Get fresh details from CleanCloud
@@ -64,24 +64,30 @@ export class CustomerService extends BaseCleanCloudClient {
       });
 
       if (customerListResponse?.Success === "True" && Array.isArray(customerListResponse.Customers)) {
-        // Debug: Log response structure without sensitive data
-        console.log('Analyzing response structure:', {
+        console.log('API Response structure:', {
+          success: customerListResponse.Success,
           totalCustomers: customerListResponse.Customers.length,
-          // Avoid logging actual values for privacy
+          sampleCustomerFields: Object.keys(customerListResponse.Customers[0] || {}).sort(),
         });
 
         const foundCustomer = customerListResponse.Customers.find(c => {
-          const searchEmail = params.email.toLowerCase();
-          const customerEmail = (c.customerEmail || '').toLowerCase();
+          console.log('Customer comparison:', {
+            searchEmail: params.email.toLowerCase(),
+            hasCustomerEmail: 'customerEmail' in c,
+            fieldNames: Object.keys(c).filter(k => k.toLowerCase().includes('email')),
+            matches: c.customerEmail?.toLowerCase() === params.email.toLowerCase()
+          });
           
-          // Log only match attempt count, not the actual data
-          console.log('Checking customer record...');
-          
-          return customerEmail === searchEmail;
+          return c.customerEmail?.toLowerCase() === params.email.toLowerCase();
         });
 
         if (foundCustomer) {
-          console.log('Found matching customer (sensitive details hidden)');
+          console.log('Found matching customer:', {
+            id: foundCustomer.ID,
+            hasName: !!foundCustomer.Name,
+            hasTel: !!foundCustomer.Tel,
+            hasAddress: !!foundCustomer.Address
+          });
 
           const processedCustomer = {
             id: foundCustomer.ID,
