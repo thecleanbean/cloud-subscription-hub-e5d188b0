@@ -7,40 +7,80 @@ import { Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { findCustomerByEmail } from "@/services/customerService";
-import { FormData } from "@/types/locker";
+import { FormData, CustomerType } from "@/types/locker";
 import CustomerDetailsForm from "@/components/registration/CustomerDetailsForm";
+import { toast } from "@/components/ui/use-toast";
 
 interface StepTwoProps {
   formData: FormData;
   updateFormData: (field: string, value: string) => void;
   isValidPostcode: boolean;
   onPostcodeValidate: (postcode: string) => void;
+  customerType: CustomerType;
+  onNext: () => void;
 }
 
-const StepTwo = ({ formData, updateFormData, isValidPostcode, onPostcodeValidate }: StepTwoProps) => {
+const StepTwo = ({ 
+  formData, 
+  updateFormData, 
+  isValidPostcode, 
+  onPostcodeValidate, 
+  customerType,
+  onNext 
+}: StepTwoProps) => {
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
-  const [isExistingCustomer, setIsExistingCustomer] = useState(false);
-  const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
 
-  const checkExistingCustomer = async () => {
-    if (!formData.email) return;
-    
+  const checkCustomerAndProceed = async () => {
+    if (!formData.email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsCheckingEmail(true);
     try {
-      const customer = await findCustomerByEmail(formData.email);
-      if (customer) {
-        setIsExistingCustomer(true);
-        // Update form with existing customer details
+      if (customerType === 'returning') {
+        const customer = await findCustomerByEmail(formData.email);
+        if (!customer) {
+          toast({
+            title: "Customer Not Found",
+            description: "We couldn't find an account with this email. Please try again or create a new account.",
+            variant: "destructive"
+          });
+          return;
+        }
+        // Pre-fill the form data with customer details
         updateFormData("firstName", customer.firstName || "");
         updateFormData("lastName", customer.lastName || "");
-        updateFormData("mobile", customer.mobile || customer.customerTel || "");
+        updateFormData("mobile", customer.mobile || "");
         updateFormData("address", customer.customerAddress || "");
       } else {
-        setShowNewCustomerForm(true);
+        // For new customers, validate required fields
+        const requiredFields = ['firstName', 'lastName', 'email', 'mobile', 'postcode', 'address'];
+        const missingFields = requiredFields.filter(field => !formData[field as keyof FormData]);
+        
+        if (missingFields.length > 0) {
+          toast({
+            title: "Required Fields Missing",
+            description: `Please fill in all required fields: ${missingFields.join(', ')}`,
+            variant: "destructive"
+          });
+          return;
+        }
       }
+      
+      // If all validations pass, proceed to next step
+      onNext();
     } catch (error) {
       console.error('Error checking customer:', error);
-      setShowNewCustomerForm(true);
+      toast({
+        title: "Error",
+        description: "There was a problem checking your account. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsCheckingEmail(false);
     }
@@ -53,71 +93,53 @@ const StepTwo = ({ formData, updateFormData, isValidPostcode, onPostcodeValidate
       className="space-y-6"
     >
       <div className="text-center mb-8">
-        <h3 className="text-2xl font-semibold text-primary mb-2">Welcome</h3>
+        <h3 className="text-2xl font-semibold text-primary mb-2">
+          {customerType === 'returning' ? 'Welcome Back' : 'Create Account'}
+        </h3>
         <p className="text-muted-foreground">
-          Please enter your email to continue
+          {customerType === 'returning' 
+            ? 'Please enter your email to continue'
+            : 'Please fill in your details to create an account'}
         </p>
       </div>
 
-      {!isExistingCustomer && !showNewCustomerForm && (
+      {customerType === 'returning' ? (
         <div className="space-y-4">
           <div>
             <Label htmlFor="email">Email</Label>
-            <div className="flex gap-2">
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => updateFormData("email", e.target.value)}
-                required
-                className="mt-1"
-              />
-              <Button 
-                onClick={checkExistingCustomer}
-                disabled={!formData.email || isCheckingEmail}
-              >
-                {isCheckingEmail ? "Checking..." : "Continue"}
-              </Button>
-            </div>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => updateFormData("email", e.target.value)}
+              placeholder="Enter your email"
+              className="mt-1"
+            />
           </div>
 
           <Alert className="mb-6 bg-blue-50 border-blue-200">
             <Info className="h-4 w-4 text-blue-500" />
             <AlertDescription className="text-blue-700">
-              Enter your email to check if you have an existing account.
+              Enter your email to continue with your order.
             </AlertDescription>
           </Alert>
         </div>
+      ) : (
+        <CustomerDetailsForm
+          formData={formData}
+          onChange={updateFormData}
+          isValidPostcode={isValidPostcode}
+          onPostcodeValidate={onPostcodeValidate}
+        />
       )}
 
-      {(isExistingCustomer || showNewCustomerForm) && (
-        <div>
-          {isExistingCustomer && (
-            <Alert className="mb-6 bg-green-50 border-green-200">
-              <Info className="h-4 w-4 text-green-500" />
-              <AlertDescription className="text-green-700">
-                Welcome back! We've found your account and pre-filled your details.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {showNewCustomerForm && (
-            <Alert className="mb-6">
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                No existing account found. Please fill in your details to continue.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <CustomerDetailsForm
-            formData={formData}
-            onChange={updateFormData}
-            isValidPostcode={isValidPostcode}
-            onPostcodeValidate={onPostcodeValidate}
-          />
-        </div>
-      )}
+      <Button
+        onClick={checkCustomerAndProceed}
+        disabled={isCheckingEmail}
+        className="w-full mt-4"
+      >
+        {isCheckingEmail ? "Checking..." : "Continue"}
+      </Button>
     </motion.div>
   );
 };

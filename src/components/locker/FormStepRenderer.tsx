@@ -4,7 +4,6 @@ import StepOne from "./steps/StepOne";
 import StepTwo from "./steps/StepTwo";
 import StepThree from "./steps/StepThree";
 import StepFour from "./steps/StepFour";
-import CustomerDetailsForm from "../registration/CustomerDetailsForm";
 
 interface FormStepRendererProps {
   step: number;
@@ -37,37 +36,33 @@ const FormStepRenderer = ({
         />
       );
     case 2:
+      return (
+        <StepTwo
+          formData={formData}
+          updateFormData={updateFormData}
+          isValidPostcode={isValidPostcode}
+          onPostcodeValidate={onPostcodeValidate}
+          customerType={customerType}
+          onNext={onNext}
+        />
+      );
+    case 3:
       if (customerType === 'returning') {
         return (
-          <StepTwo
+          <StepThree
             formData={formData}
-            updateFormData={(field, value) => updateFormData(field as keyof FormData, value)}
-            isValidPostcode={isValidPostcode}
-            onPostcodeValidate={onPostcodeValidate}
-          />
-        );
-      } else {
-        return (
-          <CustomerDetailsForm
-            formData={{
-              firstName: formData.firstName || "",
-              lastName: formData.lastName || "",
-              email: formData.email || "",
-              mobile: formData.mobile || "",
-              postcode: formData.postcode || "",
-              address: formData.address || "",
-            }}
-            onChange={(field, value) => updateFormData(field as keyof FormData, value)}
+            updateFormData={updateFormData}
             isValidPostcode={isValidPostcode}
             onPostcodeValidate={onPostcodeValidate}
           />
         );
       }
-    case 3:
       return (
-        <StepThree
-          serviceTypes={formData.serviceTypes}
-          updateServiceTypes={(newTypes) => updateFormData("serviceTypes", newTypes)}
+        <StepFour
+          lockerNumber={formData.lockerNumber}
+          collectionDate={formData.collectionDate}
+          notes={formData.notes}
+          updateFormData={updateFormData}
         />
       );
     case 4:
