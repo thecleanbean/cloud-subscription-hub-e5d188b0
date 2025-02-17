@@ -1,4 +1,3 @@
-
 import { BaseCleanCloudClient } from "./baseClient";
 import { CreateCustomerInput, CreateCustomerParams } from "./types";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,66 +9,88 @@ export class CustomerService extends BaseCleanCloudClient {
       email: '***'
     });
 
-    // First try to get customer directly from CleanCloud
-    const response = await this.makeRequest('/getCustomer', {
-      method: 'POST',
-      body: JSON.stringify({
-        customerEmail: params.email,
+    try {
+      // First try to get customer directly from CleanCloud
+      console.log('Making CleanCloud API request with params:', {
+        customerEmail: '***',
         excludeDeactivated: 1
-      })
-    });
+      });
 
-    if (!response) {
-      console.error('No response from API');
-      throw new Error('Failed to search for customer');
-    }
+      const response = await this.makeRequest('/getCustomer', {
+        method: 'POST',
+        body: JSON.stringify({
+          customerEmail: params.email
+        })
+      });
 
-    if (response.Error) {
-      console.error('API Error:', response.Error);
-      if (response.Error === "No Customer With That ID") {
-        return [];
-      }
-      throw new Error(response.Error);
-    }
+      console.log('CleanCloud API response:', response);
 
-    const customers = Array.isArray(response) ? response : [response];
-
-    // If we found a customer in CleanCloud, make sure we have them in our database
-    if (customers.length > 0) {
-      const customer = customers[0];
-      
-      // Check if we already have this customer in our database
-      const { data: existingCustomer, error: dbError } = await supabase
-        .from('cleancloud_customers')
-        .select('*')
-        .eq('email', params.email)
-        .maybeSingle();
-
-      if (dbError) {
-        console.error('Database error:', dbError);
-        throw new Error('Failed to check customer in database');
+      if (!response) {
+        console.error('No response from API');
+        throw new Error('Failed to search for customer');
       }
 
-      // If not in our database, add them
-      if (!existingCustomer) {
-        const { error: insertError } = await supabase
-          .from('cleancloud_customers')
-          .insert({
-            email: params.email,
-            cleancloud_customer_id: customer.id,
-            first_name: customer.firstName || customer.customerName?.split(' ')[0] || '',
-            last_name: customer.lastName || customer.customerName?.split(' ')[1] || '',
-            mobile: customer.mobile || customer.customerTel || ''
-          });
-
-        if (insertError) {
-          console.error('Failed to store customer mapping:', insertError);
-          throw new Error('Failed to sync customer to database');
+      if (response.Error) {
+        console.error('API Error:', response.Error);
+        if (response.Error === "No Customer With That ID") {
+          return [];
         }
+        throw new Error(response.Error);
       }
-    }
 
-    return customers;
+      const customers = Array.isArray(response) ? response : [response];
+      console.log('Processed customer results:', customers);
+
+      // If we found a customer in CleanCloud, make sure we have them in our database
+      if (customers.length > 0) {
+        const customer = customers[0];
+        console.log('Found customer in CleanCloud:', {
+          id: customer.id,
+          name: customer.customerName || `${customer.firstName} ${customer.lastName}`
+        });
+        
+        // Check if we already have this customer in our database
+        const { data: existingCustomer, error: dbError } = await supabase
+          .from('cleancloud_customers')
+          .select('*')
+          .eq('email', params.email)
+          .maybeSingle();
+
+        if (dbError) {
+          console.error('Database error:', dbError);
+          throw new Error('Failed to check customer in database');
+        }
+
+        // If not in our database, add them
+        if (!existingCustomer) {
+          console.log('Syncing customer to our database...');
+          const { error: insertError } = await supabase
+            .from('cleancloud_customers')
+            .insert({
+              email: params.email,
+              cleancloud_customer_id: customer.id,
+              first_name: customer.firstName || customer.customerName?.split(' ')[0] || '',
+              last_name: customer.lastName || customer.customerName?.split(' ')[1] || '',
+              mobile: customer.mobile || customer.customerTel || ''
+            });
+
+          if (insertError) {
+            console.error('Failed to store customer mapping:', insertError);
+            throw new Error('Failed to sync customer to database');
+          }
+          console.log('Successfully synced customer to database');
+        } else {
+          console.log('Customer already exists in our database:', existingCustomer);
+        }
+      } else {
+        console.log('No customers found in CleanCloud');
+      }
+
+      return customers;
+    } catch (error) {
+      console.error('Error in searchCustomers:', error);
+      throw error;
+    }
   }
 
   async createCustomer(input: CreateCustomerInput) {

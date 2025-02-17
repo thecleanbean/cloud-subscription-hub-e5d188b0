@@ -10,7 +10,8 @@ export class BaseCleanCloudClient {
     
     console.log(`Making request to CleanCloud:`, {
       path: apiPath,
-      method: options.method || 'GET'
+      method: options.method || 'GET',
+      body: options.body && typeof options.body === 'string' ? JSON.parse(options.body) : undefined
     });
     
     const response = await supabase.functions.invoke('cleancloud-proxy', {
@@ -25,6 +26,8 @@ export class BaseCleanCloudClient {
       console.error('CleanCloud API Error:', response.error);
       throw new Error(`CleanCloud API Error: ${response.error.message}`);
     }
+
+    console.log('CleanCloud API Response:', response.data);
     
     return response.data;
   }
