@@ -1,3 +1,4 @@
+
 import { BaseCleanCloudClient } from "./baseClient";
 import { CreateCustomerInput, CreateCustomerParams } from "./types";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,23 +66,25 @@ export class CustomerService extends BaseCleanCloudClient {
       console.log('CleanCloud search response:', customerListResponse);
 
       if (customerListResponse?.Success === "True" && Array.isArray(customerListResponse.Customers)) {
-        // Debug: Log all customer emails
-        console.log('All customers in response:', customerListResponse.Customers.map(c => ({
-          customerEmail: c.customerEmail,
-          customerName: c.customerName
-        })));
+        // Debug: Log the full customer objects to see all available fields
+        console.log('All customers in response:', JSON.stringify(customerListResponse.Customers, null, 2));
 
         const foundCustomer = customerListResponse.Customers.find(c => {
-          const customerEmail = (c.customerEmail || '').toLowerCase();
+          // Try multiple possible email field variations
+          const possibleEmails = [
+            c.customerEmail,
+            c.CustomerEmail,
+            c.email,
+            c.Email
+          ].map(e => (e || '').toLowerCase());
+
           const searchEmail = params.email.toLowerCase();
           
-          console.log('Comparing emails:', {
-            customerEmail,
-            searchEmail,
-            matches: customerEmail === searchEmail
-          });
+          console.log('Customer:', c);
+          console.log('Possible emails:', possibleEmails);
+          console.log('Searching for:', searchEmail);
           
-          return customerEmail === searchEmail;
+          return possibleEmails.includes(searchEmail);
         });
 
         if (foundCustomer) {
@@ -89,12 +92,12 @@ export class CustomerService extends BaseCleanCloudClient {
 
           // Process the customer details according to CleanCloud API field names
           const processedCustomer = {
-            id: foundCustomer.id,
+            id: foundCustomer.id || foundCustomer.ID || foundCustomer.customerID,
             firstName: foundCustomer.customerName?.split(' ')[0] || '',
             lastName: foundCustomer.customerName?.split(' ').slice(1).join(' ') || '',
-            mobile: foundCustomer.customerTel || '',
+            mobile: foundCustomer.customerTel || foundCustomer.telephone || '',
             email: params.email,
-            customerAddress: foundCustomer.customerAddress || ''
+            customerAddress: foundCustomer.customerAddress || foundCustomer.address || ''
           };
 
           // If customer isn't in our database yet, add them
