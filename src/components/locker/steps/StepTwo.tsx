@@ -44,6 +44,8 @@ const StepTwo = ({
     try {
       if (customerType === 'returning') {
         const customer = await findCustomerByEmail(formData.email);
+        console.log('Found customer:', customer);
+        
         if (!customer) {
           toast({
             title: "Customer Not Found",
@@ -52,11 +54,27 @@ const StepTwo = ({
           });
           return;
         }
+        
         // Pre-fill the form data with customer details
-        updateFormData("firstName", customer.firstName || "");
-        updateFormData("lastName", customer.lastName || "");
-        updateFormData("mobile", customer.mobile || "");
-        updateFormData("address", customer.customerAddress || "");
+        if (customer.firstName) updateFormData("firstName", customer.firstName);
+        if (customer.lastName) updateFormData("lastName", customer.lastName);
+        if (customer.mobile) updateFormData("mobile", customer.mobile);
+        if (customer.customerAddress) {
+          updateFormData("address", customer.customerAddress);
+          // Try to extract postcode from address if available
+          const postcodeMatch = customer.customerAddress.match(/[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}/gi);
+          if (postcodeMatch) {
+            updateFormData("postcode", postcodeMatch[0]);
+            onPostcodeValidate(postcodeMatch[0]);
+          }
+        }
+        
+        console.log('Updated form data with customer details:', {
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          mobile: customer.mobile,
+          address: customer.customerAddress
+        });
       } else {
         // For new customers, validate required fields
         const requiredFields = ['firstName', 'lastName', 'email', 'mobile', 'postcode', 'address'];
