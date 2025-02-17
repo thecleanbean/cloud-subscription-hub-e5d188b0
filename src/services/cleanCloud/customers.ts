@@ -1,3 +1,4 @@
+
 import { BaseCleanCloudClient } from "./baseClient";
 import { CreateCustomerInput, CreateCustomerParams } from "./types";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,33 +49,38 @@ export class CustomerService extends BaseCleanCloudClient {
         }
       }
 
-      // If not in database, try to find in CleanCloud using dateFrom/dateTo range
+      // If not in local database, search in CleanCloud using 30-day windows
       console.log('Step 2: Searching CleanCloud for customer...');
       
-      // Search for customer created in the last 5 years (should be enough)
       const today = new Date();
-      const fiveYearsAgo = new Date();
-      fiveYearsAgo.setFullYear(today.getFullYear() - 5);
-      
-      const customerListResponse = await this.makeRequest('/getCustomer', {
-        method: 'POST',
-        body: JSON.stringify({
-          dateFrom: fiveYearsAgo.toISOString().split('T')[0],
-          dateTo: today.toISOString().split('T')[0]
-        })
-      });
+      const results = [];
+      let foundCustomer = null;
 
-      console.log('CleanCloud customer list response:', customerListResponse);
+      // Search in 30-day windows going back 1 year
+      for (let i = 0; i < 12 && !foundCustomer; i++) {
+        const endDate = new Date(today);
+        endDate.setMonth(today.getMonth() - i);
+        const startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - 30);
 
-      if (customerListResponse?.Error) {
-        console.error('Error getting customer list:', customerListResponse.Error);
-        return [];
+        console.log(`Searching date range: ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}`);
+
+        const customerListResponse = await this.makeRequest('/getCustomer', {
+          method: 'POST',
+          body: JSON.stringify({
+            dateFrom: startDate.toISOString().split('T')[0],
+            dateTo: endDate.toISOString().split('T')[0]
+          })
+        });
+
+        if (!customerListResponse?.Error && Array.isArray(customerListResponse)) {
+          foundCustomer = customerListResponse.find(c => 
+            c.email === params.email || c.customerEmail === params.email
+          );
+
+          if (foundCustomer) break;
+        }
       }
-
-      // Find the customer with matching email
-      const foundCustomer = Array.isArray(customerListResponse) ? 
-        customerListResponse.find(c => c.email === params.email || c.customerEmail === params.email) : 
-        null;
 
       if (!foundCustomer) {
         console.log('No matching customer found in CleanCloud');
