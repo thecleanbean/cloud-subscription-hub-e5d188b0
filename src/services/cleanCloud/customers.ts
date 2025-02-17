@@ -23,18 +23,41 @@ export class CustomerService extends BaseCleanCloudClient {
         throw new Error('Failed to check customer in database');
       }
 
-      if (existingCustomer) {
-        console.log('Found customer in our database:', existingCustomer);
+      if (existingCustomer?.cleancloud_customer_id) {
+        console.log('Found customer in our database, fetching details from CleanCloud');
+        
+        // Get customer details from CleanCloud using their ID
+        const customerDetails = await this.makeRequest('/getCustomer', {
+          method: 'POST',
+          body: JSON.stringify({
+            customerID: existingCustomer.cleancloud_customer_id
+          })
+        });
+
+        if (customerDetails?.Error) {
+          console.error('Error fetching customer details:', customerDetails.Error);
+          throw new Error(customerDetails.Error);
+        }
+
+        console.log('Got customer details from CleanCloud:', customerDetails);
+        return [{
+          ...customerDetails,
+          id: existingCustomer.cleancloud_customer_id,
+          firstName: existingCustomer.first_name,
+          lastName: existingCustomer.last_name,
+          mobile: existingCustomer.mobile,
+          email: existingCustomer.email
+        }];
       }
 
-      // Search in CleanCloud using loginCustomer endpoint
-      console.log('Making CleanCloud API request to check customer existence');
+      // If not in our database, try to find in CleanCloud
+      console.log('Customer not found in database, checking CleanCloud');
       
       const response = await this.makeRequest('/loginCustomer', {
         method: 'POST',
         body: JSON.stringify({
           customerEmail: params.email,
-          customerPassword: 'placeholder' // The API will return customer info even with invalid password
+          customerPassword: 'placeholder'
         })
       });
 
@@ -50,30 +73,25 @@ export class CustomerService extends BaseCleanCloudClient {
         throw new Error(response.Error);
       }
 
-      // If we got here, the customer exists (either we got valid data or an "Invalid Password" error)
-      const customerData = response.Error ? { id: response.id } : response;
-      console.log('Found customer in CleanCloud:', customerData);
-
-      // If we found a customer in CleanCloud and not in our database, add them
-      if (customerData?.id && !existingCustomer) {
-        console.log('Syncing CleanCloud customer to our database');
+      // If we found a customer in CleanCloud, get their full details and sync to our database
+      if (response?.id) {
+        console.log('Found customer in CleanCloud, getting full details');
         
-        // Get full customer details now that we have the ID
         const customerDetails = await this.makeRequest('/getCustomer', {
           method: 'POST',
           body: JSON.stringify({
-            customerID: customerData.id
+            customerID: response.id
           })
         });
 
-        console.log('Got customer details:', customerDetails);
-
         if (!customerDetails?.Error) {
+          console.log('Syncing customer to our database');
+          
           const { error: insertError } = await supabase
             .from('cleancloud_customers')
             .insert({
               email: params.email,
-              cleancloud_customer_id: customerData.id,
+              cleancloud_customer_id: response.id,
               first_name: customerDetails.firstName || customerDetails.customerName?.split(' ')[0] || '',
               last_name: customerDetails.lastName || customerDetails.customerName?.split(' ')[1] || '',
               mobile: customerDetails.mobile || customerDetails.customerTel || ''
@@ -83,11 +101,13 @@ export class CustomerService extends BaseCleanCloudClient {
             console.error('Failed to store customer mapping:', insertError);
             throw new Error('Failed to sync customer to database');
           }
+          
           console.log('Successfully synced customer to database');
+          return [{ ...customerDetails, id: response.id }];
         }
       }
 
-      return customerData ? [customerData] : [];
+      return [];
     } catch (error) {
       console.error('Error in searchCustomers:', error);
       throw error;
