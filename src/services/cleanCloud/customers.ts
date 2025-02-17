@@ -1,4 +1,3 @@
-
 import { BaseCleanCloudClient } from "./baseClient";
 import { CreateCustomerInput, CreateCustomerParams } from "./types";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,31 +62,10 @@ export class CustomerService extends BaseCleanCloudClient {
         })
       });
 
-      console.log('Raw CleanCloud response:', customerListResponse);
-
       if (customerListResponse?.Success === "True" && Array.isArray(customerListResponse.Customers)) {
-        console.log('API Response structure:', {
-          success: customerListResponse.Success,
-          totalCustomers: customerListResponse.Customers.length,
-          sampleCustomer: customerListResponse.Customers[0] ? {
-            ...customerListResponse.Customers[0],
-            Email: '***'
-          } : null
-        });
-
-        const foundCustomer = customerListResponse.Customers.find(c => {
-          const customerEmail = c.Email?.toLowerCase() || c.email?.toLowerCase();
-          const searchEmail = params.email.toLowerCase();
-          
-          console.log('Customer comparison:', {
-            searchEmail,
-            customerEmail,
-            hasEmail: Boolean(customerEmail),
-            matches: customerEmail === searchEmail
-          });
-          
-          return customerEmail === searchEmail;
-        });
+        const foundCustomer = customerListResponse.Customers.find(c => 
+          c.customerEmail?.toLowerCase() === params.email.toLowerCase()
+        );
 
         if (foundCustomer) {
           console.log('Found matching customer:', {
