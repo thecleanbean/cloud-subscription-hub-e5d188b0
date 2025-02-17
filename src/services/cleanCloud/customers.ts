@@ -1,16 +1,16 @@
+
 import { BaseCleanCloudClient } from "./baseClient";
 import { CreateCustomerInput, CreateCustomerParams } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 
 export class CustomerService extends BaseCleanCloudClient {
   async searchCustomers(params: { email: string }) {
-    console.log('Searching for customer with params:', {
-      ...params,
-      email: '***'
-    });
+    console.log('=== Starting customer search ===');
+    console.log('Searching for customer with email:', params.email);
 
     try {
       // First check our database
+      console.log('Step 1: Checking local database...');
       const { data: existingCustomer, error: dbError } = await supabase
         .from('cleancloud_customers')
         .select('*')
@@ -22,22 +22,35 @@ export class CustomerService extends BaseCleanCloudClient {
         throw new Error('Failed to check customer in database');
       }
 
+      if (existingCustomer) {
+        console.log('Found customer in local database:', {
+          id: existingCustomer.id,
+          cleancloud_id: existingCustomer.cleancloud_customer_id,
+          email: existingCustomer.email
+        });
+      } else {
+        console.log('Customer not found in local database');
+      }
+
       // First try to find customer in CleanCloud using loginCustomer
-      console.log('Checking if customer exists in CleanCloud');
+      console.log('Step 2: Checking CleanCloud via loginCustomer...');
       
+      const loginRequest = {
+        customerEmail: params.email,
+        customerPassword: 'placeholder'
+      };
+      console.log('Login request payload:', loginRequest);
+
       const loginResponse = await this.makeRequest('/loginCustomer', {
         method: 'POST',
-        body: JSON.stringify({
-          customerEmail: params.email,
-          customerPassword: 'placeholder'
-        })
+        body: JSON.stringify(loginRequest)
       });
 
       console.log('CleanCloud login response:', loginResponse);
 
       // If customer doesn't exist in CleanCloud
       if (loginResponse?.Error === "No Customer With That Email") {
-        console.log('No customer found in CleanCloud');
+        console.log('Result: No customer found in CleanCloud');
         return [];
       }
 
@@ -48,9 +61,9 @@ export class CustomerService extends BaseCleanCloudClient {
       }
 
       // At this point we know the customer exists in CleanCloud
-      // The ID will be in the response even with an "Invalid Password" error
       const cleanCloudId = loginResponse.id;
-      console.log('Found customer in CleanCloud, getting full details');
+      console.log('Step 3: Customer found in CleanCloud with ID:', cleanCloudId);
+      console.log('Fetching full customer details...');
 
       // Get full customer details using the ID
       const customerDetails = await this.makeRequest('/getCustomer', {
@@ -60,25 +73,40 @@ export class CustomerService extends BaseCleanCloudClient {
         })
       });
 
+      console.log('Raw customer details response:', customerDetails);
+
       if (customerDetails?.Error) {
         console.error('Error fetching customer details:', customerDetails.Error);
         throw new Error(customerDetails.Error);
       }
 
-      console.log('Got customer details from CleanCloud:', customerDetails);
+      // Process the customer details
+      const processedCustomer = {
+        ...customerDetails,
+        id: cleanCloudId,
+        firstName: customerDetails.firstName || customerDetails.customerName?.split(' ')[0] || '',
+        lastName: customerDetails.lastName || customerDetails.customerName?.split(' ')[1] || '',
+        mobile: customerDetails.mobile || customerDetails.customerTel || '',
+        email: params.email
+      };
+
+      console.log('Processed customer details:', {
+        ...processedCustomer,
+        email: '***'
+      });
 
       // If customer isn't in our database yet, add them
       if (!existingCustomer) {
-        console.log('Customer not in our database, adding them');
+        console.log('Step 4: Syncing customer to local database...');
         
         const { error: insertError } = await supabase
           .from('cleancloud_customers')
           .insert({
             email: params.email,
             cleancloud_customer_id: cleanCloudId,
-            first_name: customerDetails.firstName || customerDetails.customerName?.split(' ')[0] || '',
-            last_name: customerDetails.lastName || customerDetails.customerName?.split(' ')[1] || '',
-            mobile: customerDetails.mobile || customerDetails.customerTel || ''
+            first_name: processedCustomer.firstName,
+            last_name: processedCustomer.lastName,
+            mobile: processedCustomer.mobile
           });
 
         if (insertError) {
@@ -86,21 +114,14 @@ export class CustomerService extends BaseCleanCloudClient {
           throw new Error('Failed to sync customer to database');
         }
         
-        console.log('Successfully added customer to database');
+        console.log('Successfully synced customer to database');
       }
 
-      // Return the customer details
-      return [{
-        ...customerDetails,
-        id: cleanCloudId,
-        firstName: customerDetails.firstName || customerDetails.customerName?.split(' ')[0] || '',
-        lastName: customerDetails.lastName || customerDetails.customerName?.split(' ')[1] || '',
-        mobile: customerDetails.mobile || customerDetails.customerTel || '',
-        email: params.email
-      }];
+      console.log('=== Customer search completed successfully ===');
+      return [processedCustomer];
 
     } catch (error) {
-      console.error('Error in searchCustomers:', error);
+      console.error('=== Error in searchCustomers ===', error);
       throw error;
     }
   }
