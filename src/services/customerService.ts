@@ -79,7 +79,7 @@ export const findCustomerByEmail = async (email: string) => {
     const { data: existingCustomer, error: dbError } = await supabase
       .from('cleancloud_customers')
       .select('*')
-      .eq('email', email)
+      .eq('email', email.toLowerCase())
       .maybeSingle();
 
     if (dbError) {
@@ -89,13 +89,14 @@ export const findCustomerByEmail = async (email: string) => {
 
     // If we have the customer in our database, get their details from CleanCloud
     if (existingCustomer?.cleancloud_customer_id) {
-      const response = await cleanCloudAPI.customers.searchCustomers({
+      console.log('Found customer in local database, fetching CleanCloud details...');
+      const customerDetails = await cleanCloudAPI.customers.searchCustomers({
         email: email
       });
 
-      if (response && response.length > 0) {
+      if (customerDetails && customerDetails.length > 0) {
         return {
-          ...response[0],
+          ...customerDetails[0],
           firstName: existingCustomer.first_name,
           lastName: existingCustomer.last_name,
           mobile: existingCustomer.mobile,
@@ -107,9 +108,39 @@ export const findCustomerByEmail = async (email: string) => {
     const customers = await cleanCloudAPI.customers.searchCustomers({
       email: email
     });
+
+    if (customers && customers.length > 0) {
+      // Look for exact email match
+      const matchingCustomer = customers.find(c => 
+        c.customerEmail?.toLowerCase() === email.toLowerCase()
+      );
+
+      if (matchingCustomer) {
+        console.log('Found matching customer in CleanCloud');
+        
+        // Store the mapping in our database for future lookups
+        const { error: insertError } = await supabase
+          .from('cleancloud_customers')
+          .insert({
+            email: email.toLowerCase(),
+            cleancloud_customer_id: matchingCustomer.id,
+            first_name: matchingCustomer.firstName || matchingCustomer.Name?.split(' ')[0],
+            last_name: matchingCustomer.lastName || matchingCustomer.Name?.split(' ').slice(1).join(' '),
+            mobile: matchingCustomer.mobile || matchingCustomer.Tel
+          });
+
+        if (insertError) {
+          console.error('Error storing customer mapping:', insertError);
+          // Don't throw here, we still want to return the customer
+        }
+
+        return matchingCustomer;
+      }
+    }
     
-    console.log('Customer search result:', customers);
-    return customers.length > 0 ? customers[0] : null;
+    console.log('No matching customer found');
+    return null;
+
   } catch (error) {
     console.error('Error searching for customer:', error);
     throw error;
