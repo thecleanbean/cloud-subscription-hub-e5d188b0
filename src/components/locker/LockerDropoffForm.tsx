@@ -113,16 +113,19 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
           updateFormData={updateFormData}
           isValidPostcode={isValidPostcode}
           onPostcodeValidate={handlePostcodeValidate}
-        />
-
-        <FormNavigation
-          step={step}
-          totalSteps={totalSteps}
-          isLoading={isLoading}
-          canProceed={canProceed()}
-          onPrevious={handlePrevious}
           onNext={handleNext}
         />
+
+        {step !== 1 && (
+          <FormNavigation
+            step={step}
+            totalSteps={totalSteps}
+            isLoading={isLoading}
+            canProceed={canProceed()}
+            onPrevious={handlePrevious}
+            onNext={handleNext}
+          />
+        )}
       </div>
     </Card>
   );

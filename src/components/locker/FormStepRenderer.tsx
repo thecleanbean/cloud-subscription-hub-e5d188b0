@@ -14,6 +14,7 @@ interface FormStepRendererProps {
   updateFormData: <K extends keyof FormData>(field: K, value: FormData[K]) => void;
   isValidPostcode: boolean;
   onPostcodeValidate: (postcode: string) => void;
+  onNext: () => void;
 }
 
 const FormStepRenderer = ({
@@ -24,6 +25,7 @@ const FormStepRenderer = ({
   updateFormData,
   isValidPostcode,
   onPostcodeValidate,
+  onNext,
 }: FormStepRendererProps) => {
   switch (step) {
     case 1:
@@ -31,6 +33,7 @@ const FormStepRenderer = ({
         <StepOne
           customerType={customerType}
           setCustomerType={setCustomerType}
+          onNext={onNext}
         />
       );
     case 2:

@@ -7,9 +7,16 @@ import { CustomerType } from "@/types/locker";
 interface StepOneProps {
   customerType: CustomerType;
   setCustomerType: (type: CustomerType) => void;
+  onNext: () => void;
 }
 
-const StepOne = ({ customerType, setCustomerType }: StepOneProps) => {
+const StepOne = ({ customerType, setCustomerType, onNext }: StepOneProps) => {
+  const handleCustomerTypeChange = (value: string) => {
+    setCustomerType(value as CustomerType);
+    // Automatically proceed to next step after a short delay
+    setTimeout(onNext, 300);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -24,7 +31,7 @@ const StepOne = ({ customerType, setCustomerType }: StepOneProps) => {
       </div>
       <RadioGroup
         value={customerType}
-        onValueChange={(value) => setCustomerType(value as CustomerType)}
+        onValueChange={handleCustomerTypeChange}
         className="grid grid-cols-2 gap-4"
       >
         <div>
