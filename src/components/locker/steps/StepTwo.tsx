@@ -33,12 +33,12 @@ const StepTwo = ({
   const [emailValue, setEmailValue] = useState(formData.email || '');
   const debouncedEmail = useDebounce(emailValue, 500);
 
-  // Update form data when debounced email changes
+  // Only update form data when debounced email changes and is different from current
   useEffect(() => {
-    if (debouncedEmail) {
+    if (debouncedEmail && debouncedEmail !== formData.email) {
       updateFormData("email", debouncedEmail);
     }
-  }, [debouncedEmail, updateFormData]);
+  }, [debouncedEmail, formData.email, updateFormData]);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim();
