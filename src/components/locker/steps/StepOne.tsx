@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { motion } from "framer-motion";
 import { CustomerType } from "@/types/locker";
+import { useEffect } from "react";
 
 interface StepOneProps {
   customerType: CustomerType;
@@ -11,11 +12,13 @@ interface StepOneProps {
 }
 
 const StepOne = ({ customerType, setCustomerType, onNext }: StepOneProps) => {
-  const handleCustomerTypeChange = (value: string) => {
-    setCustomerType(value as CustomerType);
-    // Automatically proceed to next step after a short delay
-    setTimeout(onNext, 300);
-  };
+  // Use useEffect to handle navigation when customerType changes
+  useEffect(() => {
+    if (customerType) {
+      const timer = setTimeout(onNext, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [customerType, onNext]);
 
   return (
     <motion.div
@@ -31,7 +34,7 @@ const StepOne = ({ customerType, setCustomerType, onNext }: StepOneProps) => {
       </div>
       <RadioGroup
         value={customerType}
-        onValueChange={handleCustomerTypeChange}
+        onValueChange={(value) => setCustomerType(value as CustomerType)}
         className="grid grid-cols-2 gap-4"
       >
         <div>
