@@ -1,3 +1,4 @@
+
 import { BaseCleanCloudClient } from "./baseClient";
 import { CreateCustomerInput, CreateCustomerParams } from "./types";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,64 +27,67 @@ export class CustomerService extends BaseCleanCloudClient {
         console.log('Found customer in our database:', existingCustomer);
       }
 
-      // Then search in CleanCloud
-      console.log('Making CleanCloud API request with params:', {
-        customerEmail: '***'
-      });
-
-      const response = await this.makeRequest('/getCustomer', {
+      // Search in CleanCloud using loginCustomer endpoint
+      console.log('Making CleanCloud API request to check customer existence');
+      
+      const response = await this.makeRequest('/loginCustomer', {
         method: 'POST',
         body: JSON.stringify({
-          dateFrom: '', // These empty values will make the API search by email instead
-          dateTo: '',
-          customerEmail: params.email
+          customerEmail: params.email,
+          customerPassword: 'placeholder' // The API will return customer info even with invalid password
         })
       });
 
       console.log('CleanCloud API response:', response);
 
-      if (!response) {
-        console.error('No response from API');
-        throw new Error('Failed to search for customer');
+      if (response?.Error === "No Customer With That Email") {
+        console.log('No customer found in CleanCloud');
+        return [];
       }
 
-      if (response.Error) {
-        console.error('API Error:', response.Error);
-        if (response.Error.includes("No Customer")) {
-          return [];
-        }
+      if (response?.Error && !response.Error.includes("Invalid Password")) {
+        console.error('Unexpected API Error:', response.Error);
         throw new Error(response.Error);
       }
 
-      const customers = Array.isArray(response) ? response : [response];
-      console.log('Processed customer results:', customers);
+      // If we got here, the customer exists (either we got valid data or an "Invalid Password" error)
+      const customerData = response.Error ? { id: response.id } : response;
+      console.log('Found customer in CleanCloud:', customerData);
 
       // If we found a customer in CleanCloud and not in our database, add them
-      if (customers.length > 0 && !existingCustomer) {
-        const customer = customers[0];
-        console.log('Found customer in CleanCloud, syncing to database:', {
-          id: customer.id,
-          name: customer.customerName || `${customer.firstName} ${customer.lastName}`
-        });
+      if (customerData?.id && !existingCustomer) {
+        console.log('Syncing CleanCloud customer to our database');
         
-        const { error: insertError } = await supabase
-          .from('cleancloud_customers')
-          .insert({
-            email: params.email,
-            cleancloud_customer_id: customer.id,
-            first_name: customer.firstName || customer.customerName?.split(' ')[0] || '',
-            last_name: customer.lastName || customer.customerName?.split(' ')[1] || '',
-            mobile: customer.mobile || customer.customerTel || ''
-          });
+        // Get full customer details now that we have the ID
+        const customerDetails = await this.makeRequest('/getCustomer', {
+          method: 'POST',
+          body: JSON.stringify({
+            customerID: customerData.id
+          })
+        });
 
-        if (insertError) {
-          console.error('Failed to store customer mapping:', insertError);
-          throw new Error('Failed to sync customer to database');
+        console.log('Got customer details:', customerDetails);
+
+        if (!customerDetails?.Error) {
+          const { error: insertError } = await supabase
+            .from('cleancloud_customers')
+            .insert({
+              email: params.email,
+              cleancloud_customer_id: customerData.id,
+              first_name: customerDetails.firstName || customerDetails.customerName?.split(' ')[0] || '',
+              last_name: customerDetails.lastName || customerDetails.customerName?.split(' ')[1] || '',
+              mobile: customerDetails.mobile || customerDetails.customerTel || ''
+            });
+
+          if (insertError) {
+            console.error('Failed to store customer mapping:', insertError);
+            throw new Error('Failed to sync customer to database');
+          }
+          console.log('Successfully synced customer to database');
         }
-        console.log('Successfully synced customer to database');
       }
 
-      return customers;
+      return customerData ? [customerData] : [];
     } catch (error) {
       console.error('Error in searchCustomers:', error);
       throw error;
