@@ -6,7 +6,7 @@ import { toast } from "@/components/ui/use-toast";
 import { addDays } from "date-fns";
 
 export const useLockerDropoff = ({ onSubmit }: UseLockerDropoffProps) => {  
-  const [customerType, setCustomerType] = useState<CustomerType>('new');
+  const [customerType, setCustomerType] = useState<CustomerType>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     firstName: "",

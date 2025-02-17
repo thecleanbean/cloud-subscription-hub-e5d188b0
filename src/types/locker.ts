@@ -25,4 +25,5 @@ export interface UseLockerDropoffProps {
   onSubmit: (data: FormData) => void;
 }
 
-export type CustomerType = 'new' | 'returning';
+export type CustomerType = 'new' | 'returning' | null;
+
