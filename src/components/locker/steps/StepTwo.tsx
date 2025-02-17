@@ -1,11 +1,11 @@
 
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import { findCustomerByEmail } from "@/services/customerService";
 import { FormData, CustomerType } from "@/types/locker";
 import CustomerDetailsForm from "@/components/registration/CustomerDetailsForm";
@@ -34,7 +34,7 @@ const StepTwo = ({
   const debouncedEmail = useDebounce(emailValue, 500);
 
   // Update form data when debounced email changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (debouncedEmail) {
       updateFormData("email", debouncedEmail);
     }
