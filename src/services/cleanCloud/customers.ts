@@ -54,13 +54,16 @@ export class CustomerService extends BaseCleanCloudClient {
         return [];
       }
 
-      // If there's an unexpected error
-      if (loginResponse?.Error && !loginResponse.Error.includes("Invalid Password")) {
+      // If there's a password error, it means the customer exists!
+      // Extract the customer ID from the response
+      const customerExists = loginResponse?.Error?.includes("Incorrect email and password");
+      if (!customerExists && loginResponse?.Error) {
         console.error('Unexpected API Error:', loginResponse.Error);
         throw new Error(loginResponse.Error);
       }
 
       // At this point we know the customer exists in CleanCloud
+      // The customer ID should be in the response even with password error
       const cleanCloudId = loginResponse.id;
       console.log('Step 3: Customer found in CleanCloud with ID:', cleanCloudId);
       console.log('Fetching full customer details...');
