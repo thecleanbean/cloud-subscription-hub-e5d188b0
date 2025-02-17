@@ -1,4 +1,3 @@
-
 import { BaseCleanCloudClient } from "./baseClient";
 import { CreateCustomerInput, CreateCustomerParams } from "./types";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,30 +65,19 @@ export class CustomerService extends BaseCleanCloudClient {
 
       if (customerListResponse?.Success === "True" && Array.isArray(customerListResponse.Customers)) {
         // Debug: Log response structure without sensitive data
-        console.log('Analyzing response structure of first customer:', {
-          availableFields: Object.keys(customerListResponse.Customers[0]),
+        console.log('Analyzing response structure:', {
+          totalCustomers: customerListResponse.Customers.length,
           // Avoid logging actual values for privacy
         });
 
         const foundCustomer = customerListResponse.Customers.find(c => {
           const searchEmail = params.email.toLowerCase();
-          // Try multiple possible email field names
-          const possibleEmails = [
-            c.customerEmail,
-            c.customer_email,
-            c.email,
-            c.Email,
-            c.emailAddress,
-            c.email_address
-          ].map(e => (e || '').toLowerCase());
+          const customerEmail = (c.customerEmail || '').toLowerCase();
           
-          // Log only the match result, not the actual emails
-          console.log('Checking customer record...', {
-            found: possibleEmails.includes(searchEmail),
-            fieldsChecked: possibleEmails.length
-          });
+          // Log only match attempt count, not the actual data
+          console.log('Checking customer record...');
           
-          return possibleEmails.includes(searchEmail);
+          return customerEmail === searchEmail;
         });
 
         if (foundCustomer) {
