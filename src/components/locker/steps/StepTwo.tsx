@@ -10,6 +10,7 @@ import { findCustomerByEmail } from "@/services/customerService";
 import { FormData, CustomerType } from "@/types/locker";
 import CustomerDetailsForm from "@/components/registration/CustomerDetailsForm";
 import { toast } from "@/components/ui/use-toast";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface StepTwoProps {
   formData: FormData;
@@ -29,9 +30,23 @@ const StepTwo = ({
   onNext 
 }: StepTwoProps) => {
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [emailValue, setEmailValue] = useState(formData.email || '');
+  const debouncedEmail = useDebounce(emailValue, 500);
+
+  // Update form data when debounced email changes
+  React.useEffect(() => {
+    if (debouncedEmail) {
+      updateFormData("email", debouncedEmail);
+    }
+  }, [debouncedEmail, updateFormData]);
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.trim();
+    setEmailValue(value);
+  };
 
   const handleNext = async () => {
-    if (!formData.email) {
+    if (!emailValue) {
       toast({
         title: "Email Required",
         description: "Please enter your email address",
@@ -43,8 +58,11 @@ const StepTwo = ({
     setIsCheckingEmail(true);
     try {
       if (customerType === 'returning') {
-        const customer = await findCustomerByEmail(formData.email);
-        console.log('Found customer:', customer);
+        const customer = await findCustomerByEmail(emailValue);
+        console.log('Found customer:', {
+          found: !!customer,
+          hasDetails: customer ? 'yes' : 'no'
+        });
         
         if (!customer) {
           toast({
@@ -67,26 +85,6 @@ const StepTwo = ({
             updateFormData("postcode", postcodeMatch[0]);
             onPostcodeValidate(postcodeMatch[0]);
           }
-        }
-        
-        console.log('Updated form data with customer details:', {
-          firstName: customer.firstName,
-          lastName: customer.lastName,
-          mobile: customer.mobile,
-          address: customer.customerAddress
-        });
-      } else {
-        // For new customers, validate required fields
-        const requiredFields = ['firstName', 'lastName', 'email', 'mobile', 'postcode', 'address'];
-        const missingFields = requiredFields.filter(field => !formData[field as keyof FormData]);
-        
-        if (missingFields.length > 0) {
-          toast({
-            title: "Required Fields Missing",
-            description: `Please fill in all required fields: ${missingFields.join(', ')}`,
-            variant: "destructive"
-          });
-          return;
         }
       }
       
@@ -127,8 +125,8 @@ const StepTwo = ({
             <Input
               id="email"
               type="email"
-              value={formData.email}
-              onChange={(e) => updateFormData("email", e.target.value)}
+              value={emailValue}
+              onChange={handleEmailChange}
               placeholder="Enter your email"
               className="mt-1"
             />
