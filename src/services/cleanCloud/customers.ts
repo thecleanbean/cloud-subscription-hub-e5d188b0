@@ -1,3 +1,4 @@
+
 import { BaseCleanCloudClient } from "./baseClient";
 import { CreateCustomerInput, CreateCustomerParams } from "./types";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,14 +13,14 @@ export class CustomerService extends BaseCleanCloudClient {
     try {
       // First try to get customer directly from CleanCloud
       console.log('Making CleanCloud API request with params:', {
-        customerEmail: '***',
-        excludeDeactivated: 1
+        customerEmail: '***'
       });
 
-      const response = await this.makeRequest('/getCustomer', {
+      const response = await this.makeRequest('/loginCustomer', {
         method: 'POST',
         body: JSON.stringify({
-          customerEmail: params.email
+          customerEmail: params.email,
+          customerPassword: 'dummy' // The API will return customer info even with invalid password
         })
       });
 
@@ -32,7 +33,7 @@ export class CustomerService extends BaseCleanCloudClient {
 
       if (response.Error) {
         console.error('API Error:', response.Error);
-        if (response.Error === "No Customer With That ID") {
+        if (response.Error === "No Customer With That Email") {
           return [];
         }
         throw new Error(response.Error);
