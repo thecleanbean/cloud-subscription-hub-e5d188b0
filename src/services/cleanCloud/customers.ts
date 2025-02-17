@@ -1,3 +1,4 @@
+
 import { BaseCleanCloudClient } from "./baseClient";
 import { CreateCustomerInput, CreateCustomerParams } from "./types";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,7 +44,8 @@ export class CustomerService extends BaseCleanCloudClient {
             firstName: customerDetails.Name?.split(' ')[0] || existingCustomer.first_name || '',
             lastName: customerDetails.Name?.split(' ').slice(1).join(' ') || existingCustomer.last_name || '',
             mobile: customerDetails.Tel || existingCustomer.mobile || '',
-            email: params.email
+            email: params.email,
+            customerAddress: customerDetails.Address || ''
           }];
         }
       }
@@ -70,13 +72,15 @@ export class CustomerService extends BaseCleanCloudClient {
 
         const foundCustomer = customerListResponse.Customers.find(c => {
           const searchEmail = params.email.toLowerCase();
-          const customerEmail = (c.Email || '').toLowerCase(); // Using Email as that's what we see in the response
+          const customerEmail = (c.customerEmail || '').toLowerCase(); // Using customerEmail as specified in the API docs
           
-          console.log('Comparing:', { 
-            customer: c.Name,
+          console.log('Comparing customer:', { 
+            name: c.Name,
+            rawEmail: c.customerEmail, // Log the raw email before transformation
             customerEmail, 
             searchEmail,
-            matches: customerEmail === searchEmail 
+            matches: customerEmail === searchEmail,
+            allFields: c // Log all fields to see what we're getting
           });
           
           return customerEmail === searchEmail;
@@ -85,7 +89,7 @@ export class CustomerService extends BaseCleanCloudClient {
         if (foundCustomer) {
           console.log('Found matching customer:', foundCustomer);
 
-          // Process the customer details according to actual API response fields
+          // Process the customer details according to API docs field names
           const processedCustomer = {
             id: foundCustomer.ID,
             firstName: foundCustomer.Name?.split(' ')[0] || '',
