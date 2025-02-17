@@ -43,7 +43,7 @@ export class CustomerService extends BaseCleanCloudClient {
             firstName: customerDetails.Name?.split(' ')[0] || existingCustomer.first_name || '',
             lastName: customerDetails.Name?.split(' ').slice(1).join(' ') || existingCustomer.last_name || '',
             mobile: customerDetails.Tel || existingCustomer.mobile || '',
-            email: params.email,
+            customerEmail: params.email,
             customerAddress: customerDetails.Address || ''
           }];
         }
@@ -63,22 +63,30 @@ export class CustomerService extends BaseCleanCloudClient {
         })
       });
 
+      console.log('Raw CleanCloud response:', customerListResponse);
+
       if (customerListResponse?.Success === "True" && Array.isArray(customerListResponse.Customers)) {
         console.log('API Response structure:', {
           success: customerListResponse.Success,
           totalCustomers: customerListResponse.Customers.length,
-          sampleCustomerFields: Object.keys(customerListResponse.Customers[0] || {}).sort(),
+          sampleCustomer: customerListResponse.Customers[0] ? {
+            ...customerListResponse.Customers[0],
+            Email: '***'
+          } : null
         });
 
         const foundCustomer = customerListResponse.Customers.find(c => {
+          const customerEmail = c.Email?.toLowerCase() || c.email?.toLowerCase();
+          const searchEmail = params.email.toLowerCase();
+          
           console.log('Customer comparison:', {
-            searchEmail: params.email.toLowerCase(),
-            hasCustomerEmail: 'customerEmail' in c,
-            fieldNames: Object.keys(c).filter(k => k.toLowerCase().includes('email')),
-            matches: c.customerEmail?.toLowerCase() === params.email.toLowerCase()
+            searchEmail,
+            customerEmail,
+            hasEmail: Boolean(customerEmail),
+            matches: customerEmail === searchEmail
           });
           
-          return c.customerEmail?.toLowerCase() === params.email.toLowerCase();
+          return customerEmail === searchEmail;
         });
 
         if (foundCustomer) {
@@ -94,7 +102,7 @@ export class CustomerService extends BaseCleanCloudClient {
             firstName: foundCustomer.Name?.split(' ')[0] || '',
             lastName: foundCustomer.Name?.split(' ').slice(1).join(' ') || '',
             mobile: foundCustomer.Tel || '',
-            email: params.email,
+            customerEmail: params.email,
             customerAddress: foundCustomer.Address || ''
           };
 
