@@ -43,13 +43,9 @@ export const createNewCustomer = async (formData: FormData) => {
     // If CleanCloud says the customer exists, try to fetch them from CleanCloud
     if (error.message?.includes("account already exists")) {
       console.log('Customer exists in CleanCloud, fetching details...');
-      const customers = await cleanCloudAPI.customers.searchCustomers({
-        email: formData.email
-      });
-
-      if (customers && customers.length > 0) {
-        const customer = customers[0];
-        
+      const customer = await findCustomerByEmail(formData.email);
+      
+      if (customer) {
         // Store the mapping in our database
         const { error: insertError } = await supabase
           .from('cleancloud_customers')
@@ -79,7 +75,35 @@ export const findCustomerByEmail = async (email: string) => {
   console.log('Searching for customer:', { email: '***' });
   
   try {
-    // Search directly in CleanCloud - passing email parameter
+    // First check our database
+    const { data: existingCustomer, error: dbError } = await supabase
+      .from('cleancloud_customers')
+      .select('*')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (dbError) {
+      console.error('Database error:', dbError);
+      throw new Error('Failed to search for customer in database');
+    }
+
+    // If we have the customer in our database, get their details from CleanCloud
+    if (existingCustomer?.cleancloud_customer_id) {
+      const response = await cleanCloudAPI.customers.searchCustomers({
+        email: email
+      });
+
+      if (response && response.length > 0) {
+        return {
+          ...response[0],
+          firstName: existingCustomer.first_name,
+          lastName: existingCustomer.last_name,
+          mobile: existingCustomer.mobile,
+        };
+      }
+    }
+
+    // If not in our database, search directly in CleanCloud
     const customers = await cleanCloudAPI.customers.searchCustomers({
       email: email
     });
