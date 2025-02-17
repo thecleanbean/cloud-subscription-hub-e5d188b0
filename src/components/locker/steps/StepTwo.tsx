@@ -30,7 +30,7 @@ const StepTwo = ({
 }: StepTwoProps) => {
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
 
-  const checkCustomerAndProceed = async () => {
+  const handleNext = async () => {
     if (!formData.email) {
       toast({
         title: "Email Required",
@@ -72,7 +72,6 @@ const StepTwo = ({
         }
       }
       
-      // If all validations pass, proceed to next step
       onNext();
     } catch (error) {
       console.error('Error checking customer:', error);
@@ -134,11 +133,11 @@ const StepTwo = ({
       )}
 
       <Button
-        onClick={checkCustomerAndProceed}
+        onClick={handleNext}
         disabled={isCheckingEmail}
         className="w-full mt-4"
       >
-        {isCheckingEmail ? "Checking..." : "Continue"}
+        {isCheckingEmail ? "Checking..." : "Next"}
       </Button>
     </motion.div>
   );
