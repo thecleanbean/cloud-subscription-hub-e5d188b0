@@ -37,8 +37,10 @@ const FormStepRenderer = ({
       if (customerType === 'returning') {
         return (
           <StepTwo
-            email={formData.email}
-            setEmail={(email) => updateFormData("email", email)}
+            formData={formData}
+            updateFormData={(field, value) => updateFormData(field as keyof FormData, value)}
+            isValidPostcode={isValidPostcode}
+            onPostcodeValidate={onPostcodeValidate}
           />
         );
       } else {
