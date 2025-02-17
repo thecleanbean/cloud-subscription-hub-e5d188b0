@@ -87,6 +87,10 @@ const LockerDropoffForm = ({ onSubmit }: LockerDropoffFormProps) => {
   };
 
   const handlePrevious = () => {
+    if (step === 2) {
+      // Clear the customer type when going back to step 1
+      setCustomerType('');
+    }
     setStep(prev => prev - 1);
   };
 
