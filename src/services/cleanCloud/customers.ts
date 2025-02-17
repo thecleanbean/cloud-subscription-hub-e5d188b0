@@ -1,4 +1,3 @@
-
 import { BaseCleanCloudClient } from "./baseClient";
 import { CreateCustomerInput, CreateCustomerParams } from "./types";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,9 +40,9 @@ export class CustomerService extends BaseCleanCloudClient {
           return [{
             ...customerDetails,
             id: existingCustomer.cleancloud_customer_id,
-            firstName: customerDetails.firstName || customerDetails.customerName?.split(' ')[0] || existingCustomer.first_name || '',
-            lastName: customerDetails.lastName || customerDetails.customerName?.split(' ')[1] || existingCustomer.last_name || '',
-            mobile: customerDetails.mobile || customerDetails.customerTel || existingCustomer.mobile || '',
+            firstName: customerDetails.Name?.split(' ')[0] || existingCustomer.first_name || '',
+            lastName: customerDetails.Name?.split(' ').slice(1).join(' ') || existingCustomer.last_name || '',
+            mobile: customerDetails.Tel || existingCustomer.mobile || '',
             email: params.email
           }];
         }
@@ -66,38 +65,34 @@ export class CustomerService extends BaseCleanCloudClient {
       console.log('CleanCloud search response:', customerListResponse);
 
       if (customerListResponse?.Success === "True" && Array.isArray(customerListResponse.Customers)) {
-        // Debug: Log the full customer objects to see all available fields
-        console.log('All customers in response:', JSON.stringify(customerListResponse.Customers, null, 2));
+        // Debug: Log customer search
+        console.log('Searching for email:', params.email.toLowerCase());
 
         const foundCustomer = customerListResponse.Customers.find(c => {
-          // Try multiple possible email field variations
-          const possibleEmails = [
-            c.customerEmail,
-            c.CustomerEmail,
-            c.email,
-            c.Email
-          ].map(e => (e || '').toLowerCase());
-
           const searchEmail = params.email.toLowerCase();
+          const customerEmail = (c.Email || '').toLowerCase(); // Using Email as that's what we see in the response
           
-          console.log('Customer:', c);
-          console.log('Possible emails:', possibleEmails);
-          console.log('Searching for:', searchEmail);
+          console.log('Comparing:', { 
+            customer: c.Name,
+            customerEmail, 
+            searchEmail,
+            matches: customerEmail === searchEmail 
+          });
           
-          return possibleEmails.includes(searchEmail);
+          return customerEmail === searchEmail;
         });
 
         if (foundCustomer) {
           console.log('Found matching customer:', foundCustomer);
 
-          // Process the customer details according to CleanCloud API field names
+          // Process the customer details according to actual API response fields
           const processedCustomer = {
-            id: foundCustomer.id || foundCustomer.ID || foundCustomer.customerID,
-            firstName: foundCustomer.customerName?.split(' ')[0] || '',
-            lastName: foundCustomer.customerName?.split(' ').slice(1).join(' ') || '',
-            mobile: foundCustomer.customerTel || foundCustomer.telephone || '',
+            id: foundCustomer.ID,
+            firstName: foundCustomer.Name?.split(' ')[0] || '',
+            lastName: foundCustomer.Name?.split(' ').slice(1).join(' ') || '',
+            mobile: foundCustomer.Tel || '',
             email: params.email,
-            customerAddress: foundCustomer.customerAddress || foundCustomer.address || ''
+            customerAddress: foundCustomer.Address || ''
           };
 
           // If customer isn't in our database yet, add them
